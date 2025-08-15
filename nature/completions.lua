@@ -1,4 +1,4 @@
-function hilbish.completion.handler(line, pos)
+function hilbish.completions.handler(line, pos)
 	if type(line) ~= 'string' then error '#1 must be a string' end
 	if type(pos) ~= 'number' then error '#2 must be a number' end
 
@@ -15,7 +15,7 @@ function hilbish.completion.handler(line, pos)
 	local query = fields[#fields]
 
 	if #fields == 1 then
-		local comps, pfx = hilbish.completion.bins(query, ctx, fields)
+		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
 		local compGroup = {
 			items = comps,
 			type = 'grid'
@@ -23,13 +23,13 @@ function hilbish.completion.handler(line, pos)
 
 		return {compGroup}, pfx
 	else
-		local ok, compGroups, pfx = pcall(hilbish.completion.call,
+		local ok, compGroups, pfx = pcall(hilbish.completions.call,
 		'command.' .. fields[1], query, ctx, fields)
 		if ok then
 			return compGroups, pfx
 		end
 
-		local comps, pfx = hilbish.completion.files(query, ctx, fields)
+		local comps, pfx = hilbish.completions.files(query, ctx, fields)
 		local compGroup = {
 			items = comps,
 			type = 'grid'

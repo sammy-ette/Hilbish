@@ -9,16 +9,16 @@ package fs
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strconv"
-	"os"
 	"strings"
 
 	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
-	"github.com/arnodel/golua/lib/packagelib"
 	"github.com/arnodel/golua/lib/iolib"
+	"github.com/arnodel/golua/lib/packagelib"
+	rt "github.com/arnodel/golua/runtime"
 )
 
 var Loader = packagelib.Loader{
@@ -28,16 +28,17 @@ var Loader = packagelib.Loader{
 
 func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"cd": util.LuaExport{fcd, 1, false},
-		"mkdir": util.LuaExport{fmkdir, 2, false},
-		"stat": util.LuaExport{fstat, 1, false},
-		"readdir": util.LuaExport{freaddir, 1, false},
-		"abs": util.LuaExport{fabs, 1, false},
-		"basename": util.LuaExport{fbasename, 1, false},
-		"dir": util.LuaExport{fdir, 1, false},
-		"glob": util.LuaExport{fglob, 1, false},
-		"join": util.LuaExport{fjoin, 0, true},
-		"pipe": util.LuaExport{fpipe, 0, false},
+		"cd":         util.LuaExport{fcd, 1, false},
+		"executable": util.LuaExport{fexecutable, 1, false},
+		"mkdir":      util.LuaExport{fmkdir, 2, false},
+		"stat":       util.LuaExport{fstat, 1, false},
+		"readdir":    util.LuaExport{freaddir, 1, false},
+		"abs":        util.LuaExport{fabs, 1, false},
+		"basename":   util.LuaExport{fbasename, 1, false},
+		"dir":        util.LuaExport{fdir, 1, false},
+		"glob":       util.LuaExport{fglob, 1, false},
+		"join":       util.LuaExport{fjoin, 0, true},
+		"pipe":       util.LuaExport{fpipe, 0, false},
 	}
 	mod := rt.NewTable()
 	util.SetExports(rtm, mod, exports)
@@ -133,6 +134,29 @@ func fdir(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.PushingNext(t.Runtime, rt.StringValue(filepath.Dir(path))), nil
 }
 
+// executable(path) -> boolean
+// Checks if `path` is an executable file.
+// #param path string
+// #returns boolean
+func fexecutable(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
+	}
+	path, err := c.StringArg(0)
+	if err != nil {
+		return nil, err
+	}
+
+	err = util.FindExecutable(path, true, false)
+	if err != nil {
+		c.Push(t.Runtime, rt.BoolValue(false))
+	} else {
+		c.Push(t.Runtime, rt.BoolValue(true))
+	}
+
+	return c.Next(), nil
+}
+
 // glob(pattern) -> matches (table)
 // Match all files based on the provided `pattern`.
 // For the syntax' refer to Go's filepath.Match function: https://pkg.go.dev/path/filepath#Match
@@ -169,9 +193,9 @@ func fglob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	luaMatches := rt.NewTable()
 
 	for i, match := range matches {
-		luaMatches.Set(rt.IntValue(int64(i + 1)), rt.StringValue(match))
+		luaMatches.Set(rt.IntValue(int64(i+1)), rt.StringValue(match))
 	}
-	
+
 	return c.PushingNext(t.Runtime, rt.TableValue(luaMatches)), nil
 }
 
@@ -191,7 +215,7 @@ func fjoin(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	for i, v := range c.Etc() {
 		if v.Type() != rt.StringType {
 			// +2; go indexes of 0 and first arg from above
-			return nil, fmt.Errorf("bad argument #%d to run (expected string, got %s)", i + 1, v.TypeName())
+			return nil, fmt.Errorf("bad argument #%d to run (expected string, got %s)", i+1, v.TypeName())
 		}
 		strs[i] = v.AsString()
 	}
@@ -255,6 +279,7 @@ func fpipe(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	return c.PushingNext(t.Runtime, rfLua.Value(t.Runtime), wfLua.Value(t.Runtime)), nil
 }
+
 // readdir(path) -> table[string]
 // Returns a list of all files and directories in the provided path.
 // #param dir string
@@ -275,7 +300,7 @@ func freaddir(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 	for i, entry := range dirEntries {
-		names.Set(rt.IntValue(int64(i + 1)), rt.StringValue(entry.Name()))
+		names.Set(rt.IntValue(int64(i+1)), rt.StringValue(entry.Name()))
 	}
 
 	return c.PushingNext1(t.Runtime, rt.TableValue(names)), nil
@@ -324,9 +349,8 @@ func fstat(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	statTbl := rt.NewTable()
 	statTbl.Set(rt.StringValue("name"), rt.StringValue(pathinfo.Name()))
 	statTbl.Set(rt.StringValue("size"), rt.IntValue(pathinfo.Size()))
-	statTbl.Set(rt.StringValue("mode"), rt.StringValue("0" + strconv.FormatInt(int64(pathinfo.Mode().Perm()), 8)))
+	statTbl.Set(rt.StringValue("mode"), rt.StringValue("0"+strconv.FormatInt(int64(pathinfo.Mode().Perm()), 8)))
 	statTbl.Set(rt.StringValue("isDir"), rt.BoolValue(pathinfo.IsDir()))
-	
+
 	return c.PushingNext1(t.Runtime, rt.TableValue(statTbl)), nil
 }
-
