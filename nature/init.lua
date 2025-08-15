@@ -131,7 +131,7 @@ while hilbish.interactive do
 	if res:sub(1, 1) == ' ' then
 		priv = true
 	end
-	input = input:gsub('%s+', '')
+	--input = input:gsub('%s+', '')
 
 	if input:len() == 0 then
 		hilbish.running = true
