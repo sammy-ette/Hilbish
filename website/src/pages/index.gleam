@@ -6,7 +6,7 @@ import lustre/element
 import lustre/element/html
 
 pub fn page() -> element.Element(a) {
-  html.main([attribute.class("flex flex-col gap-4 mx-4")], [
+  html.main([attribute.class("absolute top-0 flex flex-col gap-4 mx-4")], [
     html.div(
       [
         attribute.class(
@@ -53,7 +53,7 @@ pub fn page() -> element.Element(a) {
             "https://github.com/Rosettea/Hilbish",
           ),
         ]),
-        html.p([attribute.class("absolute bottom-4")], [
+        html.p([attribute.class("relative bottom-0")], [
           element.text("Scroll for more"),
         ]),
       ],

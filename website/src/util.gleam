@@ -11,18 +11,12 @@ import glaml
 import post
 
 pub fn sort_weight(p1: #(String, post.Post), p2: #(String, post.Post)) {
-  let assert option.Some(p1_metadata) = { p1.1 }.metadata
-  let p1_weight = case
-    glaml.select_sugar(glaml.document_root(p1_metadata), "weight")
-  {
+  let p1_weight = case glaml.select_sugar({ p1.1 }.metadata, "weight") {
     Ok(glaml.NodeInt(w)) -> w
     _ -> 0
   }
 
-  let assert option.Some(p2_metadata) = { p2.1 }.metadata
-  let p2_weight = case
-    glaml.select_sugar(glaml.document_root(p2_metadata), "weight")
-  {
+  let p2_weight = case glaml.select_sugar({ p2.1 }.metadata, "weight") {
     Ok(glaml.NodeInt(w)) -> w
     _ -> 0
   }
@@ -74,7 +68,7 @@ pub fn nav() -> element.Element(a) {
   html.nav(
     [
       attribute.class(
-        "bg-stone-100/80 dark:bg-neutral-950/80 flex justify-around sticky items-center top-0 w-full z-50 border-b border-b-zinc-300 backdrop-blur-md h-12",
+        "z-100 sticky top-0 bg-stone-100/80 dark:bg-neutral-950/80 flex justify-around items-center w-full border-b border-b-zinc-300 backdrop-blur-md h-12",
       ),
     ],
     [
@@ -110,7 +104,7 @@ pub fn footer() -> element.Element(a) {
   html.footer(
     [
       attribute.class(
-        "py-4 px-6 flex flex-row justify-around border-t border-t-zinc-300",
+        "z-100 py-4 px-6 flex flex-row justify-around border-t border-t-zinc-300",
       ),
     ],
     [

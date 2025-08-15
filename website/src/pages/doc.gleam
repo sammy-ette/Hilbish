@@ -3,6 +3,7 @@ import gleam/io
 import gleam/list
 import gleam/option
 import gleam/order
+import gleam/result
 import gleam/string
 
 import glaml
@@ -60,28 +61,26 @@ pub fn page(
             [attribute.class("text-lg flex flex-col gap-2")],
             list.flatten(
               list.group(doc_pages_list, fn(post: #(String, post.Post)) {
-                case { post.1 }.metadata {
-                  option.Some(metadata) -> {
-                    case
-                      glaml.select_sugar(glaml.document_root(metadata), "menu")
-                    {
-                      Ok(glaml.NodeMap(menu)) -> {
-                        let assert Ok(menu_first) = list.first(menu)
-                        let assert Ok(glaml.NodeStr(parent)) =
-                          glaml.select_sugar(menu_first.1, "parent")
-                        parent
-                      }
-                      Ok(glaml.NodeStr(_)) -> {
-                        // If it is a sring, it's just saying to be grouped
-                        // in the menu.
-                        // So use the title instead, because titles are unique?
-                        { post.1 }.title
-                      }
-                      Ok(_) -> panic as "wrong type fool"
-                      Error(_) -> panic as "what the hell"
-                    }
+                case glaml.select_sugar({ post.1 }.metadata, "menu") {
+                  Ok(glaml.NodeMap(menu)) -> {
+                    let assert Ok(menu_first) = list.first(menu)
+                    let assert Ok(glaml.NodeStr(parent)) =
+                      glaml.select_sugar(menu_first.1, "parent")
+                    parent
                   }
-                  option.None -> ""
+                  Ok(glaml.NodeStr(_)) -> {
+                    // If it is a sring, it's just saying to be grouped
+                    // in the menu.
+                    // So use the title instead, because titles are unique?
+                    { post.1 }.title
+                  }
+                  Ok(_) -> panic as "wrong type fool"
+                  Error(e) -> {
+                    echo { post.1 }.slug
+                    let assert Ok(title) =
+                      { post.1 }.slug |> string.split("/") |> list.last
+                    title |> string.capitalise
+                  }
                 }
               })
               |> dict.to_list()

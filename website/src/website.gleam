@@ -1,8 +1,9 @@
 import gleam/io
 import gleam/list
 import gleam/option
-import gleam/order
+import gleam/result
 import gleam/string
+import pages/page
 import util
 
 import glaml
@@ -12,7 +13,6 @@ import lustre/element/html
 import lustre/ssg
 import lustre/ssg/djot
 import simplifile
-import tom
 
 import conf
 import pages/doc
@@ -36,39 +36,25 @@ pub fn main() {
       }
 
       let assert Ok(content) = simplifile.read(path)
-      let frontmatter = djot.frontmatter(content)
-      let metadata = case frontmatter {
-        Ok(frntmtr) -> {
-          let assert Ok([metadata]) = glaml.parse_string(frntmtr)
-          option.Some(metadata)
-        }
-        Error(_) -> option.None
-      }
-      let content = djot.content(content)
 
-      let title = case metadata {
-        option.Some(metadata) -> {
-          case glaml.select_sugar(glaml.document_root(metadata), "title") {
-            Ok(glaml.NodeStr(s)) -> s
-            _ -> ""
-          }
+      let metadata = case djot.frontmatter(content) {
+        Ok(frontmatter) -> {
+          let assert Ok([metadata]) = glaml.parse_string(frontmatter)
+          metadata |> glaml.document_root
         }
-        option.None -> ""
+        Error(_) -> glaml.NodeMap([])
       }
-
-      let description = case metadata {
-        option.Some(metadata) -> {
-          case
-            glaml.select_sugar(glaml.document_root(metadata), "description")
-          {
-            Ok(glaml.NodeStr(s)) -> s
-            _ -> ""
-          }
-        }
-        option.None -> ""
+      let title = case metadata |> glaml.select_sugar("title") {
+        Ok(glaml.NodeStr(title)) -> title
+        _ -> ""
+      }
+      let description = case metadata |> glaml.select_sugar("description") {
+        Ok(glaml.NodeStr(description)) -> description
+        _ -> ""
       }
 
       let assert Ok(filename) = path |> string.split("/") |> list.last
+      let content = djot.content(content)
       #(slug, post.Post(name, description, title, slug, metadata, content))
     })
 
@@ -80,9 +66,12 @@ pub fn main() {
       isdoc
     })
     |> list.filter(fn(page) {
-      case { page.1 }.metadata {
-        option.Some(_) -> True
-        option.None -> False
+      case { page.1 }.metadata != glaml.NodeMap([]) {
+        False -> {
+          echo { page.1 }.slug <> " is missing metadata"
+          False
+        }
+        True -> True
       }
     })
     |> list.sort(util.sort_weight)
@@ -94,9 +83,8 @@ pub fn main() {
     |> list.fold(posts, _, fn(config, post) {
       let page = case is_doc_page(post.0) {
         True -> doc.page(post.1, post.0, doc_pages)
-        False -> doc.page(post.1, post.0, doc_pages)
+        False -> page.page(post.1)
       }
-      //io.debug(post.0)
       ssg.add_static_route(
         config,
         post.0,
@@ -109,7 +97,7 @@ pub fn main() {
   case build {
     Ok(_) -> io.println("Website successfully built!")
     Error(e) -> {
-      io.debug(e)
+      echo e
       io.println("Website could not be built.")
     }
   }
@@ -186,13 +174,13 @@ fn create_page(
         // disable dark reader
         html.meta([attribute.name("darkreader-lock")]),
       ]),
-      html.body([attribute.class("h-screen flex flex-col")], [
+      html.body([attribute.class("flex flex-col")], [
         util.nav(),
         content,
-        case doc_page {
-          True -> element.none()
-          False -> util.footer()
-        },
+        // case doc_page {
+      //   True -> element.none()
+      //   False -> util.footer()
+      // },
       ]),
     ],
   )

@@ -7,7 +7,7 @@ pub type Post {
     description: String,
     title: String,
     slug: String,
-    metadata: option.Option(glaml.Document),
+    metadata: glaml.Node,
     contents: String,
   )
 }
