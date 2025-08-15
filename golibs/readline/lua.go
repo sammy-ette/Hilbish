@@ -271,13 +271,12 @@ func rlPrompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(p)
 
 	halfPrompt := strings.Split(p, "\n")
 	if len(halfPrompt) > 1 {
 		rl.Multiline = true
-		rl.SetPrompt(strings.Join(halfPrompt[:len(halfPrompt)-1], "\n"))
 		rl.MultilinePrompt = halfPrompt[len(halfPrompt)-1:][0]
+		rl.SetPrompt(strings.Join(halfPrompt[:len(halfPrompt)-1], "\n"))
 	} else {
 		rl.Multiline = false
 		rl.MultilinePrompt = ""
