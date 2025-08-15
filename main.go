@@ -229,28 +229,6 @@ func main() {
 	exit(0)
 }
 
-/*
-func continuePrompt(prev string, newline bool) (string, error) {
-	hooks.Emit("multiline", nil)
-	lr.SetPrompt(multilinePrompt)
-
-	cont, err := lr.Read()
-	if err != nil {
-		return "", err
-	}
-
-	if newline {
-		cont = "\n" + cont
-	}
-
-	if strings.HasSuffix(cont, "\\") {
-		cont = strings.TrimSuffix(cont, "\\") + "\n"
-	}
-
-	return prev + cont, nil
-}
-*/
-
 func removeDupes(slice []string) []string {
 	all := make(map[string]bool)
 	newSlice := []string{}

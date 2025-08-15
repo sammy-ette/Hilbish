@@ -231,3 +231,33 @@ function hilbish.runnerMode(mode)
 		error('expected runner mode type to be either string or function, got', type(mode))
 	end
 end
+
+local multilinePrompt = '~> '
+
+--- Changes the text prompt when Hilbish asks for more input.
+--- This will show up when text is incomplete, like a missing quote
+--- @param str string
+--- #example
+--- --[[
+--- imagine this is your text input:
+--- user ~ ∆ echo "hey
+--- but there's a missing quote! hilbish will now prompt you so the terminal
+--- will look like:
+--- user ~ ∆ echo "hey
+--- --> ...!"
+
+--- so then you get
+--- user ~ ∆ echo "hey
+--- --> ...!"
+--- hey ...!
+--- ]]--
+--- hilbish.multiprompt '-->'
+--- #example
+function hilbish.multiprompt(str)
+	if str == nil then
+		return multilinePrompt
+	end
+
+	assert(type(str) == 'string', 'expected multiprompt to be a string, found ' .. type(str))
+	multilinePrompt = str
+end

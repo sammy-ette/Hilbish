@@ -44,7 +44,6 @@ var exports = map[string]util.LuaExport{
 	"goro":        {hlgoro, 1, true},
 	"highlighter": {hlhighlighter, 1, false},
 	"hinter":      {hlhinter, 1, false},
-	"multiprompt": {hlmultiprompt, 1, false},
 	"inputMode":   {hlinputMode, 1, false},
 	"interval":    {hlinterval, 2, false},
 	"timeout":     {hltimeout, 2, false},
@@ -104,7 +103,6 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 
 	// hilbish.completion table
 	hshcomp := completionLoader(rtm)
-	// TODO: REMOVE "completion" AND ONLY USE "completions" WITH AN S
 	mod.Set(rt.StringValue("completions"), rt.TableValue(hshcomp))
 
 	// hilbish.jobs table
@@ -188,42 +186,6 @@ func hlcwd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	cwd, _ := os.Getwd()
 
 	return c.PushingNext1(t.Runtime, rt.StringValue(cwd)), nil
-}
-
-// multiprompt(str)
-// Changes the text prompt when Hilbish asks for more input.
-// This will show up when text is incomplete, like a missing quote
-// #param str string
-/*
-#example
---[[
-imagine this is your text input:
-user ~ ∆ echo "hey
-
-but there's a missing quote! hilbish will now prompt you so the terminal
-will look like:
-user ~ ∆ echo "hey
---> ...!"
-
-so then you get
-user ~ ∆ echo "hey
---> ...!"
-hey ...!
-]]--
-hilbish.multiprompt '-->'
-#example
-*/
-func hlmultiprompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return c.PushingNext1(t.Runtime, rt.StringValue(multilinePrompt)), nil
-	}
-	prompt, err := c.StringArg(0)
-	if err != nil {
-		return nil, err
-	}
-	multilinePrompt = prompt
-
-	return c.Next(), nil
 }
 
 // alias(cmd, orig)
