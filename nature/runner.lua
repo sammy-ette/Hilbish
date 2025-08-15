@@ -140,7 +140,7 @@ local function finishExec(exitCode, input, priv)
 	bait.throw('command.exit', exitCode, input, priv)
 end
 
-local function continuePrompt(prev, newline)
+function hilbish.runner.continuePrompt(prev, newline)
 	local multilinePrompt = hilbish.multiprompt()
 	-- the return of hilbish.read is nil when error or ctrl-d
 	local cont = hilbish.read(multilinePrompt)
@@ -188,7 +188,7 @@ function hilbish.runner.run(input, priv)
 	end
 
 	if out.continue then
-		local contInput = continuePrompt(processed.command, out.newline)
+		local contInput = hilbish.runner.continuePrompt(processed.command, out.newline)
 		if contInput then
 			processed.command = contInput
 			goto rerun

@@ -107,6 +107,7 @@ local function exit(code)
 end
 
 while hilbish.interactive do
+	::rerun::
 	hilbish.running = false
 
 	local ok, res = pcall(function() return hilbish.editor:read() end)
@@ -131,12 +132,25 @@ while hilbish.interactive do
 	if res:sub(1, 1) == ' ' then
 		priv = true
 	end
-	--input = input:gsub('%s+', '')
+	input = input:gsub('%s+$', '')
+	--:gsub('^([%s]+).', '')
 
 	if input:len() == 0 then
 		hilbish.running = true
 		bait.throw('command.exit', 0 )
 		goto continue
+	end
+
+	if input:match '\\$' then
+		io.write '\n'
+		while true do
+			input = hilbish.runner.continuePrompt(input:gsub('\\$', '') .. '\n', false)
+			if not input then
+				goto rerun
+			end
+
+			if not input:match '\\$' then break end
+		end
 	end
 
 	hilbish.running = true
