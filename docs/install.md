@@ -14,7 +14,7 @@ the latest stable release, and development builds from the master branch.\
 You can download both at any time, but note that the development builds may have breaking changes.\
 To download the latest stable release, [see here](https://github.com/sammy-ette/Hilbishsh/releases/latest)
 
-For the latest development build, [click here](https://nightly.link/Rosettea/Hilbish/workflows/build/master)
+For the latest development build, [click here](https://nightly.link/sammy-ette/Hilbish/workflows/build/master)
 
 ## Package Repositories
 

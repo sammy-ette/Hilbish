@@ -38,14 +38,14 @@ jobs:
           gleam deps download
           gleam run -m website
       - name: Deploy
-        if: env.BRANCH_NAME == 'master' && github.repository_owner == 'Rosettea'
+        if: env.BRANCH_NAME == 'master' && github.repository_owner == 'sammy-ette'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./website/public
           keep_files: true
       - name: Deploy
-        if: env.BRANCH_NAME != 'master' && github.repository_owner == 'Rosettea'
+        if: env.BRANCH_NAME != 'master' && github.repository_owner == 'sammy-ette'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

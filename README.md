@@ -6,9 +6,9 @@
 🌓 The Moon-powered shell! A comfy and extensible shell for Lua fans! 🌺 ✨
 </blockquote>
 
-<img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/Rosettea/Hilbish?style=flat-square"><img alt="GitHub commits since latest release (by date)" src="https://img.shields.io/github/commits-since/Rosettea/Hilbish/latest?style=flat-square"><img alt="GitHub contributors" src="https://img.shields.io/github/contributors/Rosettea/Hilbish?style=flat-square"><br>
+<img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/sammy-ette/Hilbish?style=flat-square"><img alt="GitHub commits since latest release (by date)" src="https://img.shields.io/github/commits-since/sammy-ette/Hilbish/latest?style=flat-square"><img alt="GitHub contributors" src="https://img.shields.io/github/contributors/sammy-ette/Hilbish?style=flat-square"><br>
 <a href="https://github.com/sammy-ette/Hilbish/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22"><img src="https://img.shields.io/github/issues/Hilbis/Hilbish/help%20wanted?style=flat-square&color=green" alt="help wanted"></a>
-<a href="https://github.com/sammy-ette/Hilbish/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Rosettea/Hilbish?style=flat-square"></a>
+<a href="https://github.com/sammy-ette/Hilbish/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/sammy-ette/Hilbish?style=flat-square"></a>
 <a href="https://discord.gg/3PDdcQz"><img alt="Discord" src="https://img.shields.io/discord/732357621503229962?color=blue&style=flat-square"></a>
 <br>
 
@@ -74,7 +74,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) as a guideline to doing so.
 
 **Thanks to everyone below who's contributed!**  
 <a href="https://github.com/sammy-ette/Hilbish/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Rosettea/Hilbish" />
+  <img src="https://contrib.rocks/image?repo=sammy-ette/Hilbish" />
 </a>
 
 *Made with [contributors-img](https://contrib.rocks).*
