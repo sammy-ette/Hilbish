@@ -15,7 +15,7 @@ someone would be able to write a native plugin to support shell scripting
 
 It compiles for Windows (CI ensures it does), but otherwise it is not
 directly supported. If you'd like to improve this situation,
-checkout [the discussion](https://github.com/Rosettea/Hilbish/discussions/165).
+checkout [the discussion](https://github.com/sammy-ette/Hilbishsh/discussions/165).
 
 # Why?
 

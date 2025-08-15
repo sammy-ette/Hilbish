@@ -138,7 +138,7 @@ pub fn footer() -> element.Element(a) {
         ]),
       ]),
       html.div([attribute.class("flex flex-col")], [
-        link("https://github.com/Rosettea/Hilbish", "GitHub", True),
+        link("https://github.com/sammy-ette/Hilbish", "GitHub", True),
       ]),
     ],
   )

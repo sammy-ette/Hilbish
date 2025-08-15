@@ -50,7 +50,7 @@ pub fn page() -> element.Element(a) {
           button(
             "GitHub",
             "bg-stone-500/30 hover:bg-stone-500/80",
-            "https://github.com/Rosettea/Hilbish",
+            "https://github.com/sammy-ette/Hilbish",
           ),
         ]),
         html.p([attribute.class("relative bottom-0")], [
@@ -298,7 +298,7 @@ fn button(text: String, color: String, link: String) -> element.Element(a) {
 
 fn download_link(os: String, arch: String) -> String {
   // TODO: remove version in asset name when 3.0 drops
-  "https://github.com/Rosettea/Hilbish/releases/download/latest/hilbish-v2.3.4-"
+  "https://github.com/sammy-ette/Hilbish/releases/download/latest/hilbish-v2.3.4-"
   <> os
   <> "-"
   <> arch

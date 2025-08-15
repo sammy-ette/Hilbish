@@ -12,7 +12,7 @@ The easiest way to get Hilbish is to get a build directly from GitHub.
 At any time, there are 2 versions of Hilbish available to install:
 the latest stable release, and development builds from the master branch.\
 You can download both at any time, but note that the development builds may have breaking changes.\
-To download the latest stable release, [see here](https://github.com/Rosettea/Hilbish/releases/latest)
+To download the latest stable release, [see here](https://github.com/sammy-ette/Hilbishsh/releases/latest)
 
 For the latest development build, [click here](https://nightly.link/Rosettea/Hilbish/workflows/build/master)
 
@@ -44,4 +44,4 @@ Follow the steps [here](https://wiki.alpinelinux.org/wiki/Enable_Community_Repos
 
 ## Compiling From Source
 
-To see steps on compiling Hilbish from source, [visit the GitHub repository](https://github.com/Rosettea/Hilbish#build)
+To see steps on compiling Hilbish from source, [visit the GitHub repository](https://github.com/sammy-ette/Hilbishsh#build)
