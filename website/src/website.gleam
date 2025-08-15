@@ -3,6 +3,8 @@ import gleam/list
 import gleam/option
 import gleam/result
 import gleam/string
+import pages/blog
+import pages/donate
 import pages/page
 import util
 
@@ -80,6 +82,21 @@ pub fn main() {
     ssg.new("./public")
     |> ssg.add_static_dir("static")
     |> ssg.add_static_route("/", create_page(index.page(), False))
+    |> ssg.add_static_route("/donate", create_page(donate.page(), False))
+    |> ssg.add_static_route(
+      "/blog",
+      create_page(
+        blog.page(
+          list.filter(posts, fn(page: #(String, post.Post)) {
+            case { page.1 }.slug {
+              "/blog" <> _ -> True
+              _ -> False
+            }
+          }),
+        ),
+        False,
+      ),
+    )
     |> list.fold(posts, _, fn(config, post) {
       let page = case is_doc_page(post.0) {
         True -> doc.page(post.1, post.0, doc_pages)
@@ -174,7 +191,7 @@ fn create_page(
         // disable dark reader
         html.meta([attribute.name("darkreader-lock")]),
       ]),
-      html.body([attribute.class("flex flex-col")], [
+      html.body([attribute.class("flex flex-col min-h-screen")], [
         util.nav(),
         content,
         // case doc_page {

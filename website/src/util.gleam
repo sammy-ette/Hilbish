@@ -40,7 +40,7 @@ pub fn link(url: String, text: String, out: Bool) {
       html.span(
         [
           attribute.class(
-            "inline-flex text-light dark:text-pink-300 dark:hover:text-pink-200 text-pink-600 hover:text-pink-500 hover:underline",
+            "inline-flex text-light dark:text-pink-300 dark:hover:text-pink-200 text-pink-600 hover:text-pink-300 hover:underline",
           ),
         ],
         [
@@ -92,9 +92,15 @@ pub fn nav() -> element.Element(a) {
         ]),
       ]),
       html.div([attribute.class("flex gap-3")], [
-        link(conf.base_url_join("/install"), "Install", False),
         link(conf.base_url_join("/docs"), "Docs", False),
         link(conf.base_url_join("/blog"), "Blog", False),
+        html.a(
+          [
+            attribute.class("bg-pink-500/50 hover:bg-pink-400  px-2 rounded-sm"),
+            attribute.href(conf.base_url_join("/donate")),
+          ],
+          [element.text("Donate")],
+        ),
       ]),
     ],
   )

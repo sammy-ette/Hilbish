@@ -6,7 +6,11 @@ import lustre/ssg/djot
 import post
 
 pub fn page(p: post.Post) {
-  html.div([attribute.class("p-8 mx-auto")], render_doc(p.contents))
+  html.div([attribute.class("mt-4 mx-auto md:w-1/2")], [
+    html.h1([attribute.class("text-5xl mb-2")], [element.text(p.title)]),
+    html.hr([attribute.class("my-4 text-pink-600")]),
+    ..render_doc(p.contents)
+  ])
 }
 
 fn render_doc(md: String) {
