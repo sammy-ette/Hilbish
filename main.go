@@ -136,10 +136,10 @@ func main() {
 	}
 
 	lr = newLineReader("", false)
+	go handleSignals()
 	luaInit()
 
-	go handleSignals()
-
+	// This only executes when Hilbish isn't interactive
 	if fileInfo, _ := os.Stdin.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 {
 		scanner := bufio.NewScanner(bufio.NewReader(os.Stdin))
 		for scanner.Scan() {
@@ -162,70 +162,7 @@ func main() {
 		exit(0)
 	}
 
-	initialized = true
-	/*
-		input:
-			for interactive {
-				running = false
-
-				input, err := lr.Read()
-
-				if err == io.EOF {
-					// Exit if user presses ^D (ctrl + d)
-					hooks.Emit("hilbish.exit")
-					break
-				}
-				if err != nil {
-					if err == readline.CtrlC {
-						fmt.Println("^C")
-						hooks.Emit("hilbish.cancel")
-					} else {
-						// If we get a completely random error, print
-						fmt.Fprintln(os.Stderr, err)
-						if errors.Is(err, syscall.ENOTTY) {
-							// what are we even doing here?
-							panic("not a tty")
-						}
-						<-make(chan struct{})
-					}
-					continue
-				}
-				var priv bool
-				if strings.HasPrefix(input, " ") {
-					priv = true
-				}
-
-				input = strings.TrimSpace(input)
-				if len(input) == 0 {
-					running = true
-					hooks.Emit("command.exit", 0)
-					continue
-				}
-
-				if strings.HasSuffix(input, "\\") {
-					print("\n")
-					for {
-						input, err = continuePrompt(strings.TrimSuffix(input, "\\")+"\n", false)
-						if err != nil {
-							running = true
-							lr.SetPrompt(fmtPrompt(prompt))
-							goto input // continue inside nested loop
-						}
-						if !strings.HasSuffix(input, "\\") {
-							break
-						}
-					}
-				}
-
-				runInput(input, priv)
-
-				termwidth, _, err := term.GetSize(0)
-				if err != nil {
-					continue
-				}
-				fmt.Printf("\u001b[7m∆\u001b[0m" + strings.Repeat(" ", termwidth-1) + "\r")
-			}
-	*/
+	// Hilbish's REPL is implemented in Lua, specifically at the end of nature/init.lua
 	exit(0)
 }
 

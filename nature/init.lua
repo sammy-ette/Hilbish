@@ -2,6 +2,7 @@
 local _ = require 'succulent' -- Function additions
 local bait = require 'bait'
 local fs = require 'fs'
+local terminal = require 'terminal'
 
 package.path = package.path .. ';' .. hilbish.dataDir .. '/?/init.lua'
 .. ';' .. hilbish.dataDir .. '/?/?.lua' .. ";" .. hilbish.dataDir .. '/?.lua'
@@ -155,6 +156,10 @@ while hilbish.interactive do
 
 	hilbish.running = true
 	hilbish.runner.run(input, priv)
+
+	local term = terminal.size()
+	io.write(string.char(0x001b) .. '[7m∆' .. string.char(0x001b) .. '[0m' .. string.rep(' ', term.width - 1) .. "\r")
+	io.flush()
 
 	::continue::
 end

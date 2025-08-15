@@ -23,5 +23,4 @@ var (
 	interactive bool
 	login       bool // Are we the login shell?
 	noexecute   bool // Should we run Lua or only report syntax errors
-	initialized bool
 )
