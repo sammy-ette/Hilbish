@@ -1,0 +1,54 @@
+{
+	"name": "terminal",
+	"shortDescription": "low level terminal library",
+	"description": "The terminal library is a simple and lower level library for certain terminal interactions.",
+	"properties": [],
+	"fields": [],
+	"docs": [
+		{
+			"name": "restoreState",
+			"description": [
+				"Restores the last saved state of the terminal"
+			],
+			"signature": "restoreState()",
+			"goFuncName": "termrestorestate",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "saveState",
+			"description": [
+				"Saves the current state of the terminal."
+			],
+			"signature": "saveState()",
+			"goFuncName": "termsavestate",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "setRaw",
+			"description": [
+				"Puts the terminal into raw mode."
+			],
+			"signature": "setRaw()",
+			"goFuncName": "termsetraw",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "size",
+			"description": [
+				"Gets the dimensions of the terminal. Returns a table with `width` and `height`",
+				"NOTE: The size refers to the amount of columns and rows of text that can fit in the terminal."
+			],
+			"signature": "size()",
+			"goFuncName": "termsize",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	]
+}

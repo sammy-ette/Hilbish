@@ -95,7 +95,7 @@ hilbish.run('wc -l', {
 - Fix crashes when history goes out of bounds when using history navigation
 - `exec` command should return if no arg presented
 - Commanders can now be cancelled by Ctrl-C and wont hang the shell anymore.
-See [issue 198](https://github.com/Rosettea/Hilbish/issues/198).
+See [issue 198](https://github.com/sammy-ette/Hilbish/issues/198).
 - Shell interpreter can now preserve its environment and set PWD properly.
 
 ## [2.2.3] - 2024-04-27
@@ -128,7 +128,7 @@ they can be overridden. (#287)
 
 ## [2.2.0] - 2023-12-25
 ### Added
-- [Native Modules](https://rosettea.github.io/Hilbish/docs/api/hilbish/hilbish.module/)
+- [Native Modules](https://hilbish.sammyette.party/docs/api/hilbish/hilbish.module/)
 - Made a few additions to the sink type:
   - `read()` method for retrieving input (so now the `in` sink of commanders is useful)
   - `flush()` and `autoFlush()` related to flushing outputs
@@ -165,8 +165,8 @@ This includes:
 - Fix edge case of crash on empty alias resolve
 - File completion on Windows
 - Job management commands work now
-- Fix infinite loop when navigating history without any history. [#252](https://github.com/Rosettea/Hilbish/issues/252)
-- Return the prefix when calling `hilbish.completions.call`. [#219](https://github.com/Rosettea/Hilbish/issues/219)
+- Fix infinite loop when navigating history without any history. [#252](https://github.com/sammy-ette/Hilbish/issues/252)
+- Return the prefix when calling `hilbish.completions.call`. [#219](https://github.com/sammy-ette/Hilbish/issues/219)
 - Replaced `sed` in-place editing with `grep` and `mv` for compatibility with BSD utils
 
 ## [2.1.2] - 2022-04-10
@@ -224,19 +224,19 @@ For more info, look at its docs with the `doc hilbish` command.
 - Syntax highlighting function. To make a handler for it, set
 `hilbish.highlighter`. Same thing as the hinter, check `doc hilbish` for
 more info/docs.
-- Ctrl+K deletes from the cursor to the end of the line. ([#128](https://github.com/Rosettea/Hilbish/pull/128))
-- Alt+Backspace as an alternative of Ctrl+W to delete a word. ([#132](https://github.com/Rosettea/Hilbish/pull/132))
+- Ctrl+K deletes from the cursor to the end of the line. ([#128](https://github.com/sammy-ette/Hilbish/pull/128))
+- Alt+Backspace as an alternative of Ctrl+W to delete a word. ([#132](https://github.com/sammy-ette/Hilbish/pull/132))
 - Enhanced timer API (`doc timers`)
 - Don't exit until intervals are stopped/finished when running a non interactive script.
 - Ctrl+D deletes character below cursor if line isn't empty instead of exiting.
 - Ctrl+Delete to forward delete a word.
-- Right prompt ([#140](https://github.com/Rosettea/Hilbish/pull/140))
+- Right prompt ([#140](https://github.com/sammy-ette/Hilbish/pull/140))
 - Ctrl+_ to undo in Emacs input mode.
-- Emacs style forward/backward word keybinds ([#139](https://github.com/Rosettea/Hilbish/pull/139))
+- Emacs style forward/backward word keybinds ([#139](https://github.com/sammy-ette/Hilbish/pull/139))
 - `hilbish.completion.call` to call a completion handler (`doc completions`)
 - `hilbish.completion.handler` to set a custom handler for completions. This
 is for everything/anything as opposed to just adding a single command completion. 
-[#122](https://github.com/Rosettea/Hilbish/issues/122)
+[#122](https://github.com/sammy-ette/Hilbish/issues/122)
 - `fs.abs(path)` to get absolute path.
 - Nature module (`doc nature`)
 - `hilbish.jobs.add(cmdstr, args, execPath)` to add a job to the job table.
@@ -290,8 +290,8 @@ random errors introduced with the new Lua runtime (see [#197])
 - 1st item on history is now inserted when history search menu is opened ([#148])
 - Documentation has been improved vastly!
 
-[#148]: https://github.com/Rosettea/Hilbish/issues/148
-[#197]: https://github.com/Rosettea/Hilbish/issues/197
+[#148]: https://github.com/sammy-ette/Hilbish/issues/148
+[#197]: https://github.com/sammy-ette/Hilbish/issues/197
 
 ### Changed
 - **Breaking Change:** Upgraded to Lua 5.4.
@@ -320,7 +320,7 @@ always printed by default. To disable it, set the opt to false.
 - **Breaking Change:** `command.no-perm` hook has been replaced with `command.not-executable`
 - History is now fetched from Lua, which means users can override `hilbish.history`
 methods to make it act how they want.
-- `guide` has been removed. See the [website](https://rosettea.github.io/Hilbish/)
+- `guide` has been removed. See the [website](https://hilbish.sammyette.party/)
 for general tips and documentation
 
 ### Fixed
@@ -328,12 +328,12 @@ for general tips and documentation
 replacing the last character.
 - Make forward delete work how its supposed to.
 - Prompt refresh not working properly.
-- Crashing on input in xterm. ([#131](https://github.com/Rosettea/Hilbish/pull/131))
-- Make delete key work on st ([#131](https://github.com/Rosettea/Hilbish/pull/131))
+- Crashing on input in xterm. ([#131](https://github.com/sammy-ette/Hilbish/pull/131))
+- Make delete key work on st ([#131](https://github.com/sammy-ette/Hilbish/pull/131))
 - `hilbish.login` being the wrong value.
 - Put full input in history if prompted for continued input
 - Don't put alias expanded command in history (sound familiar?)
-- Handle cases of stdin being nonblocking (in the case of [#136](https://github.com/Rosettea/Hilbish/issues/136))
+- Handle cases of stdin being nonblocking (in the case of [#136](https://github.com/sammy-ette/Hilbish/issues/136))
 - Don't prompt for continued input if non interactive
 - Don't insert unhandled control keys.
 - Handle sh syntax error in alias
@@ -343,15 +343,15 @@ certain color rules.
 - Home/End keys now go to the actual start/end of the input.
 - Input getting cut off on enter in certain cases.
 - Go to the next line properly if input reaches end of terminal width.
-- Cursor position with CJK characters has been corrected ([#145](https://github.com/Rosettea/Hilbish/pull/145))
-- Files with same name as parent folder in completions getting cut off [#130](https://github.com/Rosettea/Hilbish/issues/130))
+- Cursor position with CJK characters has been corrected ([#145](https://github.com/sammy-ette/Hilbish/pull/145))
+- Files with same name as parent folder in completions getting cut off [#130](https://github.com/sammy-ette/Hilbish/issues/130))
 - `hilbish.which` now works with commanders and aliases.
 - Background jobs no longer take stdin so they do not interfere with shell
 input.
 - Full name of completion entry is used instead of being cut off
 - Completions are fixed in cases where the query/line is an alias alone
 where it can also resolve to the beginning of command names.
-(reference [this commit](https://github.com/Rosettea/Hilbish/commit/2790982ad123115c6ddbc5764677fdca27668cea))
+(reference [this commit](https://github.com/sammy-ette/Hilbish/commit/2790982ad123115c6ddbc5764677fdca27668cea))
 for explanation.
 - Jobs now throw `job.done` and set running to false when stopped via
 Lua `job.stop` function.
@@ -384,7 +384,7 @@ will result in the files being completed.
 - Completion paths having duplicated characters if it's escaped
 - Get custom completion command properly to call from Lua
 - Put proper command on the line when using up and down arrow keys to go through command history
-- Don't do anything if length of input rune slice is 0 ([commit for explanation](https://github.com/Rosettea/Hilbish/commit/8d40179a73fe5942707cd43f9c0463dee53eedd8))
+- Don't do anything if length of input rune slice is 0 ([commit for explanation](https://github.com/sammy-ette/Hilbish/commit/8d40179a73fe5942707cd43f9c0463dee53eedd8))
 
 ## [2.0.0-rc1] - 2022-09-14
 This is a pre-release version of Hilbish for testing. To see the changelog,
@@ -530,7 +530,7 @@ It now expects a table of "completion groups" which are just tables with the
 ## [0.7.1] - 2021-11-22
 ### Fixed
 - Tab complete absolute paths to binaries properly
-- Allow execution of absolute paths to binaries (https://github.com/Rosettea/Hilbish/commit/06272778f85dad04e0e7abffc78a5b9b0cebd067 regression)
+- Allow execution of absolute paths to binaries (https://github.com/sammy-ette/Hilbish/commit/06272778f85dad04e0e7abffc78a5b9b0cebd067 regression)
 
 ## [0.7.0] - 2021-11-22
 ### Added
@@ -758,7 +758,7 @@ Observed:
     - Now works for directories with spaces
 - Lua input now throws a success hook if it succeeded
 - Command history is now saved to `~/.hilbish-history`
-- Globals defined in Lua that are strings will be defined as an env variable ([#16](https://github.com/Rosettea/Hilbish/pull/16))
+- Globals defined in Lua that are strings will be defined as an env variable ([#16](https://github.com/sammy-ette/Hilbish/pull/16))
 - Input ending with `\` will now go to a newline
 - `exit` command is now written in Lua
 
@@ -814,40 +814,40 @@ This input for example will prompt for more input to complete:
 
 First "stable" release of Hilbish.
 
-[2.3.4]: https://github.com/Rosettea/Hilbish/compare/v2.3.3...v2.3.4
-[2.3.3]: https://github.com/Rosettea/Hilbish/compare/v2.3.2...v2.3.3
-[2.3.2]: https://github.com/Rosettea/Hilbish/compare/v2.3.1...v2.3.2
-[2.3.1]: https://github.com/Rosettea/Hilbish/compare/v2.3.0...v2.3.1
-[2.3.0]: https://github.com/Rosettea/Hilbish/compare/v2.2.3...v2.3.0
-[2.2.3]: https://github.com/Rosettea/Hilbish/compare/v2.2.2...v2.2.3
-[2.2.2]: https://github.com/Rosettea/Hilbish/compare/v2.2.1...v2.2.2
-[2.2.1]: https://github.com/Rosettea/Hilbish/compare/v2.2.0...v2.2.1
-[2.2.0]: https://github.com/Rosettea/Hilbish/compare/v2.1.0...v2.2.0
-[2.1.2]: https://github.com/Rosettea/Hilbish/compare/v2.1.1...v2.1.2
-[2.1.1]: https://github.com/Rosettea/Hilbish/compare/v2.1.0...v2.1.1
-[2.1.0]: https://github.com/Rosettea/Hilbish/compare/v2.0.1...v2.1.0
-[2.0.1]: https://github.com/Rosettea/Hilbish/compare/v2.0.0...v2.0.1
-[2.0.0]: https://github.com/Rosettea/Hilbish/compare/v1.2.0...v2.0.0
-[2.0.0-rc1]: https://github.com/Rosettea/Hilbish/compare/v1.2.0...v2.0.0-rc1
-[1.2.0]: https://github.com/Rosettea/Hilbish/compare/v1.1.4...v1.2.0
-[1.1.0]: https://github.com/Rosettea/Hilbish/compare/v1.0.4...v1.1.0
-[1.0.4]: https://github.com/Rosettea/Hilbish/compare/v1.0.3...v1.0.4
-[1.0.3]: https://github.com/Rosettea/Hilbish/compare/v1.0.2...v1.0.3
-[1.0.2]: https://github.com/Rosettea/Hilbish/compare/v1.0.1...v1.0.2
-[1.0.1]: https://github.com/Rosettea/Hilbish/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/Rosettea/Hilbish/compare/v0.7.1...v1.0.0
-[0.7.1]: https://github.com/Rosettea/Hilbish/compare/v0.7.0...v0.7.1
-[0.7.0]: https://github.com/Rosettea/Hilbish/compare/v0.6.1...v0.7.0
-[0.6.1]: https://github.com/Rosettea/Hilbish/compare/v0.6.0...v0.6.1
-[0.6.0]: https://github.com/Rosettea/Hilbish/compare/v0.5.1...v0.6.0
-[0.5.1]: https://github.com/Rosettea/Hilbish/compare/v0.5.0...v0.5.1
-[0.5.0]: https://github.com/Rosettea/Hilbish/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/Rosettea/Hilbish/compare/v0.3.2...v0.4.0
-[0.3.2]: https://github.com/Rosettea/Hilbish/compare/v0.3.1...v0.3.2
-[0.3.1]: https://github.com/Rosettea/Hilbish/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/Rosettea/Hilbish/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/Rosettea/Hilbish/compare/v0.1.2...v0.2.0
-[0.1.2]: https://github.com/Rosettea/Hilbish/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/Rosettea/Hilbish/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/Rosettea/Hilbish/compare/v0.0.12...v0.1.0
-[0.0.12]: https://github.com/Rosettea/Hilbish/releases/tag/v0.0.12
+[2.3.4]: https://github.com/sammy-ette/Hilbish/compare/v2.3.3...v2.3.4
+[2.3.3]: https://github.com/sammy-ette/Hilbish/compare/v2.3.2...v2.3.3
+[2.3.2]: https://github.com/sammy-ette/Hilbish/compare/v2.3.1...v2.3.2
+[2.3.1]: https://github.com/sammy-ette/Hilbish/compare/v2.3.0...v2.3.1
+[2.3.0]: https://github.com/sammy-ette/Hilbish/compare/v2.2.3...v2.3.0
+[2.2.3]: https://github.com/sammy-ette/Hilbish/compare/v2.2.2...v2.2.3
+[2.2.2]: https://github.com/sammy-ette/Hilbish/compare/v2.2.1...v2.2.2
+[2.2.1]: https://github.com/sammy-ette/Hilbish/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/sammy-ette/Hilbish/compare/v2.1.0...v2.2.0
+[2.1.2]: https://github.com/sammy-ette/Hilbish/compare/v2.1.1...v2.1.2
+[2.1.1]: https://github.com/sammy-ette/Hilbish/compare/v2.1.0...v2.1.1
+[2.1.0]: https://github.com/sammy-ette/Hilbish/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/sammy-ette/Hilbish/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/sammy-ette/Hilbish/compare/v1.2.0...v2.0.0
+[2.0.0-rc1]: https://github.com/sammy-ette/Hilbish/compare/v1.2.0...v2.0.0-rc1
+[1.2.0]: https://github.com/sammy-ette/Hilbish/compare/v1.1.4...v1.2.0
+[1.1.0]: https://github.com/sammy-ette/Hilbish/compare/v1.0.4...v1.1.0
+[1.0.4]: https://github.com/sammy-ette/Hilbish/compare/v1.0.3...v1.0.4
+[1.0.3]: https://github.com/sammy-ette/Hilbish/compare/v1.0.2...v1.0.3
+[1.0.2]: https://github.com/sammy-ette/Hilbish/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/sammy-ette/Hilbish/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/sammy-ette/Hilbish/compare/v0.7.1...v1.0.0
+[0.7.1]: https://github.com/sammy-ette/Hilbish/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/sammy-ette/Hilbish/compare/v0.6.1...v0.7.0
+[0.6.1]: https://github.com/sammy-ette/Hilbish/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/sammy-ette/Hilbish/compare/v0.5.1...v0.6.0
+[0.5.1]: https://github.com/sammy-ette/Hilbish/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/sammy-ette/Hilbish/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/sammy-ette/Hilbish/compare/v0.3.2...v0.4.0
+[0.3.2]: https://github.com/sammy-ette/Hilbish/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/sammy-ette/Hilbish/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/sammy-ette/Hilbish/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/sammy-ette/Hilbish/compare/v0.1.2...v0.2.0
+[0.1.2]: https://github.com/sammy-ette/Hilbish/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/sammy-ette/Hilbish/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/sammy-ette/Hilbish/compare/v0.0.12...v0.1.0
+[0.0.12]: https://github.com/sammy-ette/Hilbish/releases/tag/v0.0.12

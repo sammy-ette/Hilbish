@@ -15,40 +15,35 @@ end)
 
 In this example, a command with the name of `hello` is created
 that will print `Hello world!` to output. One question you may
-have is: What is the `sinks` parameter?
-
+have is: What is the `sinks` parameter?<nl>
 The `sinks` parameter is a table with 3 keys: `input`, `out`, and `err`.
 There is an `in` alias to `input`, but it requires using the string accessor syntax (`sinks['in']`)
 as `in` is also a Lua keyword, so `input` is preferred for use.
 All of them are a @Sink.
-In the future, `sinks.in` will be removed.
-
-- `in` is the standard input.
-You may use the read functions on this sink to get input from the user.
-- `out` is standard output.
-This is usually where command output should go.
-- `err` is standard error.
-This sink is for writing errors, as the name would suggest.
+In the future, `sinks.in` will be removed.<nl>
+- `in` is the standard input. You may use the read functions on this sink to get input from the user.
+- `out` is standard output. This is usually where command output should go.
+- `err` is standard error. This sink is for writing errors, as the name would suggest.
 */
 package commander
 
 import (
-	"hilbish/util"
 	"hilbish/golibs/bait"
+	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/arnodel/golua/lib/packagelib"
+	rt "github.com/arnodel/golua/runtime"
 )
 
-type Commander struct{
-	Events *bait.Bait
-	Loader packagelib.Loader
+type Commander struct {
+	Events   *bait.Bait
+	Loader   packagelib.Loader
 	Commands map[string]*rt.Closure
 }
 
 func New(rtm *rt.Runtime) *Commander {
 	c := &Commander{
-		Events: bait.New(rtm),
+		Events:   bait.New(rtm),
 		Commands: make(map[string]*rt.Closure),
 	}
 	c.Loader = packagelib.Loader{
@@ -61,9 +56,9 @@ func New(rtm *rt.Runtime) *Commander {
 
 func (c *Commander) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"register": util.LuaExport{c.cregister, 2, false},
+		"register":   util.LuaExport{c.cregister, 2, false},
 		"deregister": util.LuaExport{c.cderegister, 1, false},
-		"registry": util.LuaExport{c.cregistry, 0, false},
+		"registry":   util.LuaExport{c.cregistry, 0, false},
 	}
 	mod := rt.NewTable()
 	util.SetExports(rtm, mod, exports)
