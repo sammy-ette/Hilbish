@@ -110,7 +110,7 @@ menu:
 ]]
 
 for iface, dps in pairs(pieces) do
-	local mod = iface:match '(%w+)%.' or 'nature'
+	local mod = iface ~= 'nature' and iface:match '(%w+)' or 'nature'
 	local docParent = 'Nature'
 
 	path = string.format('docs/%s/%s.md', mod, iface)
@@ -128,100 +128,21 @@ for iface, dps in pairs(pieces) do
 	local exists = pcall(fs.stat, path)
 	local newOrNotNature = (exists and mod ~= 'nature') or iface == 'hilbish'
 
-	local f <close> = io.open(path, newOrNotNature and 'r+' or 'w+')
-	local tocPos
+	--local f <close> = io.open(path, newOrNotNature and 'r+' or 'w+')
 	if not newOrNotNature then
-		f:write(string.format(header, 'Module', iface, (descriptions[iface] and #descriptions[iface] > 0) and descriptions[iface][1] or 'No description.', docParent))
+		--f:write(string.format(header, 'Module', iface, (descriptions[iface] and #descriptions[iface] > 0) and descriptions[iface][1] or 'No description.', docParent))
 		if descriptions[iface] and #descriptions[iface] > 0 then
 			table.remove(descriptions[iface], 1)
-			f:write(string.format('\n## Introduction\n%s\n\n', table.concat(descriptions[iface], '\n')))
-			f:write('## Functions\n')
-			f:write([[|||
-|----|----|
-]])
-			tocPos = f:seek()
+			--f:write(string.format('\n## Introduction\n%s\n\n', table.concat(descriptions[iface], '\n')))
+			--f:write('## Functions\n')
 		end
 	end
 
-	local tocSearch = false
-	for line in f:lines() do
-		if line:match '^## Functions' then
-			tocSearch = true
-		end
-		if tocSearch and line == '' then
-			tocSearch = false
-			tocPos = f:seek() - 1
-		end
-	end
-
+	print(mod, dps)
 	table.sort(dps, function(a, b) return a[1] < b[1] end)
-	for _, piece in pairs(dps) do
+	--[[for _, piece in pairs(dps) do
 		local func = piece[1]
 		local docs = piece[2]
-		local sig = string.format('%s.%s(', iface, func)
-		local params = ''
-		for idx, param in ipairs(docs.params) do
-			sig = sig .. param.name:gsub('%?$', '')
-			params = params .. param.name:gsub('%?$', '')
-			if idx ~= #docs.params then
-				sig = sig .. ', '
-				params = params .. ', '
-			end
-		end
-		sig = sig .. ')'
-
-		if tocPos then
-			f:seek('set', tocPos)
-			local contents = f:read '*a'
-			f:seek('set', tocPos)
-			local tocLine = string.format('|<a href="#%s">%s</a>|%s|\n', func, string.format('%s(%s)', func, params), docs.description[1])
-			f:write(tocLine .. contents)
-			f:seek 'end'
-		end
-
-		f:write(string.format('<hr>\n<div id=\'%s\'>\n', func))
-		f:write(string.format([[
-<h4 class='heading'>
-%s
-<a href="#%s" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-
-]], sig, func))
-
-		f:write(table.concat(docs.description, '\n') .. '\n')
-		f:write '#### Parameters\n'
-		if #docs.params == 0 then
-			f:write 'This function has no parameters.  \n'
-		end
-		for _, param in ipairs(docs.params) do
-			f:write(string.format('`%s` **`%s`**  \n', param.name:gsub('%?$', ''), param.type))
-			f:write(string.format('%s\n\n', param.description))
-		end
-		if #docs.example ~= 0 then
-			f:write '#### Example\n'
-			f:write(string.format('```lua\n%s\n```\n', table.concat(docs.example, '\n')))
-		end
-		--[[
-		local params = table.filter(docs, function(t)
-			return t:match '^%-%-%- @param'
-		end)
-		for i, str in ipairs(params) do
-			if i ~= 1 then
-				f:write ', '
-			end
-			f:write(str:match '^%-%-%- @param ([%w]+) ')
-		end
-		f:write(')\n')
-
-		for _, str in ipairs(docs) do
-			if not str:match '^%-%-%- @' then
-				f:write(str:match '^%-%-%- (.+)' .. '\n')
-			end	
-		end
-		]]--
-		f:write('</div>')
-		f:write('\n\n')
-	end
+		print(func, docs)
+	end]]
 end

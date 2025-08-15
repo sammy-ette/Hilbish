@@ -1,0 +1,140 @@
+{
+	"name": "snail",
+	"shortDescription": "shell script interpreter library",
+	"description": "\nThe snail library houses Hilbish's Lua wrapper of its shell script interpreter.\nIt's not very useful other than running shell scripts, which can be done with other\nHilbish functions.",
+	"properties": [],
+	"fields": [],
+	"types": [
+		{
+			"name": "Snail",
+			"description": [
+				"A Snail is a shell script interpreter instance."
+			],
+			"parent": "snail",
+			"isInterface": false,
+			"isMember": false,
+			"isType": true,
+			"tags": {
+				"type": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	],
+	"docs": [
+		{
+			"name": "dir",
+			"description": [
+				"Changes the directory of the snail instance.",
+				"The interpreter keeps its set directory even when the Hilbish process changes",
+				"directory, so this should be called on the `hilbish.cd` hook."
+			],
+			"signature": "dir(path)",
+			"goFuncName": "snaildir",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": [
+						"Has",
+						"to",
+						"be",
+						"an",
+						"absolute",
+						"path."
+					]
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"string",
+							"Has",
+							"to",
+							"be",
+							"an",
+							"absolute",
+							"path."
+						],
+						"startIdx": 5
+					}
+				]
+			}
+		},
+		{
+			"name": "new",
+			"description": [
+				"Creates a new Snail instance."
+			],
+			"signature": "new() -\u003e @Snail",
+			"goFuncName": "snailnew",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "run",
+			"description": [
+				"Runs a shell command. Works the same as `hilbish.run`, but only accepts a table of streams."
+			],
+			"signature": "run(command, streams)",
+			"goFuncName": "snailrun",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "command",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "streams",
+					"Type": "table",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "command",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "streams",
+						"fields": [
+							"table"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	]
+}

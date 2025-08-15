@@ -1,0 +1,388 @@
+{
+	"name": "bait",
+	"shortDescription": "the event emitter",
+	"description": "\nBait is the event emitter for Hilbish. Much like Node.js and\nits `events` system, many actions in Hilbish emit events.\nUnlike Node.js, Hilbish events are global. So make sure to\npick a unique name!\\\n \\\nUsage of the Bait module consists of userstanding\nevent-driven architecture, but it's pretty simple:\nIf you want to act on a certain event, you can `catch` it.\nYou can act on events via callback functions.\\\n \\\nExamples of this are in the Hilbish default config!\nConsider this part of it:\n\n```lua\nbait.catch('command.exit', function(code)\n\trunning = false\n\tdoPrompt(code ~= 0)\n\tdoNotifyPrompt()\nend)\n```\n\nWhat this does is, whenever the `command.exit` event is thrown,\nthis function will set the user prompt.",
+	"properties": [],
+	"fields": [],
+	"docs": [
+		{
+			"name": "catch",
+			"description": [
+				"Catches an event. This function can be used to act on events.",
+				"",
+				""
+			],
+			"signature": "catch(name, cb)",
+			"goFuncName": "bcatch",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"name",
+						"of",
+						"the",
+						"hook."
+					]
+				},
+				{
+					"Name": "cb",
+					"Type": "function",
+					"Doc": [
+						"The",
+						"function",
+						"that",
+						"will",
+						"be",
+						"called",
+						"when",
+						"the",
+						"hook",
+						"is",
+						"thrown."
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"bait.catch('hilbish.exit', function()",
+							"\tprint 'Goodbye Hilbish!'",
+							"end)"
+						],
+						"startIdx": 5
+					}
+				],
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string",
+							"The",
+							"name",
+							"of",
+							"the",
+							"hook."
+						],
+						"startIdx": 2
+					},
+					{
+						"id": "cb",
+						"fields": [
+							"function",
+							"The",
+							"function",
+							"that",
+							"will",
+							"be",
+							"called",
+							"when",
+							"the",
+							"hook",
+							"is",
+							"thrown."
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "catchOnce",
+			"description": [
+				"Catches an event, but only once. This will remove the hook immediately after it runs for the first time."
+			],
+			"signature": "catchOnce(name, cb)",
+			"goFuncName": "bcatchonce",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"name",
+						"of",
+						"the",
+						"event"
+					]
+				},
+				{
+					"Name": "cb",
+					"Type": "function",
+					"Doc": [
+						"The",
+						"function",
+						"that",
+						"will",
+						"be",
+						"called",
+						"when",
+						"the",
+						"event",
+						"is",
+						"thrown."
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string",
+							"The",
+							"name",
+							"of",
+							"the",
+							"event"
+						],
+						"startIdx": 2
+					},
+					{
+						"id": "cb",
+						"fields": [
+							"function",
+							"The",
+							"function",
+							"that",
+							"will",
+							"be",
+							"called",
+							"when",
+							"the",
+							"event",
+							"is",
+							"thrown."
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "hooks",
+			"description": [
+				"Returns a table of functions that are hooked on an event with the corresponding `name`."
+			],
+			"signature": "hooks(name) -\u003e table",
+			"goFuncName": "bhooks",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"name",
+						"of",
+						"the",
+						"hook"
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string",
+							"The",
+							"name",
+							"of",
+							"the",
+							"hook"
+						],
+						"startIdx": 2
+					}
+				],
+				"returns": [
+					{
+						"id": "table\u003cfunction\u003e",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "release",
+			"description": [
+				"Removes the `catcher` for the event with `name`.",
+				"For this to work, `catcher` has to be the same function used to catch",
+				"an event, like one saved to a variable.",
+				"",
+				""
+			],
+			"signature": "release(name, catcher)",
+			"goFuncName": "brelease",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"Name",
+						"of",
+						"the",
+						"event",
+						"the",
+						"hook",
+						"is",
+						"on"
+					]
+				},
+				{
+					"Name": "catcher",
+					"Type": "function",
+					"Doc": [
+						"Hook",
+						"function",
+						"to",
+						"remove"
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"local hookCallback = function() print 'hi' end",
+							"",
+							"bait.catch('event', hookCallback)",
+							"",
+							"-- a little while later....",
+							"bait.release('event', hookCallback)",
+							"-- and now hookCallback will no longer be ran for the event."
+						],
+						"startIdx": 7
+					}
+				],
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string",
+							"Name",
+							"of",
+							"the",
+							"event",
+							"the",
+							"hook",
+							"is",
+							"on"
+						],
+						"startIdx": 4
+					},
+					{
+						"id": "catcher",
+						"fields": [
+							"function",
+							"Hook",
+							"function",
+							"to",
+							"remove"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "throw",
+			"description": [
+				"Throws a hook with `name` with the provided `args`.",
+				"",
+				""
+			],
+			"signature": "throw(name, ...args)",
+			"goFuncName": "bthrow",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"name",
+						"of",
+						"the",
+						"hook."
+					]
+				},
+				{
+					"Name": "args",
+					"Type": "...any",
+					"Doc": [
+						"The",
+						"arguments",
+						"to",
+						"pass",
+						"to",
+						"the",
+						"hook."
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"bait.throw('greeting', 'world')",
+							"",
+							"-- This can then be listened to via",
+							"bait.catch('gretting', function(greetTo)",
+							"\tprint('Hello ' .. greetTo)",
+							"end)"
+						],
+						"startIdx": 5
+					}
+				],
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string",
+							"The",
+							"name",
+							"of",
+							"the",
+							"hook."
+						],
+						"startIdx": 1
+					},
+					{
+						"id": "args",
+						"fields": [
+							"...any",
+							"The",
+							"arguments",
+							"to",
+							"pass",
+							"to",
+							"the",
+							"hook."
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	]
+}

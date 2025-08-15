@@ -11,7 +11,7 @@ var (
 
 // Version info
 var (
-	ver         = "v2.4.0"
+	ver         = "v3.0.0"
 	releaseName = "Moonflower"
 
 	gitCommit string

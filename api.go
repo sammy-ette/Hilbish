@@ -105,7 +105,6 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	// hilbish.completion table
 	hshcomp := completionLoader(rtm)
 	// TODO: REMOVE "completion" AND ONLY USE "completions" WITH AN S
-	mod.Set(rt.StringValue("completion"), rt.TableValue(hshcomp))
 	mod.Set(rt.StringValue("completions"), rt.TableValue(hshcomp))
 
 	// hilbish.jobs table
