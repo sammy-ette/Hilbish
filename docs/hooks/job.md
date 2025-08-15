@@ -1,3 +1,12 @@
+---
+title: Job
+description:
+layout: doc
+menu:
+  docs:
+    parent: "Signals"
+---
+
 Note: `job` refers to a job object. You can check `doc jobs` for more
 detail.
 
