@@ -14,10 +14,8 @@ jobs:
         submodules: true
         fetch-depth: 0
       - uses: actions/setup-go@v5
-      - name: Download Task
-        run: 'sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d'
       - name: Build
-        run: ./bin/task
+        run: go run cmd/build/build.go
       - name: Run docgen (go-written)
         run: go run cmd/docgen/docgen.go
       - name: Run docgen (lua-written)

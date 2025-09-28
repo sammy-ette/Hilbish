@@ -30,10 +30,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22.2'
-      - name: Download Task
-        run: 'sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d'
       - name: Build
-        run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} ./bin/task
+        run: OS=${{ matrix.goos }} OS=${{ matrix.goarch }} go run cmd/build/build.go
       - uses: actions/upload-artifact@v4
         if: matrix.goos == 'windows'
         with:

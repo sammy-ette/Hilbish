@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 var PREFIX string
@@ -82,21 +83,34 @@ func buildGit() {
 	default:
 		libdir = LIBDIR
 	}
+	println(libdir)
 
-	sh, _ := exec.LookPath("sh")
-	cmd := exec.Command(sh, "-c", fmt.Sprintf(`go build -ldflags "-s -w -X main.dataDir=%s -X main.gitCommit=$(git rev-parse --short HEAD) -X main.gitBranch=$(git rev-parse --abbrev-ref HEAD)"`, libdir))
+	commit, err := exec.Command("git", "rev-parse", "--short", "HEAD").Output()
+	if err != nil {
+		panic(err)
+	}
+
+	branch, err := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD").Output()
+	if err != nil {
+		panic(err)
+	}
+
+	cmd := exec.Command("go", "build", "-ldflags", fmt.Sprintf(`-s -w -X main.dataDir=%s -X main.gitCommit=%s -X main.gitBranch=%s`, libdir, string(commit), string(branch)))
+	cmd.Env = env()
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	os.Exit(cmd.ProcessState.ExitCode())
 }
 
 func buildStable() {
-	gopath, _ := exec.LookPath("go")
-	cmd := exec.Command(gopath, "build")
+	cmd := exec.Command("go", "build")
+	cmd.Env = env()
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
@@ -104,6 +118,23 @@ func buildStable() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	os.Exit(cmd.ProcessState.ExitCode())
+}
+
+func env() []string {
+	envs := os.Environ()
+	for _, val := range envs {
+		if envkv := strings.Split(val, "="); envkv[0] == "OS" {
+			envs = append(envs, "GOOS="+envkv[1])
+		}
+
+		if envkv := strings.Split(val, "="); envkv[0] == "ARCH" {
+			envs = append(envs, "GOARCH="+envkv[1])
+		}
+	}
+
+	return envs
 }
 
 func install() {
