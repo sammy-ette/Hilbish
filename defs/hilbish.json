@@ -1,0 +1,2906 @@
+{
+	"name": "hilbish",
+	"shortDescription": "",
+	"description": "",
+	"properties": [],
+	"fields": [],
+	"types": [
+		{
+			"name": "Sink",
+			"description": [
+				"A sink is a structure that has input and/or output to/from a desination."
+			],
+			"parent": "hilbish",
+			"isInterface": false,
+			"isMember": false,
+			"isType": true,
+			"tags": {
+				"type": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	],
+	"docs": [
+		{
+			"name": "alias",
+			"description": [
+				"Sets an alias, with a name of `cmd` to another command.",
+				"",
+				""
+			],
+			"signature": "alias(cmd, orig)",
+			"goFuncName": "hlalias",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cmd",
+					"Type": "string",
+					"Doc": [
+						"Name",
+						"of",
+						"the",
+						"alias"
+					]
+				},
+				{
+					"Name": "orig",
+					"Type": "string",
+					"Doc": [
+						"Command",
+						"that",
+						"will",
+						"be",
+						"aliased"
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- With this, \"ga file\" will turn into \"git add file\"",
+							"hilbish.alias('ga', 'git add')",
+							"",
+							"-- Numbered substitutions are supported here!",
+							"hilbish.alias('dircount', 'ls %1 | wc -l')",
+							"-- \"dircount ~\" would count how many files are in ~ (home directory)."
+						],
+						"startIdx": 5
+					}
+				],
+				"param": [
+					{
+						"id": "cmd",
+						"fields": [
+							"string",
+							"Name",
+							"of",
+							"the",
+							"alias"
+						],
+						"startIdx": 2
+					},
+					{
+						"id": "orig",
+						"fields": [
+							"string",
+							"Command",
+							"that",
+							"will",
+							"be",
+							"aliased"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "appendPath",
+			"description": [
+				"Appends the provided dir to the command path (`$PATH`)",
+				"",
+				""
+			],
+			"signature": "appendPath(dir)",
+			"goFuncName": "hlappendpath",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "dir",
+					"Type": "string|table",
+					"Doc": [
+						"Directory",
+						"(or",
+						"directories)",
+						"to",
+						"append",
+						"to",
+						"path"
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"hilbish.appendPath '~/go/bin'",
+							"-- Will add ~/go/bin to the command path.",
+							"",
+							"-- Or do multiple:",
+							"hilbish.appendPath {",
+							"\t'~/go/bin',",
+							"\t'~/.local/bin'",
+							"}"
+						],
+						"startIdx": 4
+					}
+				],
+				"param": [
+					{
+						"id": "dir",
+						"fields": [
+							"string|table",
+							"Directory",
+							"(or",
+							"directories)",
+							"to",
+							"append",
+							"to",
+							"path"
+						],
+						"startIdx": 2
+					}
+				]
+			}
+		},
+		{
+			"name": "complete",
+			"description": [
+				"Registers a completion handler for the specified scope.",
+				"A `scope` is expected to be `command.\u003ccmd\u003e`,",
+				"replacing \u003ccmd\u003e with the name of the command (for example `command.git`).",
+				"The documentation for completions, under Features/Completions or `doc completions`",
+				"provides more details.",
+				"",
+				""
+			],
+			"signature": "complete(scope, cb)",
+			"goFuncName": "hlcomplete",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "scope",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "cb",
+					"Type": "function",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- This is a very simple example. Read the full doc for completions for details.",
+							"hilbish.complete('command.sudo', function(query, ctx, fields)",
+							"\tif #fields == 0 then",
+							"\t\t-- complete for commands",
+							"\t\tlocal comps, pfx = hilbish.completion.bins(query, ctx, fields)",
+							"\t\tlocal compGroup = {",
+							"\t\t\titems = comps, -- our list of items to complete",
+							"\t\t\ttype = 'grid' -- what our completions will look like.",
+							"\t\t}",
+							"",
+							"\t\treturn {compGroup}, pfx",
+							"\tend",
+							"",
+							"\t-- otherwise just be boring and return files",
+							"",
+							"\tlocal comps, pfx = hilbish.completion.files(query, ctx, fields)",
+							"\tlocal compGroup = {",
+							"\t\titems = comps,",
+							"\t\ttype = 'grid'",
+							"\t}",
+							"",
+							"\treturn {compGroup}, pfx",
+							"end)"
+						],
+						"startIdx": 9
+					}
+				],
+				"param": [
+					{
+						"id": "scope",
+						"fields": [
+							"string"
+						],
+						"startIdx": 6
+					},
+					{
+						"id": "cb",
+						"fields": [
+							"function"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "cwd",
+			"description": [
+				"Returns the current directory of the shell."
+			],
+			"signature": "cwd() -\u003e string",
+			"goFuncName": "hlcwd",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"returns": [
+					{
+						"id": "string",
+						"fields": [],
+						"startIdx": 2
+					}
+				]
+			}
+		},
+		{
+			"name": "exec",
+			"description": [
+				"Replaces the currently running Hilbish instance with the supplied command.",
+				"This can be used to do an in-place restart."
+			],
+			"signature": "exec(cmd)",
+			"goFuncName": "hlexec",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cmd",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "cmd",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "goro",
+			"description": [
+				"Puts `fn` in a Goroutine.",
+				"This can be used to run any function in another thread at the same time as other Lua code.",
+				"**NOTE: THIS FUNCTION MAY CRASH HILBISH IF OUTSIDE VARIABLES ARE ACCESSED.**",
+				"**This is a limitation of the Lua runtime.**"
+			],
+			"signature": "goro(fn)",
+			"goFuncName": "hlgoro",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "fn",
+					"Type": "function",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "fn",
+						"fields": [
+							"function"
+						],
+						"startIdx": 5
+					}
+				]
+			}
+		},
+		{
+			"name": "highlighter",
+			"description": [
+				"Line highlighter handler.",
+				"This is mainly for syntax highlighting, but in reality could set the input",
+				"of the prompt to *display* anything. The callback is passed the current line",
+				"and is expected to return a line that will be used as the input display.",
+				"Note that to set a highlighter, one has to override this function.",
+				""
+			],
+			"signature": "highlighter(line)",
+			"goFuncName": "hlhighlighter",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "line",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"--This code will highlight all double quoted strings in green.",
+							"function hilbish.highlighter(line)",
+							"",
+							"\treturn line:gsub('\"%w+\"', function(c) return lunacolors.green(c) end)",
+							"",
+							"end"
+						],
+						"startIdx": 6
+					}
+				],
+				"param": [
+					{
+						"id": "line",
+						"fields": [
+							"string"
+						],
+						"startIdx": 14
+					}
+				]
+			}
+		},
+		{
+			"name": "hinter",
+			"description": [
+				"The command line hint handler. It gets called on every key insert to",
+				"determine what text to use as an inline hint. It is passed the current",
+				"line and cursor position. It is expected to return a string which is used",
+				"as the text for the hint. This is by default a shim. To set hints,",
+				"override this function with your custom handler.",
+				"",
+				""
+			],
+			"signature": "hinter(line, pos)",
+			"goFuncName": "hlhinter",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "line",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "pos",
+					"Type": "number",
+					"Doc": [
+						"Position",
+						"of",
+						"cursor",
+						"in",
+						"line.",
+						"Usually",
+						"equals",
+						"string.len(line)"
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- this will display \"hi\" after the cursor in a dimmed color.",
+							"function hilbish.hinter(line, pos)",
+							"\treturn 'hi'",
+							"end"
+						],
+						"startIdx": 9
+					}
+				],
+				"param": [
+					{
+						"id": "line",
+						"fields": [
+							"string"
+						],
+						"startIdx": 6
+					},
+					{
+						"id": "pos",
+						"fields": [
+							"number",
+							"Position",
+							"of",
+							"cursor",
+							"in",
+							"line.",
+							"Usually",
+							"equals",
+							"string.len(line)"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "inputMode",
+			"description": [
+				"Sets the input mode for Hilbish's line reader.",
+				"`emacs` is the default. Setting it to `vim` changes behavior of input to be",
+				"Vim-like with modes and Vim keybinds."
+			],
+			"signature": "inputMode(mode)",
+			"goFuncName": "hlinputmode",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "mode",
+					"Type": "string",
+					"Doc": [
+						"Can",
+						"be",
+						"set",
+						"to",
+						"either",
+						"`emacs`",
+						"or",
+						"`vim`"
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "mode",
+						"fields": [
+							"string",
+							"Can",
+							"be",
+							"set",
+							"to",
+							"either",
+							"`emacs`",
+							"or",
+							"`vim`"
+						],
+						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "interval",
+			"description": [
+				"Runs the `cb` function every specified amount of `time`.",
+				"This creates a timer that ticking immediately."
+			],
+			"signature": "interval(cb, time) -\u003e @Timer",
+			"goFuncName": "hlinterval",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cb",
+					"Type": "function",
+					"Doc": []
+				},
+				{
+					"Name": "time",
+					"Type": "number",
+					"Doc": [
+						"Time",
+						"in",
+						"milliseconds."
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "cb",
+						"fields": [
+							"function"
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "time",
+						"fields": [
+							"number",
+							"Time",
+							"in",
+							"milliseconds."
+						],
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "Timer",
+						"fields": [],
+						"startIdx": 5
+					}
+				]
+			}
+		},
+		{
+			"name": "multiprompt",
+			"description": [
+				"Changes the text prompt when Hilbish asks for more input.",
+				"This will show up when text is incomplete, like a missing quote",
+				"",
+				""
+			],
+			"signature": "multiprompt(str)",
+			"goFuncName": "hlmultiprompt",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "str",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"--[[",
+							"imagine this is your text input:",
+							"user ~ ∆ echo \"hey",
+							"",
+							"but there's a missing quote! hilbish will now prompt you so the terminal",
+							"will look like:",
+							"user ~ ∆ echo \"hey",
+							"--\u003e ...!\"",
+							"",
+							"so then you get",
+							"user ~ ∆ echo \"hey",
+							"--\u003e ...!\"",
+							"hey ...!",
+							"]]--",
+							"hilbish.multiprompt '--\u003e'"
+						],
+						"startIdx": 5
+					}
+				],
+				"param": [
+					{
+						"id": "str",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "prependPath",
+			"description": [
+				"Prepends `dir` to $PATH."
+			],
+			"signature": "prependPath(dir)",
+			"goFuncName": "hlprependpath",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "dir",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "dir",
+						"fields": [
+							"string"
+						],
+						"startIdx": 2
+					}
+				]
+			}
+		},
+		{
+			"name": "prompt",
+			"description": [
+				"Changes the shell prompt to the provided string.",
+				"There are a few verbs that can be used in the prompt text.",
+				"These will be formatted and replaced with the appropriate values.",
+				"`%d` - Current working directory",
+				"`%u` - Name of current user",
+				"`%h` - Hostname of device",
+				""
+			],
+			"signature": "prompt(str, typ)",
+			"goFuncName": "hlprompt",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "str",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "typ?",
+					"Type": "string",
+					"Doc": [
+						"Type",
+						"of",
+						"prompt,",
+						"being",
+						"left",
+						"or",
+						"right.",
+						"Left",
+						"by",
+						"default."
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- the default hilbish prompt without color",
+							"hilbish.prompt '%u %d ∆'",
+							"-- or something of old:",
+							"hilbish.prompt '%u@%h :%d $'",
+							"-- prompt: user@hostname: ~/directory $"
+						],
+						"startIdx": 9
+					}
+				],
+				"param": [
+					{
+						"id": "str",
+						"fields": [
+							"string"
+						],
+						"startIdx": 7
+					},
+					{
+						"id": "typ?",
+						"fields": [
+							"string",
+							"Type",
+							"of",
+							"prompt,",
+							"being",
+							"left",
+							"or",
+							"right.",
+							"Left",
+							"by",
+							"default."
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "read",
+			"description": [
+				"Read input from the user, using Hilbish's line editor/input reader.",
+				"This is a separate instance from the one Hilbish actually uses.",
+				"Returns `input`, will be nil if Ctrl-D is pressed, or an error occurs."
+			],
+			"signature": "read(prompt) -\u003e input (string)",
+			"goFuncName": "hlread",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "prompt?",
+					"Type": "string",
+					"Doc": [
+						"Text",
+						"to",
+						"print",
+						"before",
+						"input,",
+						"can",
+						"be",
+						"empty."
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "prompt?",
+						"fields": [
+							"string",
+							"Text",
+							"to",
+							"print",
+							"before",
+							"input,",
+							"can",
+							"be",
+							"empty."
+						],
+						"startIdx": 4
+					}
+				],
+				"returns": [
+					{
+						"id": "string|nil",
+						"fields": [],
+						"startIdx": 5
+					}
+				]
+			}
+		},
+		{
+			"name": "timeout",
+			"description": [
+				"Executed the `cb` function after a period of `time`.",
+				"This creates a Timer that starts ticking immediately."
+			],
+			"signature": "timeout(cb, time) -\u003e @Timer",
+			"goFuncName": "hltimeout",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cb",
+					"Type": "function",
+					"Doc": []
+				},
+				{
+					"Name": "time",
+					"Type": "number",
+					"Doc": [
+						"Time",
+						"to",
+						"run",
+						"in",
+						"milliseconds."
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "cb",
+						"fields": [
+							"function"
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "time",
+						"fields": [
+							"number",
+							"Time",
+							"to",
+							"run",
+							"in",
+							"milliseconds."
+						],
+						"startIdx": 0
+					}
+				],
+				"returns": [
+					{
+						"id": "Timer",
+						"fields": [],
+						"startIdx": 5
+					}
+				]
+			}
+		},
+		{
+			"name": "which",
+			"description": [
+				"Checks if `name` is a valid command.",
+				"Will return the path of the binary, or a basename if it's a commander."
+			],
+			"signature": "which(name) -\u003e string",
+			"goFuncName": "hlwhich",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					}
+				],
+				"returns": [
+					{
+						"id": "string",
+						"fields": [],
+						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkAutoFlush",
+			"description": [
+				"Sets/toggles the option of automatically flushing output.",
+				"A call with no argument will toggle the value."
+			],
+			"signature": "autoFlush(auto)",
+			"goFuncName": "luasinkautoflush",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkFlush",
+			"description": [
+				"Flush writes all buffered input to the sink."
+			],
+			"signature": "flush()",
+			"goFuncName": "luasinkflush",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkRead",
+			"description": [
+				"Reads a liine of input from the sink."
+			],
+			"signature": "read() -\u003e string",
+			"goFuncName": "luasinkread",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkReadAll",
+			"description": [
+				"Reads all input from the sink."
+			],
+			"signature": "readAll() -\u003e string",
+			"goFuncName": "luasinkreadall",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkWrite",
+			"description": [
+				"Writes data to a sink."
+			],
+			"signature": "write(str)",
+			"goFuncName": "luasinkwrite",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkWriteln",
+			"description": [
+				"Writes data to a sink with a newline at the end."
+			],
+			"signature": "writeln(str)",
+			"goFuncName": "luasinkwriteln",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	],
+	"interfaces": {
+		"hilbish.aliases": {
+			"name": "hilbish.aliases",
+			"shortDescription": "command aliasing",
+			"description": "The alias interface deals with all command aliases in Hilbish.",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [],
+			"docs": [
+				{
+					"name": "aliases.add",
+					"description": [
+						"This is an alias (ha) for the [hilbish.alias](../#alias) function."
+					],
+					"parent": "hilbish",
+					"interfaces": "aliases",
+					"signature": "add(alias, cmd)",
+					"goFuncName": "_hlalias",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "aliases",
+								"fields": [],
+								"startIdx": 0
+							}
+						]
+					}
+				},
+				{
+					"name": "aliases.delete",
+					"description": [
+						"Removes an alias."
+					],
+					"parent": "hilbish",
+					"interfaces": "aliases",
+					"signature": "delete(name)",
+					"goFuncName": "luadelete",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "name",
+							"Type": "string",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "aliases",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "name",
+								"fields": [
+									"string"
+								],
+								"startIdx": 3
+							}
+						]
+					}
+				},
+				{
+					"name": "aliases.list",
+					"description": [
+						"Get a table of all aliases, with string keys as the alias and the value as the command.",
+						"",
+						""
+					],
+					"parent": "hilbish",
+					"interfaces": "aliases",
+					"signature": "list() -\u003e table[string, string]",
+					"goFuncName": "lualist",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"tags": {
+						"example": [
+							{
+								"id": "",
+								"fields": [
+									"hilbish.aliases.add('hi', 'echo hi')",
+									"",
+									"local aliases = hilbish.aliases.list()",
+									"-- -\u003e {hi = 'echo hi'}"
+								],
+								"startIdx": 5
+							}
+						],
+						"interface": [
+							{
+								"id": "aliases",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"returns": [
+							{
+								"id": "table[string,",
+								"fields": [
+									"string]"
+								],
+								"startIdx": 3
+							}
+						]
+					}
+				},
+				{
+					"name": "aliases.resolve",
+					"description": [
+						"Resolves an alias to its original command. Will thrown an error if the alias doesn't exist."
+					],
+					"parent": "hilbish",
+					"interfaces": "aliases",
+					"signature": "resolve(alias) -\u003e string?",
+					"goFuncName": "luaresolve",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "alias",
+							"Type": "string",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "aliases",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "alias",
+								"fields": [
+									"string"
+								],
+								"startIdx": 3
+							}
+						],
+						"returns": [
+							{
+								"id": "string",
+								"fields": [],
+								"startIdx": 4
+							}
+						]
+					}
+				}
+			]
+		},
+		"hilbish.completion": {
+			"name": "hilbish.completion",
+			"shortDescription": "tab completions",
+			"description": "The completions interface deals with tab completions.",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [],
+			"docs": [
+				{
+					"name": "completion.bins",
+					"description": [
+						"Return binaries/executables based on the provided parameters.",
+						"This function is meant to be used as a helper in a command completion handler.",
+						"",
+						""
+					],
+					"parent": "hilbish",
+					"interfaces": "completion",
+					"signature": "bins(query, ctx, fields) -\u003e entries (table), prefix (string)",
+					"goFuncName": "hcmpbins",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "query",
+							"Type": "string",
+							"Doc": []
+						},
+						{
+							"Name": "ctx",
+							"Type": "string",
+							"Doc": []
+						},
+						{
+							"Name": "fields",
+							"Type": "table",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"example": [
+							{
+								"id": "",
+								"fields": [
+									"-- an extremely simple completer for sudo.",
+									"hilbish.complete('command.sudo', function(query, ctx, fields)",
+									"\ttable.remove(fields, 1)",
+									"\tif #fields[1] then",
+									"\t\t-- return commands because sudo runs a command as root..!",
+									"",
+									"\t\tlocal entries, pfx = hilbish.completion.bins(query, ctx, fields)",
+									"\t\treturn {",
+									"\t\t\ttype = 'grid',",
+									"\t\t\titems = entries",
+									"\t\t}, pfx",
+									"\tend",
+									"",
+									"\t-- ... else suggest files or anything else ..",
+									"end)"
+								],
+								"startIdx": 8
+							}
+						],
+						"interface": [
+							{
+								"id": "completion",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "query",
+								"fields": [
+									"string"
+								],
+								"startIdx": 4
+							},
+							{
+								"id": "ctx",
+								"fields": [
+									"string"
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "fields",
+								"fields": [
+									"table"
+								],
+								"startIdx": 0
+							}
+						]
+					}
+				},
+				{
+					"name": "completion.call",
+					"description": [
+						"Calls a completer function. This is mainly used to call a command completer, which will have a `name`",
+						"in the form of `command.name`, example: `command.git`.",
+						"You can check the Completions doc or `doc completions` for info on the `completionGroups` return value."
+					],
+					"parent": "hilbish",
+					"interfaces": "completion",
+					"signature": "call(name, query, ctx, fields) -\u003e completionGroups (table), prefix (string)",
+					"goFuncName": "hcmpcall",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "name",
+							"Type": "string",
+							"Doc": []
+						},
+						{
+							"Name": "query",
+							"Type": "string",
+							"Doc": []
+						},
+						{
+							"Name": "ctx",
+							"Type": "string",
+							"Doc": []
+						},
+						{
+							"Name": "fields",
+							"Type": "table",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "completion",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "name",
+								"fields": [
+									"string"
+								],
+								"startIdx": 5
+							},
+							{
+								"id": "query",
+								"fields": [
+									"string"
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "ctx",
+								"fields": [
+									"string"
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "fields",
+								"fields": [
+									"table"
+								],
+								"startIdx": 0
+							}
+						]
+					}
+				},
+				{
+					"name": "completion.files",
+					"description": [
+						"Returns file matches based on the provided parameters.",
+						"This function is meant to be used as a helper in a command completion handler."
+					],
+					"parent": "hilbish",
+					"interfaces": "completion",
+					"signature": "files(query, ctx, fields) -\u003e entries (table), prefix (string)",
+					"goFuncName": "hcmpfiles",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "query",
+							"Type": "string",
+							"Doc": []
+						},
+						{
+							"Name": "ctx",
+							"Type": "string",
+							"Doc": []
+						},
+						{
+							"Name": "fields",
+							"Type": "table",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "completion",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "query",
+								"fields": [
+									"string"
+								],
+								"startIdx": 4
+							},
+							{
+								"id": "ctx",
+								"fields": [
+									"string"
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "fields",
+								"fields": [
+									"table"
+								],
+								"startIdx": 0
+							}
+						]
+					}
+				},
+				{
+					"name": "completion.handler",
+					"description": [
+						"This function contains the general completion handler for Hilbish. This function handles",
+						"completion of everything, which includes calling other command handlers, binaries, and files.",
+						"This function can be overriden to supply a custom handler. Note that alias resolution is required to be done in this function.",
+						"",
+						""
+					],
+					"parent": "hilbish",
+					"interfaces": "completion",
+					"signature": "handler(line, pos)",
+					"goFuncName": "hcmphandler",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "line",
+							"Type": "string",
+							"Doc": [
+								"The",
+								"current",
+								"Hilbish",
+								"command",
+								"line"
+							]
+						},
+						{
+							"Name": "pos",
+							"Type": "number",
+							"Doc": [
+								"Numerical",
+								"position",
+								"of",
+								"the",
+								"cursor"
+							]
+						}
+					],
+					"tags": {
+						"example": [
+							{
+								"id": "",
+								"fields": [
+									"-- stripped down version of the default implementation",
+									"function hilbish.completion.handler(line, pos)",
+									"\tlocal query = fields[#fields]",
+									"",
+									"\tif #fields == 1 then",
+									"\t\t-- call bins handler here",
+									"\telse",
+									"\t\t-- call command completer or files completer here",
+									"\tend",
+									"end"
+								],
+								"startIdx": 8
+							}
+						],
+						"interface": [
+							{
+								"id": "completion",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "line",
+								"fields": [
+									"string",
+									"The",
+									"current",
+									"Hilbish",
+									"command",
+									"line"
+								],
+								"startIdx": 5
+							},
+							{
+								"id": "pos",
+								"fields": [
+									"number",
+									"Numerical",
+									"position",
+									"of",
+									"the",
+									"cursor"
+								],
+								"startIdx": 0
+							}
+						]
+					}
+				}
+			]
+		},
+		"hilbish.history": {
+			"name": "hilbish.history",
+			"shortDescription": "command history",
+			"description": "The history interface deals with command history.\nThis includes the ability to override functions to change the main\nmethod of saving history.",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [],
+			"docs": [
+				{
+					"name": "history.add",
+					"description": [
+						"Adds a command to the history."
+					],
+					"parent": "hilbish",
+					"interfaces": "history",
+					"signature": "add(cmd)",
+					"goFuncName": "luaaddhistory",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "cmd",
+							"Type": "string",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "history",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "cmd",
+								"fields": [
+									"string"
+								],
+								"startIdx": 3
+							}
+						]
+					}
+				},
+				{
+					"name": "history.all",
+					"description": [
+						"Retrieves all history as a table."
+					],
+					"parent": "hilbish",
+					"interfaces": "history",
+					"signature": "all() -\u003e table",
+					"goFuncName": "luaallhistory",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "history",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"returns": [
+							{
+								"id": "table",
+								"fields": [],
+								"startIdx": 3
+							}
+						]
+					}
+				},
+				{
+					"name": "history.clear",
+					"description": [
+						"Deletes all commands from the history."
+					],
+					"parent": "hilbish",
+					"interfaces": "history",
+					"signature": "clear()",
+					"goFuncName": "luaclearhistory",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "history",
+								"fields": [],
+								"startIdx": 0
+							}
+						]
+					}
+				},
+				{
+					"name": "history.get",
+					"description": [
+						"Retrieves a command from the history based on the `index`."
+					],
+					"parent": "hilbish",
+					"interfaces": "history",
+					"signature": "get(index)",
+					"goFuncName": "luagethistory",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "index",
+							"Type": "number",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "history",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "index",
+								"fields": [
+									"number"
+								],
+								"startIdx": 3
+							}
+						]
+					}
+				},
+				{
+					"name": "history.size",
+					"description": [
+						"Returns the amount of commands in the history."
+					],
+					"parent": "hilbish",
+					"interfaces": "history",
+					"signature": "size() -\u003e number",
+					"goFuncName": "luasize",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"tags": {
+						"eturns": [
+							{
+								"id": "number",
+								"fields": [],
+								"startIdx": 3
+							}
+						],
+						"interface": [
+							{
+								"id": "history",
+								"fields": [],
+								"startIdx": 0
+							}
+						]
+					}
+				}
+			]
+		},
+		"hilbish.jobs": {
+			"name": "hilbish.jobs",
+			"shortDescription": "background job management",
+			"description": "\nManage interactive jobs in Hilbish via Lua.\n\nJobs are the name of background tasks/commands. A job can be started via\ninteractive usage or with the functions defined below for use in external runners.",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [],
+			"types": [
+				{
+					"name": "Job",
+					"description": [
+						"The Job type describes a Hilbish job."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"isInterface": true,
+					"isMember": false,
+					"isType": true,
+					"properties": [
+						{
+							"name": "cmd",
+							"description": [
+								"The",
+								"user",
+								"entered",
+								"command",
+								"string",
+								"for",
+								"the",
+								"job."
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						},
+						{
+							"name": "running",
+							"description": [
+								"Whether",
+								"the",
+								"job",
+								"is",
+								"running",
+								"or",
+								"not."
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						},
+						{
+							"name": "id",
+							"description": [
+								"The",
+								"ID",
+								"of",
+								"the",
+								"job",
+								"in",
+								"the",
+								"job",
+								"table"
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						},
+						{
+							"name": "pid",
+							"description": [
+								"The",
+								"Process",
+								"ID"
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						},
+						{
+							"name": "exitCode",
+							"description": [
+								"The",
+								"last",
+								"exit",
+								"code",
+								"of",
+								"the",
+								"job."
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						},
+						{
+							"name": "stdout",
+							"description": [
+								"The",
+								"standard",
+								"output",
+								"of",
+								"the",
+								"job.",
+								"This",
+								"just",
+								"means",
+								"the",
+								"normal",
+								"logs",
+								"of",
+								"the",
+								"process."
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						},
+						{
+							"name": "stderr",
+							"description": [
+								"The",
+								"standard",
+								"error",
+								"stream",
+								"of",
+								"the",
+								"process.",
+								"This",
+								"(usually)",
+								"includes",
+								"error",
+								"messages",
+								"of",
+								"the",
+								"job."
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 1
+							}
+						],
+						"property": [
+							{
+								"id": "cmd",
+								"fields": [
+									"The",
+									"user",
+									"entered",
+									"command",
+									"string",
+									"for",
+									"the",
+									"job."
+								],
+								"startIdx": 2
+							},
+							{
+								"id": "running",
+								"fields": [
+									"Whether",
+									"the",
+									"job",
+									"is",
+									"running",
+									"or",
+									"not."
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "id",
+								"fields": [
+									"The",
+									"ID",
+									"of",
+									"the",
+									"job",
+									"in",
+									"the",
+									"job",
+									"table"
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "pid",
+								"fields": [
+									"The",
+									"Process",
+									"ID"
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "exitCode",
+								"fields": [
+									"The",
+									"last",
+									"exit",
+									"code",
+									"of",
+									"the",
+									"job."
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "stdout",
+								"fields": [
+									"The",
+									"standard",
+									"output",
+									"of",
+									"the",
+									"job.",
+									"This",
+									"just",
+									"means",
+									"the",
+									"normal",
+									"logs",
+									"of",
+									"the",
+									"process."
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "stderr",
+								"fields": [
+									"The",
+									"standard",
+									"error",
+									"stream",
+									"of",
+									"the",
+									"process.",
+									"This",
+									"(usually)",
+									"includes",
+									"error",
+									"messages",
+									"of",
+									"the",
+									"job."
+								],
+								"startIdx": 0
+							}
+						],
+						"type": [
+							{
+								"id": "",
+								"fields": null,
+								"startIdx": 0
+							}
+						]
+					}
+				}
+			],
+			"docs": [
+				{
+					"name": "jobs.background",
+					"description": [
+						"Puts a job in the background. This acts the same as initially running a job."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "background()",
+					"goFuncName": "luabackgroundjob",
+					"isInterface": true,
+					"isMember": true,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"member": [
+							{
+								"id": "",
+								"fields": null,
+								"startIdx": 1
+							}
+						]
+					}
+				},
+				{
+					"name": "jobs.foreground",
+					"description": [
+						"Puts a job in the foreground. This will cause it to run like it was",
+						"executed normally and wait for it to complete."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "foreground()",
+					"goFuncName": "luaforegroundjob",
+					"isInterface": true,
+					"isMember": true,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"member": [
+							{
+								"id": "",
+								"fields": null,
+								"startIdx": 1
+							}
+						]
+					}
+				},
+				{
+					"name": "jobs.start",
+					"description": [
+						"Starts running the job."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "start()",
+					"goFuncName": "luastartjob",
+					"isInterface": true,
+					"isMember": true,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"member": [
+							{
+								"id": "",
+								"fields": null,
+								"startIdx": 1
+							}
+						]
+					}
+				},
+				{
+					"name": "jobs.stop",
+					"description": [
+						"Stops the job from running."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "stop()",
+					"goFuncName": "luastopjob",
+					"isInterface": true,
+					"isMember": true,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"member": [
+							{
+								"id": "",
+								"fields": null,
+								"startIdx": 1
+							}
+						]
+					}
+				},
+				{
+					"name": "jobs.add",
+					"description": [
+						"Creates a new job. This function does not run the job. This function is intended to be",
+						"used by runners, but can also be used to create jobs via Lua. Commanders cannot be ran as jobs.",
+						"",
+						""
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "add(cmdstr, args, execPath)",
+					"goFuncName": "luaaddjob",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "cmdstr",
+							"Type": "string",
+							"Doc": [
+								"String",
+								"that",
+								"a",
+								"user",
+								"would",
+								"write",
+								"for",
+								"the",
+								"job"
+							]
+						},
+						{
+							"Name": "args",
+							"Type": "table",
+							"Doc": [
+								"Arguments",
+								"for",
+								"the",
+								"commands.",
+								"Has",
+								"to",
+								"include",
+								"the",
+								"name",
+								"of",
+								"the",
+								"command."
+							]
+						},
+						{
+							"Name": "execPath",
+							"Type": "string",
+							"Doc": [
+								"Binary",
+								"to",
+								"use",
+								"to",
+								"run",
+								"the",
+								"command.",
+								"Needs",
+								"to",
+								"be",
+								"an",
+								"absolute",
+								"path."
+							]
+						}
+					],
+					"tags": {
+						"example": [
+							{
+								"id": "",
+								"fields": [
+									"hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')"
+								],
+								"startIdx": 8
+							}
+						],
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "cmdstr",
+								"fields": [
+									"string",
+									"String",
+									"that",
+									"a",
+									"user",
+									"would",
+									"write",
+									"for",
+									"the",
+									"job"
+								],
+								"startIdx": 4
+							},
+							{
+								"id": "args",
+								"fields": [
+									"table",
+									"Arguments",
+									"for",
+									"the",
+									"commands.",
+									"Has",
+									"to",
+									"include",
+									"the",
+									"name",
+									"of",
+									"the",
+									"command."
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "execPath",
+								"fields": [
+									"string",
+									"Binary",
+									"to",
+									"use",
+									"to",
+									"run",
+									"the",
+									"command.",
+									"Needs",
+									"to",
+									"be",
+									"an",
+									"absolute",
+									"path."
+								],
+								"startIdx": 0
+							}
+						]
+					}
+				},
+				{
+					"name": "jobs.all",
+					"description": [
+						"Returns a table of all job objects."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "all() -\u003e table[@Job]",
+					"goFuncName": "luaalljobs",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"returns": [
+							{
+								"id": "table[Job]",
+								"fields": [],
+								"startIdx": 3
+							}
+						]
+					}
+				},
+				{
+					"name": "jobs.disown",
+					"description": [
+						"Disowns a job. This simply deletes it from the list of jobs without stopping it."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "disown(id)",
+					"goFuncName": "luadisownjob",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "id",
+							"Type": "number",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "id",
+								"fields": [
+									"number"
+								],
+								"startIdx": 3
+							}
+						]
+					}
+				},
+				{
+					"name": "jobs.get",
+					"description": [
+						"Get a job object via its ID."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "get(id) -\u003e @Job",
+					"goFuncName": "luagetjob",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						]
+					}
+				},
+				{
+					"name": "jobs.last",
+					"description": [
+						"Returns the last added job to the table."
+					],
+					"parent": "hilbish",
+					"interfaces": "jobs",
+					"signature": "last() -\u003e @Job",
+					"goFuncName": "lualastjob",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "jobs",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"returns": [
+							{
+								"id": "Job",
+								"fields": [],
+								"startIdx": 3
+							}
+						]
+					}
+				}
+			]
+		},
+		"hilbish.module": {
+			"name": "hilbish.module",
+			"shortDescription": "native module loading",
+			"description": "\nThe hilbish.module interface provides a function to load\nHilbish plugins/modules. Hilbish modules are Go-written\nplugins (see https://pkg.go.dev/plugin) that are used to add functionality\nto Hilbish that cannot be written in Lua for any reason.\n\nNote that you don't ever need to use the load function that is here as\nmodules can be loaded with a `require` call like Lua C modules, and the\nsearch paths can be changed with the `paths` property here.\n\nTo make a valid native module, the Go plugin has to export a Loader function\nwith a signature like so: `func(*rt.Runtime) rt.Value`.\n\n`rt` in this case refers to the Runtime type at\nhttps://pkg.go.dev/github.com/arnodel/golua@master/runtime#Runtime\n\nHilbish uses this package as its Lua runtime. You will need to read\nit to use it for a native plugin.\n\nHere is some code for an example plugin:\n```go\npackage main\n\nimport (\n\trt \"github.com/arnodel/golua/runtime\"\n)\n\nfunc Loader(rtm *rt.Runtime) rt.Value {\n\treturn rt.StringValue(\"hello world!\")\n}\n```\n\nThis can be compiled with `go build -buildmode=plugin plugin.go`.\nIf you attempt to require and print the result (`print(require 'plugin')`), it will show \"hello world!\"",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [
+				{
+					"name": "paths",
+					"description": [
+						"A",
+						"list",
+						"of",
+						"paths",
+						"to",
+						"search",
+						"when",
+						"loading",
+						"native",
+						"modules.",
+						"This",
+						"is",
+						"in",
+						"the",
+						"style",
+						"of",
+						"Lua",
+						"search",
+						"paths",
+						"and",
+						"will",
+						"be",
+						"used",
+						"when",
+						"requiring",
+						"native",
+						"modules.",
+						"Example:",
+						"`?.so;?/?.so`"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				}
+			],
+			"docs": [
+				{
+					"name": "module.load",
+					"description": [
+						"Loads a module at the designated `path`.",
+						"It will throw if any error occurs."
+					],
+					"parent": "hilbish",
+					"interfaces": "module",
+					"signature": "load(path)",
+					"goFuncName": "moduleload",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "path",
+							"Type": "string",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "module",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "path",
+								"fields": [
+									"string"
+								],
+								"startIdx": 4
+							}
+						]
+					}
+				}
+			]
+		},
+		"hilbish.os": {
+			"name": "hilbish.os",
+			"shortDescription": "operating system info",
+			"description": "Provides simple text information properties about the current operating system.\nThis mainly includes the name and version.",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [
+				{
+					"name": "family",
+					"description": [
+						"Family",
+						"name",
+						"of",
+						"the",
+						"current",
+						"OS"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "name",
+					"description": [
+						"Pretty",
+						"name",
+						"of",
+						"the",
+						"current",
+						"OS"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "version",
+					"description": [
+						"Version",
+						"of",
+						"the",
+						"current",
+						"OS"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				}
+			],
+			"docs": null
+		},
+		"hilbish.runner": {
+			"name": "hilbish.runner",
+			"shortDescription": "interactive command runner customization",
+			"description": " The runner interface contains functions that allow the user to change\nhow Hilbish interprets interactive input.\nUsers can add and change the default runner for interactive input to any\nlanguage or script of their choosing. A good example is using it to\nwrite command in Fennel.\n\nRunners are functions that evaluate user input. The default runners in\nHilbish can run shell script and Lua code.\n\nA runner is passed the input and has to return a table with these values.\nAll are not required, only the useful ones the runner needs to return.\n(So if there isn't an error, just omit `err`.)\n\n- `exitCode` (number): Exit code of the command\n- `input` (string): The text input of the user. This is used by Hilbish to append extra input, in case\nmore is requested.\n- `err` (string): A string that represents an error from the runner.\nThis should only be set when, for example, there is a syntax error.\nIt can be set to a few special values for Hilbish to throw the right\nhooks and have a better looking message.\n\t- `\u003ccommand\u003e: not-found` will throw a `command.not-found` hook\n\tbased on what `\u003ccommand\u003e` is.\n\t- `\u003ccommand\u003e: not-executable` will throw a `command.not-executable` hook.\n- `continue` (boolean): Whether Hilbish should prompt the user for no input\n- `newline` (boolean): Whether a newline should be added at the end of `input`.\n\nHere is a simple example of a fennel runner. It falls back to\nshell script if fennel eval has an error.\n```lua\nlocal fennel = require 'fennel'\n\nhilbish.runnerMode(function(input)\n\tlocal ok = pcall(fennel.eval, input)\n\tif ok then\n\t\treturn {\n\t\t\tinput = input\n\t\t}\n\tend\n\n\treturn hilbish.runner.sh(input)\nend)\n```",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [],
+			"docs": [
+				{
+					"name": "runner.lua",
+					"description": [
+						"Evaluates `cmd` as Lua input. This is the same as using `dofile`",
+						"or `load`, but is appropriated for the runner interface."
+					],
+					"parent": "hilbish",
+					"interfaces": "runner",
+					"signature": "lua(cmd)",
+					"goFuncName": "luarunner",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "cmd",
+							"Type": "string",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "runner",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "cmd",
+								"fields": [
+									"string"
+								],
+								"startIdx": 4
+							}
+						]
+					}
+				}
+			]
+		},
+		"hilbish.timers": {
+			"name": "hilbish.timers",
+			"shortDescription": "timeout and interval API",
+			"description": "\nIf you ever want to run a piece of code on a timed interval, or want to wait\na few seconds, you don't have to rely on timing tricks, as Hilbish has a\ntimer API to set intervals and timeouts.\n\nThese are the simple functions `hilbish.interval` and `hilbish.timeout` (doc\naccessible with `doc hilbish`, or `Module hilbish` on the Website).\n\nAn example of usage:\n```lua\nlocal t = hilbish.timers.create(hilbish.timers.TIMEOUT, 5000, function()\n\tprint 'hello!'\nend)\n\nt:start()\nprint(t.running) // true\n```",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [
+				{
+					"name": "INTERVAL",
+					"description": [
+						"Constant",
+						"for",
+						"an",
+						"interval",
+						"timer",
+						"type"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "TIMEOUT",
+					"description": [
+						"Constant",
+						"for",
+						"a",
+						"timeout",
+						"timer",
+						"type"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				}
+			],
+			"types": [
+				{
+					"name": "Timer",
+					"description": [
+						"The Job type describes a Hilbish timer."
+					],
+					"parent": "hilbish",
+					"interfaces": "timers",
+					"isInterface": true,
+					"isMember": false,
+					"isType": true,
+					"properties": [
+						{
+							"name": "type",
+							"description": [
+								"What",
+								"type",
+								"of",
+								"timer",
+								"it",
+								"is"
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						},
+						{
+							"name": "running",
+							"description": [
+								"If",
+								"the",
+								"timer",
+								"is",
+								"running"
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						},
+						{
+							"name": "duration",
+							"description": [
+								"The",
+								"duration",
+								"in",
+								"milliseconds",
+								"that",
+								"the",
+								"timer",
+								"will",
+								"run"
+							],
+							"isInterface": false,
+							"isMember": false,
+							"isType": false
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "timers",
+								"fields": [],
+								"startIdx": 1
+							}
+						],
+						"property": [
+							{
+								"id": "type",
+								"fields": [
+									"What",
+									"type",
+									"of",
+									"timer",
+									"it",
+									"is"
+								],
+								"startIdx": 2
+							},
+							{
+								"id": "running",
+								"fields": [
+									"If",
+									"the",
+									"timer",
+									"is",
+									"running"
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "duration",
+								"fields": [
+									"The",
+									"duration",
+									"in",
+									"milliseconds",
+									"that",
+									"the",
+									"timer",
+									"will",
+									"run"
+								],
+								"startIdx": 0
+							}
+						],
+						"type": [
+							{
+								"id": "",
+								"fields": null,
+								"startIdx": 0
+							}
+						]
+					}
+				}
+			],
+			"docs": [
+				{
+					"name": "timers.start",
+					"description": [
+						"Starts a timer."
+					],
+					"parent": "hilbish",
+					"interfaces": "timers",
+					"signature": "start()",
+					"goFuncName": "timerstart",
+					"isInterface": true,
+					"isMember": true,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "timers",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"member": [
+							{
+								"id": "",
+								"fields": null,
+								"startIdx": 1
+							}
+						]
+					}
+				},
+				{
+					"name": "timers.stop",
+					"description": [
+						"Stops a timer."
+					],
+					"parent": "hilbish",
+					"interfaces": "timers",
+					"signature": "stop()",
+					"goFuncName": "timerstop",
+					"isInterface": true,
+					"isMember": true,
+					"isType": false,
+					"tags": {
+						"interface": [
+							{
+								"id": "timers",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"member": [
+							{
+								"id": "",
+								"fields": null,
+								"startIdx": 1
+							}
+						]
+					}
+				},
+				{
+					"name": "timers.create",
+					"description": [
+						"Creates a timer that runs based on the specified `time`."
+					],
+					"parent": "hilbish",
+					"interfaces": "timers",
+					"signature": "create(type, time, callback) -\u003e @Timer",
+					"goFuncName": "luacreate",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "type",
+							"Type": "number",
+							"Doc": [
+								"What",
+								"kind",
+								"of",
+								"timer",
+								"to",
+								"create,",
+								"can",
+								"either",
+								"be",
+								"`hilbish.timers.INTERVAL`",
+								"or",
+								"`hilbish.timers.TIMEOUT`"
+							]
+						},
+						{
+							"Name": "time",
+							"Type": "number",
+							"Doc": [
+								"The",
+								"amount",
+								"of",
+								"time",
+								"the",
+								"function",
+								"should",
+								"run",
+								"in",
+								"milliseconds."
+							]
+						},
+						{
+							"Name": "callback",
+							"Type": "function",
+							"Doc": [
+								"The",
+								"function",
+								"to",
+								"run",
+								"for",
+								"the",
+								"timer."
+							]
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "timers",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "type",
+								"fields": [
+									"number",
+									"What",
+									"kind",
+									"of",
+									"timer",
+									"to",
+									"create,",
+									"can",
+									"either",
+									"be",
+									"`hilbish.timers.INTERVAL`",
+									"or",
+									"`hilbish.timers.TIMEOUT`"
+								],
+								"startIdx": 3
+							},
+							{
+								"id": "time",
+								"fields": [
+									"number",
+									"The",
+									"amount",
+									"of",
+									"time",
+									"the",
+									"function",
+									"should",
+									"run",
+									"in",
+									"milliseconds."
+								],
+								"startIdx": 0
+							},
+							{
+								"id": "callback",
+								"fields": [
+									"function",
+									"The",
+									"function",
+									"to",
+									"run",
+									"for",
+									"the",
+									"timer."
+								],
+								"startIdx": 0
+							}
+						]
+					}
+				},
+				{
+					"name": "timers.get",
+					"description": [
+						"Retrieves a timer via its ID."
+					],
+					"parent": "hilbish",
+					"interfaces": "timers",
+					"signature": "get(id) -\u003e @Timer",
+					"goFuncName": "luaget",
+					"isInterface": true,
+					"isMember": false,
+					"isType": false,
+					"params": [
+						{
+							"Name": "id",
+							"Type": "number",
+							"Doc": []
+						}
+					],
+					"tags": {
+						"interface": [
+							{
+								"id": "timers",
+								"fields": [],
+								"startIdx": 0
+							}
+						],
+						"param": [
+							{
+								"id": "id",
+								"fields": [
+									"number"
+								],
+								"startIdx": 3
+							}
+						],
+						"returns": [
+							{
+								"id": "Timer",
+								"fields": [],
+								"startIdx": 4
+							}
+						]
+					}
+				}
+			]
+		},
+		"hilbish.userDir": {
+			"name": "hilbish.userDir",
+			"shortDescription": "user-related directories",
+			"description": "This interface just contains properties to know about certain user directories.\nIt is equivalent to XDG on Linux and gets the user's preferred directories\nfor configs and data.",
+			"parent": "hilbish",
+			"properties": [],
+			"fields": [
+				{
+					"name": "config",
+					"description": [
+						"The",
+						"user's",
+						"config",
+						"directory"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "data",
+					"description": [
+						"The",
+						"user's",
+						"directory",
+						"for",
+						"program",
+						"data"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				}
+			],
+			"docs": null
+		}
+	}
+}

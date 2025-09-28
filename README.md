@@ -1,14 +1,14 @@
 > [!TIP]
-> Check out [Hilbish: Midnight Edition](https://github.com/Rosettea/Hilbish/tree/midnight-edition) if you want to use C Lua, LuaJIT or anything related!
+> Check out [Hilbish: Midnight Edition](https://github.com/sammy-ette/Hilbish/tree/midnight-edition) if you want to use C Lua, LuaJIT or anything related!
 
 <img src="./assets/hilbish-logo-and-text.png" width=512><br>
 <blockquote>
 🌓 The Moon-powered shell! A comfy and extensible shell for Lua fans! 🌺 ✨
 </blockquote>
 
-<img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/Rosettea/Hilbish?style=flat-square"><img alt="GitHub commits since latest release (by date)" src="https://img.shields.io/github/commits-since/Rosettea/Hilbish/latest?style=flat-square"><img alt="GitHub contributors" src="https://img.shields.io/github/contributors/Rosettea/Hilbish?style=flat-square"><br>
-<a href="https://github.com/Rosettea/Hilbish/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22"><img src="https://img.shields.io/github/issues/Hilbis/Hilbish/help%20wanted?style=flat-square&color=green" alt="help wanted"></a>
-<a href="https://github.com/Rosettea/Hilbish/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Rosettea/Hilbish?style=flat-square"></a>
+<img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/sammy-ette/Hilbish?style=flat-square"><img alt="GitHub commits since latest release (by date)" src="https://img.shields.io/github/commits-since/sammy-ette/Hilbish/latest?style=flat-square"><img alt="GitHub contributors" src="https://img.shields.io/github/contributors/sammy-ette/Hilbish?style=flat-square"><br>
+<a href="https://github.com/sammy-ette/Hilbish/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22"><img src="https://img.shields.io/github/issues/Hilbis/Hilbish/help%20wanted?style=flat-square&color=green" alt="help wanted"></a>
+<a href="https://github.com/sammy-ette/Hilbish/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/sammy-ette/Hilbish?style=flat-square"></a>
 <a href="https://discord.gg/3PDdcQz"><img alt="Discord" src="https://img.shields.io/discord/732357621503229962?color=blue&style=flat-square"></a>
 <br>
 
@@ -20,7 +20,7 @@ those who need more.
 
 The motivation for choosing Lua was that its simpler and better to use
 than old shell scripts. It's fine for basic interactive shell uses,
-and supports [both Lua and Sh interactively](https://rosettea.github.io/Hilbish/docs/features/runner-mode/).
+and supports [both Lua and Sh interactively](https://hilbish.sammyette.party/docs/features/runner-mode/).
 
 That's the only place Hilbish can use traditional shell syntax though; 
 everything else is Lua and aims to be infinitely configurable. 
@@ -38,7 +38,7 @@ from the 2.0 version. It will still be able to compile, but functionality
 may be lacking. If you want to contribute to make the situation better,
 comment on the Windows discussion.
 
-You can check the [install page](https://rosettea.github.io/Hilbish/install/)
+You can check the [install page](https://hilbish.sammyette.party/install/)
 on the website for distributed binaries from GitHub or other package repositories.
 Otherwise, continue reading for steps on compiling.
 
@@ -49,7 +49,7 @@ Otherwise, continue reading for steps on compiling.
 First, clone Hilbish. The recursive is required, as some Lua libraries
 are submodules.  
 ```sh
-git clone --recursive https://github.com/Rosettea/Hilbish
+git clone --recursive https://github.com/sammy-ette/Hilbish
 cd Hilbish
 go get -d ./...
 ```  
@@ -77,8 +77,8 @@ Any kind of contributions are welcome! Hilbish is very easy to contribute to.
 Read [CONTRIBUTING.md](CONTRIBUTING.md) as a guideline to doing so.
 
 **Thanks to everyone below who's contributed!**  
-<a href="https://github.com/Rosettea/Hilbish/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Rosettea/Hilbish" />
+<a href="https://github.com/sammy-ette/Hilbish/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=sammy-ette/Hilbish" />
 </a>
 
 *Made with [contributors-img](https://contrib.rocks).*

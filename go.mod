@@ -30,7 +30,7 @@ require (
 
 replace mvdan.cc/sh/v3 => github.com/Rosettea/sh/v3 v3.4.0-0.dev.0.20240815163633-562273e09b73
 
-replace github.com/maxlandon/readline => ./readline
+replace github.com/maxlandon/readline => ./golibs/readline
 
 replace layeh.com/gopher-luar => github.com/layeh/gopher-luar v1.0.10
 

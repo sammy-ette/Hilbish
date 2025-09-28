@@ -13,9 +13,10 @@ import (
 )
 
 type lineReader struct {
-	rl *readline.Instance
+	rl       *readline.Readline
 	fileHist *fileHistory
 }
+
 var hinter *rt.Closure
 var highlighter *rt.Closure
 
@@ -54,58 +55,64 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 	rl.ViModeCallback = func(mode readline.ViMode) {
 		modeStr := ""
 		switch mode {
-			case readline.VimKeys: modeStr = "normal"
-			case readline.VimInsert: modeStr = "insert"
-			case readline.VimDelete: modeStr = "delete"
-			case readline.VimReplaceOnce, readline.VimReplaceMany: modeStr = "replace"
+		case readline.VimKeys:
+			modeStr = "normal"
+		case readline.VimInsert:
+			modeStr = "insert"
+		case readline.VimDelete:
+			modeStr = "delete"
+		case readline.VimReplaceOnce, readline.VimReplaceMany:
+			modeStr = "replace"
 		}
 		setVimMode(modeStr)
 	}
 	rl.ViActionCallback = func(action readline.ViAction, args []string) {
 		actionStr := ""
 		switch action {
-			case readline.VimActionPaste: actionStr = "paste"
-			case readline.VimActionYank: actionStr = "yank"
+		case readline.VimActionPaste:
+			actionStr = "paste"
+		case readline.VimActionYank:
+			actionStr = "yank"
 		}
 		hooks.Emit("hilbish.vimAction", actionStr, args)
 	}
 	rl.HintText = func(line []rune, pos int) []rune {
 		hinter := hshMod.Get(rt.StringValue("hinter"))
 		retVal, err := rt.Call1(l.MainThread(), hinter,
-		rt.StringValue(string(line)), rt.IntValue(int64(pos)))
+			rt.StringValue(string(line)), rt.IntValue(int64(pos)))
 		if err != nil {
 			fmt.Println(err)
 			return []rune{}
 		}
-		
+
 		hintText := ""
 		if luaStr, ok := retVal.TryString(); ok {
 			hintText = luaStr
 		}
-		
+
 		return []rune(hintText)
 	}
 	rl.SyntaxHighlighter = func(line []rune) string {
 		highlighter := hshMod.Get(rt.StringValue("highlighter"))
 		retVal, err := rt.Call1(l.MainThread(), highlighter,
-		rt.StringValue(string(line)))
+			rt.StringValue(string(line)))
 		if err != nil {
 			fmt.Println(err)
 			return string(line)
 		}
-		
+
 		highlighted := ""
 		if luaStr, ok := retVal.TryString(); ok {
 			highlighted = luaStr
 		}
-		
+
 		return highlighted
 	}
 	rl.TabCompleter = func(line []rune, pos int, _ readline.DelayedTabContext) (string, []*readline.CompletionGroup) {
 		term := rt.NewTerminationWith(l.MainThread().CurrentCont(), 2, false)
 		compHandle := hshMod.Get(rt.StringValue("completion")).AsTable().Get(rt.StringValue("handler"))
 		err := rt.Call(l.MainThread(), compHandle, []rt.Value{rt.StringValue(string(line)),
-		rt.IntValue(int64(pos))}, term)
+			rt.IntValue(int64(pos))}, term)
 
 		var compGroups []*readline.CompletionGroup
 		if err != nil {
@@ -175,11 +182,11 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 					itemAliases[itemName] = itemAlias
 				} else if keytyp == rt.IntType {
 					vlStr, ok := lval.TryString()
-						if !ok {
-							// TODO: error
-							return
-						}
-						items = append(items, vlStr)
+					if !ok {
+						// TODO: error
+						return
+					}
+					items = append(items, vlStr)
 				} else {
 					// TODO: error
 					return
@@ -188,20 +195,22 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 
 			var dispType readline.TabDisplayType
 			switch luaCompType.AsString() {
-				case "grid": dispType = readline.TabDisplayGrid
-				case "list": dispType = readline.TabDisplayList
+			case "grid":
+				dispType = readline.TabDisplayGrid
+			case "list":
+				dispType = readline.TabDisplayList
 				// need special cases, will implement later
 				//case "map": dispType = readline.TabDisplayMap
 			}
 
 			compGroups = append(compGroups, &readline.CompletionGroup{
-				DisplayType: dispType,
-				Aliases: itemAliases,
+				DisplayType:  dispType,
+				Aliases:      itemAliases,
 				Descriptions: itemDescriptions,
 				ItemDisplays: itemDisplays,
-				Suggestions: items,
-				TrimSlash: false,
-				NoSpace: true,
+				Suggestions:  items,
+				TrimSlash:    false,
+				NoSpace:      true,
 			})
 		})
 
@@ -227,8 +236,8 @@ func (lr *lineReader) SetPrompt(p string) {
 	halfPrompt := strings.Split(p, "\n")
 	if len(halfPrompt) > 1 {
 		lr.rl.Multiline = true
-		lr.rl.SetPrompt(strings.Join(halfPrompt[:len(halfPrompt) - 1], "\n"))
-		lr.rl.MultilinePrompt = halfPrompt[len(halfPrompt) - 1:][0]
+		lr.rl.SetPrompt(strings.Join(halfPrompt[:len(halfPrompt)-1], "\n"))
+		lr.rl.MultilinePrompt = halfPrompt[len(halfPrompt)-1:][0]
 	} else {
 		lr.rl.Multiline = false
 		lr.rl.MultilinePrompt = ""
@@ -260,16 +269,16 @@ func (lr *lineReader) Resize() {
 
 // #interface history
 // command history
-// The history interface deals with command history. 
+// The history interface deals with command history.
 // This includes the ability to override functions to change the main
 // method of saving history.
 func (lr *lineReader) Loader(rtm *rt.Runtime) *rt.Table {
 	lrLua := map[string]util.LuaExport{
-		"add": {lr.luaAddHistory, 1, false},
-		"all": {lr.luaAllHistory, 0, false},
+		"add":   {lr.luaAddHistory, 1, false},
+		"all":   {lr.luaAllHistory, 0, false},
 		"clear": {lr.luaClearHistory, 0, false},
-		"get": {lr.luaGetHistory, 1, false},
-		"size": {lr.luaSize, 0, false},
+		"get":   {lr.luaGetHistory, 1, false},
+		"size":  {lr.luaSize, 0, false},
 	}
 
 	mod := rt.NewTable()

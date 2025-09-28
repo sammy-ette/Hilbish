@@ -9,10 +9,10 @@ jobs:
   gen:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
       - uses: actions/setup-go@v5
       - name: Build
         run: go run cmd/build/build.go
