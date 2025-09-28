@@ -59,7 +59,12 @@ To build, run:
 go run cmd/build/build.go
 ```  
 
-Or, if you want a stable branch, run these commands:
+Or, if you want a stable branch, run the commands below.
+
+> [!WARNING]  
+> Versions before 3.0 used [Task](https://taskfile.dev) for building.
+> Please see build instructions on the READMEs of those versions instead by switching to the version tag on GitHub.
+
 ```
 git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
 go run cmd/build/build.go stable
