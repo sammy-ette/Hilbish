@@ -21,7 +21,11 @@ function editorMt.__index(_, key)
     end
 
 	return function(...)
-        return editor[key](editor, ...)
+		local args = {...}
+		if args[1] == hilbish.editor then
+			table.remove(args, 1)
+		end
+        return editor[key](editor, table.unpack(args))
     end
 end
 

@@ -1,10 +1,53 @@
 -- @module hilbish.runner
+--- interactive command runner customization
+--- The runner interface contains functions that allow the user to change
+--- how Hilbish interprets interactive input.
+--- Users can add and change the default runner for interactive input to any
+--- language or script of their choosing. A good example is using it to
+--- write command in Fennel.
+--- 
+--- Runners are functions that evaluate user input. The default runners in
+--- Hilbish can run shell script and Lua code.
+--- 
+--- A runner is passed the input and has to return a table with these values.
+--- All are not required, only the useful ones the runner needs to return.
+--- (So if there isn't an error, just omit `err`.)
+--- 
+--- - `exitCode` (number): Exit code of the command
+--- - `input` (string): The text input of the user. This is used by Hilbish to append extra input, in case
+--- more is requested.
+--- - `err` (string): A string that represents an error from the runner.
+--- This should only be set when, for example, there is a syntax error.
+--- It can be set to a few special values for Hilbish to throw the right
+--- hooks and have a better looking message.
+--- 	- `<command>: not-found` will throw a `command.not-found` hook
+--- 	based on what `<command>` is.
+--- 	- `<command>: not-executable` will throw a `command.not-executable` hook.
+--- - `continue` (boolean): Whether Hilbish should prompt the user for no input
+--- - `newline` (boolean): Whether a newline should be added at the end of `input`.
+--- 
+--- Here is a simple example of a fennel runner. It falls back to
+--- shell script if fennel eval has an error.
+--- ```lua
+--- local fennel = require 'fennel'
+--- 
+--- hilbish.runnerMode(function(input)
+--- 	local ok = pcall(fennel.eval, input)
+--- 	if ok then
+--- 		return {
+--- 			input = input
+--- 		}
+--- 	end
+--- 
+--- 	return hilbish.runner.sh(input)
+--- end)
+--- ```
 local snail = require 'snail'
 local currentRunner = 'hybrid'
 local runners = {}
 
 -- lsp shut up
-hilbish = hilbish
+hilbish.runner = {}
 
 --- Get a runner by name.
 --- @param name string Name of the runner to retrieve.
@@ -97,7 +140,7 @@ local function finishExec(exitCode, input, priv)
 	bait.throw('command.exit', exitCode, input, priv)
 end
 
-local function continuePrompt(prev, newline)
+function hilbish.runner.continuePrompt(prev, newline)
 	local multilinePrompt = hilbish.multiprompt()
 	-- the return of hilbish.read is nil when error or ctrl-d
 	local cont = hilbish.read(multilinePrompt)
@@ -145,7 +188,7 @@ function hilbish.runner.run(input, priv)
 	end
 
 	if out.continue then
-		local contInput = continuePrompt(processed.command, out.newline)
+		local contInput = hilbish.runner.continuePrompt(processed.command, out.newline)
 		if contInput then
 			processed.command = contInput
 			goto rerun
@@ -165,6 +208,35 @@ end
 
 function hilbish.runner.sh(input)
 	return hilbish.snail:run(input)
+end
+
+--- lua(cmd)
+--- Evaluates `cmd` as Lua input. This is the same as using `dofile`
+--- or `load`, but is appropriated for the runner interface.
+-- @param cmd string
+function hilbish.runner.lua(input)
+	local fun, err = load(input)
+	if err then
+		return {
+			input = input,
+			exitCode = 125,
+			err = err
+		}
+	end
+
+	local ok = pcall(fun)
+	if not ok then
+		return {
+			input = input,
+			exitCode = 126,
+			err = err
+		}
+	end
+
+	return {
+		input = input,
+		exitCode = 0,
+	}
 end
 
 hilbish.runner.add('hybrid', function(input)
