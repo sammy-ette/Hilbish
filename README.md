@@ -43,7 +43,8 @@ on the website for distributed binaries from GitHub or other package repositorie
 Otherwise, continue reading for steps on compiling.
 
 ## Prerequisites
-- [Go 1.23+](https://go.dev)
+- [Go 1.22+](https://go.dev)
+- [Task](https://taskfile.dev/installation/) (**Go on the hyperlink here to see Task's install method for your OS.**)
 
 ## Build
 First, clone Hilbish. The recursive is required, as some Lua libraries
@@ -56,21 +57,16 @@ go get -d ./...
 
 To build, run:
 ```
-go run cmd/build/build.go
+task
 ```  
 
-Or, if you want a stable branch, run the commands below.
-
-> [!WARNING]  
-> Versions before 3.0 used [Task](https://taskfile.dev) for building.
-> Please see build instructions on the READMEs of those versions instead by switching to the version tag on GitHub.
-
+Or, if you want a stable branch, run these commands:
 ```
 git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
-go run cmd/build/build.go stable
+task build
 ```  
 
-After you did all that, run `sudo go run cmd/build/build.go install` to install Hilbish globally.
+After you did all that, run `sudo task install` to install Hilbish globally.
 
 # Contributing
 Any kind of contributions are welcome! Hilbish is very easy to contribute to.
