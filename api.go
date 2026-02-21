@@ -101,7 +101,7 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	historyModule := lr.Loader(rtm)
 	mod.Set(rt.StringValue("history"), rt.TableValue(historyModule))
 
-	// hilbish.completion table
+	// hilbish.completions table
 	hshcomp := completionLoader(rtm)
 	mod.Set(rt.StringValue("completions"), rt.TableValue(hshcomp))
 
@@ -354,7 +354,7 @@ func hlinterval(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 hilbish.complete('command.sudo', function(query, ctx, fields)
 	if #fields == 0 then
 		-- complete for commands
-		local comps, pfx = hilbish.completion.bins(query, ctx, fields)
+		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
 		local compGroup = {
 			items = comps, -- our list of items to complete
 			type = 'grid' -- what our completions will look like.
@@ -365,7 +365,7 @@ hilbish.complete('command.sudo', function(query, ctx, fields)
 
 	-- otherwise just be boring and return files
 
-	local comps, pfx = hilbish.completion.files(query, ctx, fields)
+	local comps, pfx = hilbish.completions.files(query, ctx, fields)
 	local compGroup = {
 		items = comps,
 		type = 'grid'
