@@ -23,7 +23,7 @@ function hilbish.completions.handler(line, pos)
 
 		return {compGroup}, pfx
 	else
-		local ok, compGroups, pfx = pcall(hilbish.completionscall,
+		local ok, compGroups, pfx = pcall(hilbish.completions.call,
 		'command.' .. fields[1], query, ctx, fields)
 		if ok then
 			return compGroups, pfx
