@@ -110,7 +110,7 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 	}
 	rl.TabCompleter = func(line []rune, pos int, _ readline.DelayedTabContext) (string, []*readline.CompletionGroup) {
 		term := rt.NewTerminationWith(l.MainThread().CurrentCont(), 2, false)
-		compHandle := hshMod.Get(rt.StringValue("completion")).AsTable().Get(rt.StringValue("handler"))
+		compHandle := hshMod.Get(rt.StringValue("completions")).AsTable().Get(rt.StringValue("handler"))
 		err := rt.Call(l.MainThread(), compHandle, []rt.Value{rt.StringValue(string(line)),
 			rt.IntValue(int64(pos))}, term)
 
