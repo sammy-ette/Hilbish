@@ -1,4 +1,4 @@
-function hilbish.completion.handler(line, pos)
+function hilbish.completions.handler(line, pos)
 	if type(line) ~= 'string' then error '#1 must be a string' end
 	if type(pos) ~= 'number' then error '#2 must be a number' end
 
