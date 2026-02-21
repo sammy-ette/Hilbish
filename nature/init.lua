@@ -81,17 +81,17 @@ local function runConfig(path)
 	end
 end
 
-local _, err = pcall(fs.stat, hilbish.confFile)
-if err and tostring(err):match 'no such file' and hilbish.confFile == fs.join(hilbish.defaultConfDir, 'init.lua') then
+local ok, ret = pcall(fs.stat, hilbish.confFile)
+if not ok and tostring(ret):match 'no such file' and hilbish.confFile == fs.join(hilbish.defaultConfDir, 'init.lua') then
 	-- Run config from current directory (assuming this is Hilbish's git)
-	local _, err = pcall(fs.stat, '.hilbishrc.lua')
+	local ok = pcall(fs.stat, '.hilbishrc.lua')
 	local confpath = '.hilbishrc.lua'
 
-	if err then
+	if not ok then
 		-- If it wasnt found go to system sample config
 		confpath = fs.join(hilbish.dataDir, confpath)
-		local _, err = pcall(fs.stat, confpath)
-		if err then
+		local ok = pcall(fs.stat, confpath)
+		if not ok then
 			print('could not find .hilbishrc.lua or ' .. confpath)
 			return
 		end
