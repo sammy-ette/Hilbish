@@ -1,69 +1,308 @@
-<!doctype html><html><head><title>Module hilbish — Hilbish</title>
-<meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name=theme-color content="#ff89dd"><meta content="/Hilbish/hilbish-flower.png" property="og:image"><meta property="og:site_name" content="Hilbish"><meta content="Module hilbish — Hilbish" property="og:title"><meta content="the core Hilbish API" property="og:description"><meta content="the core Hilbish API" name=description><meta name=revisit-after content="2 days"><meta name=keywords content="Lua,Hilbish,Linux,Shell"><meta property="og:locale" content="en_GB"><link rel=canonical href=https://rosettea.github.io/Hilbish/><meta property="og:url" content="https://rosettea.github.io/Hilbish/"><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css rel=stylesheet integrity=sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js integrity=sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2 crossorigin=anonymous></script><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin=anonymous referrerpolicy=no-referrer><style>.heading>.heading-link{opacity:0}.heading:hover>.heading-link{visibility:visible;opacity:1;transition:all .1s ease-in}</style></head><body class="d-flex flex-column min-vh-100" style=overflow-x:hidden><svg xmlns="http://www.w3.org/2000/svg" style="display:none"><symbol id="check-circle-fill" fill="currentcolor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 110 8a8 8 0 0116 0zm-3.97-3.03a.75.75.0 00-1.08.022L7.477 9.417 5.384 7.323a.75.75.0 00-1.06 1.06L6.97 11.03a.75.75.0 001.079-.02l3.992-4.99a.75.75.0 00-.01-1.05z"/></symbol><symbol id="info-fill" fill="currentcolor" viewBox="0 0 16 16"><path d="M8 16A8 8 0 108 0a8 8 0 000 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194.0.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703.0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 110-2 1 1 0 010 2z"/></symbol><symbol id="exclamation-triangle-fill" fill="currentcolor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13.0 00-1.96.0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889.0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535.0.954.462.9.995l-.35 3.507a.552.552.0 01-1.1.0L7.1 5.995A.905.905.0 018 5zm.002 6a1 1 0 110 2 1 1 0 010-2z"/></symbol></svg><header><nav class="navbar navbar-expand-md sticky-top bg-light border-bottom"><div class=container-fluid><a class=navbar-brand href=/Hilbish><img src=/Hilbish/hilbish-logo-and-text.png alt height=48>
-</a><button class=navbar-toggler type=button data-bs-toggle=collapse data-bs-target=#navbarSupportedContent aria-controls=navbarSupportedContent aria-expanded=false aria-label="Toggle navigation">
-<span class=navbar-toggler-icon></span></button><div class="collapse navbar-collapse" id=navbarSupportedContent><ul class="navbar-nav me-auto mb-2 mb-lg-0"><li class=nav-item><a href=/Hilbish/versions/sudo-completion/ class=nav-link>Home</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/install/ class=nav-link>Install</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/ class=nav-link>Docs</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/blog/ class=nav-link>Blog</a></li></ul></div></div></nav></header><style>@media(min-width:768px){.sidenav{width:240px}}</style><div class=row><nav class="navbar-expand-md bg-light sidenav border-end"><div class=container><div class="collapse navbar-collapse" id=navbarSupportedContent><nav class="navbar navbar-expand-md bg-light sidenav col" style=margin-top:-20px><ul class="navbar-nav me-auto mb-2 mb-lg-0 flex-column col mt-4"><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/ class=nav-link><strong>Introduction</strong></a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/getting-started/ class=nav-link><strong>Getting Started</strong></a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/faq/ class=nav-link><strong>Frequently Asked Questions</strong></a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/features/ class=nav-link><strong>Features</strong></a></li><ul style=list-style:none><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/features/notifications/ class=nav-link>Notification</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/features/runner-mode/ class=nav-link>Runner Mode</a></li></ul><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/ class=nav-link><strong>API</strong></a></li><ul style=list-style:none><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.aliases/ class=nav-link>Interface hilbish.aliases</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.completion/ class=nav-link>Interface hilbish.completion</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.completions/ class=nav-link>Interface hilbish.completions</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.editor/ class=nav-link>Interface hilbish.editor</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.history/ class=nav-link>Interface hilbish.history</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.jobs/ class=nav-link>Interface hilbish.jobs</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.module/ class=nav-link>Interface hilbish.module</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.os/ class=nav-link>Interface hilbish.os</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.runner/ class=nav-link>Interface hilbish.runner</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.timers/ class=nav-link>Interface hilbish.timers</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/hilbish.userdir/ class=nav-link>Interface hilbish.userDir</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/bait/ class=nav-link>Module bait</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/commander/ class=nav-link>Module commander</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/fs/ class=nav-link>Module fs</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/hilbish/ class=nav-link>Module hilbish</a></li><li class=nav-item><a href=/Hilbish/versions/sudo-completion/docs/api/terminal/ class=nav-link>Module terminal</a></li></ul></ul></nav></div></div></nav><container class="col mt-2" style="padding-left: 20px; padding-right: 20px;"><div><h1>Module hilbish</h1><p><em>the core Hilbish API<br></em></p><h3 id=introduction class=heading>Introduction
-<a href=#introduction class=heading-link><i class="fas fa-paperclip"></i></a></h3><p>The Hilbish module includes the core API, containing
-interfaces and functions which directly relate to shell functionality.</p><h3 id=interface-fields class=heading>Interface fields
-<a href=#interface-fields class=heading-link><i class="fas fa-paperclip"></i></a></h3><ul><li><code>ver</code>: The version of Hilbish</li><li><code>goVersion</code>: The version of Go that Hilbish was compiled with</li><li><code>user</code>: Username of the user</li><li><code>host</code>: Hostname of the machine</li><li><code>dataDir</code>: Directory for Hilbish data files, including the docs and default modules</li><li><code>interactive</code>: Is Hilbish in an interactive shell?</li><li><code>login</code>: Is Hilbish the login shell?</li><li><code>vimMode</code>: Current Vim input mode of Hilbish (will be nil if not in Vim input mode)</li><li><code>exitCode</code>: xit code of the last executed command</li></ul><h3 id=functions class=heading>Functions
-<a href=#functions class=heading-link><i class="fas fa-paperclip"></i></a></h3><h4 id=aliascmd-orig class=heading>alias(cmd, orig)
-<a href=#aliascmd-orig class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Sets an alias of <code>cmd</code> to <code>orig</code></p><h4 id=appendpathdir class=heading>appendPath(dir)
-<a href=#appendpathdir class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Appends <code>dir</code> to $PATH</p><h4 id=completescope-cb class=heading>complete(scope, cb)
-<a href=#completescope-cb class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Registers a completion handler for <code>scope</code>.
-A <code>scope</code> is currently only expected to be <code>command.&lt;cmd></code>,
-replacing <cmd>with the name of the command (for example <code>command.git</code>).
-<code>cb</code> must be a function that returns a table of &ldquo;completion groups.&rdquo;
-Check <code>doc completions</code> for more information.</p><h4 id=cwd---string class=heading>cwd() -> string
-<a href=#cwd---string class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Returns the current directory of the shell</p><h4 id=execcmd class=heading>exec(cmd)
-<a href=#execcmd class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Replaces running hilbish with <code>cmd</code></p><h4 id=gorofn class=heading>goro(fn)
-<a href=#gorofn class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Puts <code>fn</code> in a goroutine</p><h4 id=highlighterline class=heading>highlighter(line)
-<a href=#highlighterline class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Line highlighter handler. This is mainly for syntax highlighting, but in
-reality could set the input of the prompt to <em>display</em> anything. The
-callback is passed the current line and is expected to return a line that
-will be used as the input display.
-Note that to set a highlighter, one has to override this function.
-Example:</p><pre tabindex=0><code>function hilbish.highlighter(line)
-   return line:gsub(&#39;&#34;%w+&#34;&#39;, function(c) return lunacolors.green(c) end)
+<!doctype html>
+<html class="bg-stone-50 dark:bg-neutral-900 text-black dark:text-white"><head><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://hilbish.sammyette.party/tailwind.css" rel="stylesheet"><title>Hilbish</title><meta content="#ff89dd" name="theme-color"><meta content="https://hilbish.sammyette.party/hilbish-flower.png" property="og:image"><meta content="Hilbish" property="og:title"><meta content="Hilbish" property="og:site_name"><meta content="website" property="og:type"><meta content="Something Unique. Hilbish is the new interactive shell for Lua fans. Extensible, scriptable, configurable: All in Lua." property="og:description"><meta content="Something Unique. Hilbish is the new interactive shell for Lua fans. Extensible, scriptable, configurable: All in Lua." name="description"><meta content="Lua,Shell,Hilbish,Linux,zsh,bash" name="keywords"><meta content="https://hilbish.sammyette.party" property="og:url"><meta name="darkreader-lock"></head><body class="flex flex-col min-h-screen"><nav class="z-100 sticky top-0 bg-stone-100/80 dark:bg-neutral-950/80 flex justify-around items-center w-full border-b border-b-zinc-300 backdrop-blur-md h-12"><div class="flex my-auto px-2"><div><a class="flex items-center gap-1" href="https://hilbish.sammyette.party/"><img class="h-8" src="https://hilbish.sammyette.party/hilbish-flower.png"><span class="self-center text-3xl font-medium">Hilbish</span></a></div></div><div class="flex gap-3"><a href="https://hilbish.sammyette.party/docs"><span class="inline-flex text-light dark:text-pink-300 dark:hover:text-pink-200 text-pink-600 hover:text-pink-300 hover:underline">Docs</span></a><a href="https://hilbish.sammyette.party/blog"><span class="inline-flex text-light dark:text-pink-300 dark:hover:text-pink-200 text-pink-600 hover:text-pink-300 hover:underline">Blog</span></a><a class="bg-pink-500/50 hover:bg-pink-400  px-2 rounded-sm" href="https://hilbish.sammyette.party/donate">Donate</a></div></nav><div class="flex-1 flex flex-col overflow-hidden"><div class="sm:hidden h-10 flex py-2 px-4 border-b border-b-zinc-300 w-full gap-2 backdrop-blur-sm bg-zinc-300/50 dark:bg-zinc-800/50"><label class="cursor-pointer" for="sidebar-toggle"><tag><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" class="fill-white"><path d="M120-240v-80h240v80H120Zm0-200v-80h480v80H120Zm0-200v-80h720v80H120Z"/></svg></tag></label><span class="font-bold">Module hilbish</span></div><div class="flex-1 sm:flex grid overflow-hidden"><input class="peer hidden" id="sidebar-toggle" type="checkbox"><div class="overflow-y-scroll p-4 sm:border-r sm:border-r-zinc-300 col-start-1 row-start-1 bg-neutral-100 dark:bg-neutral-950 basis-2/10 transition-transform duration-300 -translate-x-full peer-checked:translate-x-0 sm:translate-x-0 z-30"><ul class="text-lg flex flex-col gap-2"><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/install">Install</a></li><li class="font-bold"><a href="https://hilbish.sammyette.party/docs">Introduction</a></li><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/getting-started">Getting Started</a></li><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/faq">Frequently Asked Questions</a></li><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/features">Features</a></li><ul class="pl-4"><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/completions">Completions</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/features/notifications">Notification</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/features/opts">Options</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/features/runner-mode">Runner Mode</a></li></ul><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/hooks">Signals</a></li><ul class="pl-4"><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/hooks/command">Command</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/hooks/hilbish">Hilbish</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/hooks/job">Job</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/hooks/signal">Signal</a></li></ul><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/lunacolors">Lunacolors</a></li><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/api">API</a></li><ul class="pl-4"><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/api/bait">Module bait</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/api/commander">Module commander</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/api/fs">Module fs</a></li><li class="mb-2 text-pink-400"><a href="https://hilbish.sammyette.party/docs/api/hilbish"> -&gt; Module hilbish</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/api/readline">Module readline</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/api/snail">Module snail</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/api/terminal">Module terminal</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/api/yarn">Module yarn</a></li></ul><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/nature">Nature</a></li><ul class="pl-4"><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/nature/dirs">Module dirs</a></li><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/nature/doc">Module doc</a></li></ul><li class="font-bold"><a href="https://hilbish.sammyette.party/docs/vim-mode">Vim Mode</a></li><ul class="pl-4"><li class="mb-2"><a href="https://hilbish.sammyette.party/docs/vim-mode/actions">Actions</a></li></ul></ul></div><main class="flex-1 flex justify-center basis-7/7 col-start-1 row-start-1 transition-all duration-300 peer-checked:filter peer-checked:blur-sm peer-checked:bg-black/30"><div class="flex-1 flex flex-col overflow-y-auto"><div class="flex-1 w-3/4 self-center p-8"><h1 class="my-3 font-bold text-4xl">Module hilbish</h1><i></i><h2 class="my-2 text-neutral-800 dark:text-neutral-300 font-bold text-3xl" id="Introduction">Introduction</h2><h2 class="my-2 text-neutral-800 dark:text-neutral-300 font-bold text-3xl" id="Functions">Functions</h2><div><div class='relative overflow-x-auto sm:rounded-lg my-4'>
+<table class='w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>
+<tbody>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#alias">alias(cmd, orig)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Sets an alias, with a name of `cmd` to another command.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#appendPath">appendPath(dir)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Appends the provided dir to the command path (`$PATH`)</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#complete">complete(scope, cb)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Registers a completion handler for the specified scope.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#cwd">cwd() -> string</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Returns the current directory of the shell.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#exec">exec(cmd)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Replaces the currently running Hilbish instance with the supplied command.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#goro">goro(fn)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Puts `fn` in a Goroutine.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#highlighter">highlighter(line)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Line highlighter handler.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#hinter">hinter(line, pos)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>The command line hint handler. It gets called on every key insert to</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#inputMode">inputMode(mode)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Sets the input mode for Hilbish's line reader.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#interval">interval(cb, time) -> @Timer</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Runs the `cb` function every specified amount of `time`.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#multiprompt">multiprompt(str)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Changes the text prompt when Hilbish asks for more input.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#prependPath">prependPath(dir)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Prepends `dir` to $PATH.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#prompt">prompt(str, typ)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Changes the shell prompt to the provided string.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#read">read(prompt) -> input (string)</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Read input from the user, using Hilbish's line editor/input reader.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#timeout">timeout(cb, time) -> @Timer</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Executed the `cb` function after a period of `time`.</td>
+</tr>
+<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
+<td class='p-3 font-medium text-black dark:text-white'><a href="#which">which(name) -> string</a></td>
+<td class='p-3 font-medium text-black dark:text-white'>Checks if `name` is a valid command.</td>
+</tr>
+</tbody>
+</table>
+</div></div><h2 class="my-2 text-neutral-800 dark:text-neutral-300 font-bold text-3xl">Functions</h2><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='alias'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.alias(cmd, orig)
+<a href="#alias" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Sets an alias, with a name of <code class="text-violet-600 dark:text-violet-400">cmd</code> to another command.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl" id="Parameters">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>cmd</em>  
+Name of the alias</p><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>orig</em>  
+Command that will be aliased</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl" id="Example">Example</h4><pre><code data-lang="lua">-- With this, &quot;ga file&quot; will turn into &quot;git add file&quot;
+hilbish.alias(&#39;ga&#39;, &#39;git add&#39;)
+
+-- Numbered substitutions are supported here!
+hilbish.alias(&#39;dircount&#39;, &#39;ls %1 | wc -l&#39;)
+-- &quot;dircount ~&quot; would count how many files are in ~ (home directory).
+</code></pre><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='appendPath'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.appendPath(dir)
+<a href="#appendPath" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Appends the provided dir to the command path (<code class="text-violet-600 dark:text-violet-400">$PATH</code>)  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string|table</code> <em>dir</em>  
+Directory (or directories) to append to path</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Example</h4><pre><code data-lang="lua">hilbish.appendPath &#39;~/go/bin&#39;
+-- Will add ~/go/bin to the command path.
+
+-- Or do multiple:
+hilbish.appendPath {
+	&#39;~/go/bin&#39;,
+	&#39;~/.local/bin&#39;
+}
+</code></pre><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='complete'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.complete(scope, cb)
+<a href="#complete" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Registers a completion handler for the specified scope.  
+A <code class="text-violet-600 dark:text-violet-400">scope</code> is expected to be <code class="text-violet-600 dark:text-violet-400">command.&lt;cmd&gt;</code>,  
+replacing &lt;cmd&gt; with the name of the command (for example <code class="text-violet-600 dark:text-violet-400">command.git</code>).  
+The documentation for completions, under Features/Completions or <code class="text-violet-600 dark:text-violet-400">doc completions</code>  
+provides more details.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>scope</em>  </p><p><code class="text-violet-600 dark:text-violet-400">function</code> <em>cb</em>  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Example</h4><pre><code data-lang="lua">-- This is a very simple example. Read the full doc for completions for details.
+hilbish.complete(&#39;command.sudo&#39;, function(query, ctx, fields)
+	if #fields == 0 then
+		-- complete for commands
+		local comps, pfx = hilbish.completion.bins(query, ctx, fields)
+		local compGroup = {
+			items = comps, -- our list of items to complete
+			type = &#39;grid&#39; -- what our completions will look like.
+		}
+
+		return {compGroup}, pfx
+	end
+
+	-- otherwise just be boring and return files
+
+	local comps, pfx = hilbish.completion.files(query, ctx, fields)
+	local compGroup = {
+		items = comps,
+		type = &#39;grid&#39;
+	}
+
+	return {compGroup}, pfx
+end)
+</code></pre><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='cwd'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.cwd() -> string
+<a href="#cwd" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Returns the current directory of the shell.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p>This function has no parameters.  </p><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='exec'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.exec(cmd)
+<a href="#exec" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Replaces the currently running Hilbish instance with the supplied command.  
+This can be used to do an in-place restart.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>cmd</em>  </p><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='goro'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.goro(fn)
+<a href="#goro" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Puts <code class="text-violet-600 dark:text-violet-400">fn</code> in a Goroutine.  
+This can be used to run any function in another thread at the same time as other Lua code.  
+*<strong>NOTE: THIS FUNCTION MAY CRASH HILBISH IF OUTSIDE VARIABLES ARE ACCESSED.</strong>*  
+*<strong>This is a limitation of the Lua runtime.</strong>*  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">function</code> <em>fn</em>  </p><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='highlighter'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.highlighter(line)
+<a href="#highlighter" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Line highlighter handler.  
+This is mainly for syntax highlighting, but in reality could set the input  
+of the prompt to <strong>display</strong> anything. The callback is passed the current line  
+and is expected to return a line that will be used as the input display.  
+Note that to set a highlighter, one has to override this function.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>line</em>  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Example</h4><pre><code data-lang="lua">--This code will highlight all double quoted strings in green.
+function hilbish.highlighter(line)
+
+	return line:gsub(&#39;&quot;%w+&quot;&#39;, function(c) return lunacolors.green(c) end)
+
 end
-</code></pre><p>This code will highlight all double quoted strings in green.</p><h4 id=hinterline-pos class=heading>hinter(line, pos)
-<a href=#hinterline-pos class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>The command line hint handler. It gets called on every key insert to
-determine what text to use as an inline hint. It is passed the current
-line and cursor position. It is expected to return a string which is used
-as the text for the hint. This is by default a shim. To set hints,
-override this function with your custom handler.</p><h4 id=inputmodemode class=heading>inputMode(mode)
-<a href=#inputmodemode class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Sets the input mode for Hilbish&rsquo;s line reader. Accepts either emacs or vim</p><h4 id=intervalcb-time---a-hrefhilbishdocsapihilbishhilbishtimerstimer-styletext-decoration-nonetimera class=heading>interval(cb, time) -> <a href=/Hilbish/docs/api/hilbish/hilbish.timers/#timer style=text-decoration:none>Timer</a>
-<a href=#intervalcb-time---a-hrefhilbishdocsapihilbishhilbishtimerstimer-styletext-decoration-nonetimera class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Runs the <code>cb</code> function every <code>time</code> milliseconds.
-This creates a timer that starts immediately.</p><h4 id=multipromptstr class=heading>multiprompt(str)
-<a href=#multipromptstr class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Changes the continued line prompt to <code>str</code></p><h4 id=prependpathdir class=heading>prependPath(dir)
-<a href=#prependpathdir class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Prepends <code>dir</code> to $PATH</p><h4 id=promptstr-typ class=heading>prompt(str, typ)
-<a href=#promptstr-typ class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Changes the shell prompt to <code>str</code>
-There are a few verbs that can be used in the prompt text.
-These will be formatted and replaced with the appropriate values.
-<code>%d</code> - Current working directory
-<code>%u</code> - Name of current user
-<code>%h</code> - Hostname of device</p><h4 id=readprompt---input-string class=heading>read(prompt) -> input (string)
-<a href=#readprompt---input-string class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Read input from the user, using Hilbish&rsquo;s line editor/input reader.
-This is a separate instance from the one Hilbish actually uses.
-Returns <code>input</code>, will be nil if ctrl + d is pressed, or an error occurs (which shouldn&rsquo;t happen)</p><h4 id=runcmd-returnout---exitcode-number-stdout-string-stderr-string class=heading>run(cmd, returnOut) -> exitCode (number), stdout (string), stderr (string)
-<a href=#runcmd-returnout---exitcode-number-stdout-string-stderr-string class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Runs <code>cmd</code> in Hilbish&rsquo;s sh interpreter.
-If returnOut is true, the outputs of <code>cmd</code> will be returned as the 2nd and
-3rd values instead of being outputted to the terminal.</p><h4 id=runnermodemode class=heading>runnerMode(mode)
-<a href=#runnermodemode class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Sets the execution/runner mode for interactive Hilbish. This determines whether
-Hilbish wll try to run input as Lua and/or sh or only do one of either.
-Accepted values for mode are hybrid (the default), hybridRev (sh first then Lua),
-sh, and lua. It also accepts a function, to which if it is passed one
-will call it to execute user input instead.</p><h4 id=timeoutcb-time---a-hrefhilbishdocsapihilbishhilbishtimerstimer-styletext-decoration-nonetimera class=heading>timeout(cb, time) -> <a href=/Hilbish/docs/api/hilbish/hilbish.timers/#timer style=text-decoration:none>Timer</a>
-<a href=#timeoutcb-time---a-hrefhilbishdocsapihilbishhilbishtimerstimer-styletext-decoration-nonetimera class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Runs the <code>cb</code> function after <code>time</code> in milliseconds.
-This creates a timer that starts immediately.</p><h4 id=whichname---string class=heading>which(name) -> string
-<a href=#whichname---string class=heading-link><i class="fas fa-paperclip"></i></a></h4><p>Checks if <code>name</code> is a valid command.
-Will return the path of the binary, or a basename if it&rsquo;s a commander.</p><h3 id=types class=heading>Types
-<a href=#types class=heading-link><i class="fas fa-paperclip"></i></a></h3><h3 id=sink class=heading>Sink
-<a href=#sink class=heading-link><i class="fas fa-paperclip"></i></a></h3><p>A sink is a structure that has input and/or output to/from
-a desination.</p><h4 id=methods class=heading>Methods
-<a href=#methods class=heading-link><i class="fas fa-paperclip"></i></a></h4><h5 id=autoflushauto class=heading>autoFlush(auto)
-<a href=#autoflushauto class=heading-link><i class="fas fa-paperclip"></i></a></h5><p>Sets/toggles the option of automatically flushing output.
-A call with no argument will toggle the value.</p><h5 id=flush class=heading>flush()
-<a href=#flush class=heading-link><i class="fas fa-paperclip"></i></a></h5><p>Flush writes all buffered input to the sink.</p><h5 id=read---string class=heading>read() -> string
-<a href=#read---string class=heading-link><i class="fas fa-paperclip"></i></a></h5><p>Reads a liine of input from the sink.</p><h5 id=readall---string class=heading>readAll() -> string
-<a href=#readall---string class=heading-link><i class="fas fa-paperclip"></i></a></h5><p>Reads all input from the sink.</p><h5 id=writestr class=heading>write(str)
-<a href=#writestr class=heading-link><i class="fas fa-paperclip"></i></a></h5><p>Writes data to a sink.</p><h5 id=writelnstr class=heading>writeln(str)
-<a href=#writelnstr class=heading-link><i class="fas fa-paperclip"></i></a></h5><p>Writes data to a sink with a newline at the end.</p></div><div class="footer mt-auto"><p class="card-small text-muted">Want to help improve this page? <a href=https://github.com/Rosettea/Hilbish/issues/new/choose>Create an issue.</a></p></div></container></div><footer class="footer mt-auto mt-auto py-3 bg-light row border-top"><div class="col mb-3"></div><div class="col mb-3"><a href=/Hilbish class="d-flex align-items-center mb-3 link-dark text-decoration-none"><img src=/Hilbish/hilbish-logo-and-text.png alt height=48 class="d-inline-block align-text-top" style=margin-left:-20px></a><ul class="nav flex-column"><li class="nav-item mb-2"><a href=/Hilbish class="nav-link p-0 text-muted">Home</a></li><li class="nav-item mb-2"><a href=/Hilbish/docs/faq class="nav-link p-0 text-muted">FAQ</a></li><li class="nav-item mb-2"><a href=https://github.com/Rosettea/Hilbish class="nav-link p-0 text-muted">Source</a></li><li class="nav-item mb-2"><a href=https://github.com/Rosettea/Hilbish/releases class="nav-link p-0 text-muted">Releases</a></li><li class="nav-item mb-2"><a href=/Hilbish/docs class="nav-link p-0 text-muted">Documentation</a></li></ul></div><div class="col mb-3"></div><div class="col mb-3"></div><div class="col mb-3"></div><div class="col mb-3"><p class="text-muted mt-4">Rosettea &copy; 2022-2023<br>Made with <i class="fa-solid fa-heart" style=color:#f6345b></i></p></div><div class="col mb-3"></div></footer></body></html>
+</code></pre><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='hinter'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.hinter(line, pos)
+<a href="#hinter" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>The command line hint handler. It gets called on every key insert to  
+determine what text to use as an inline hint. It is passed the current  
+line and cursor position. It is expected to return a string which is used  
+as the text for the hint. This is by default a shim. To set hints,  
+override this function with your custom handler.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>line</em>  </p><p><code class="text-violet-600 dark:text-violet-400">number</code> <em>pos</em>  
+Position of cursor in line. Usually equals string.len(line)</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Example</h4><pre><code data-lang="lua">-- this will display &quot;hi&quot; after the cursor in a dimmed color.
+function hilbish.hinter(line, pos)
+	return &#39;hi&#39;
+end
+</code></pre><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='inputMode'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.inputMode(mode)
+<a href="#inputMode" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Sets the input mode for Hilbish&#39;s line reader.  
+<code class="text-violet-600 dark:text-violet-400">emacs</code> is the default. Setting it to <code class="text-violet-600 dark:text-violet-400">vim</code> changes behavior of input to be  
+Vim-like with modes and Vim keybinds.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>mode</em>  
+Can be set to either <code class="text-violet-600 dark:text-violet-400">emacs</code> or <code class="text-violet-600 dark:text-violet-400">vim</code></p><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='interval'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.interval(cb, time) -> @Timer
+<a href="#interval" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Runs the <code class="text-violet-600 dark:text-violet-400">cb</code> function every specified amount of <code class="text-violet-600 dark:text-violet-400">time</code>.  
+This creates a timer that ticking immediately.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">function</code> <em>cb</em>  </p><p><code class="text-violet-600 dark:text-violet-400">number</code> <em>time</em>  
+Time in milliseconds.</p><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='multiprompt'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.multiprompt(str)
+<a href="#multiprompt" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Changes the text prompt when Hilbish asks for more input.  
+This will show up when text is incomplete, like a missing quote  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>str</em>  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Example</h4><pre><code data-lang="lua">--[[
+imagine this is your text input:
+user ~ ∆ echo &quot;hey
+
+but there&#39;s a missing quote! hilbish will now prompt you so the terminal
+will look like:
+user ~ ∆ echo &quot;hey
+--&gt; ...!&quot;
+
+so then you get
+user ~ ∆ echo &quot;hey
+--&gt; ...!&quot;
+hey ...!
+]]--
+hilbish.multiprompt &#39;--&gt;&#39;
+</code></pre><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='prependPath'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.prependPath(dir)
+<a href="#prependPath" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Prepends <code class="text-violet-600 dark:text-violet-400">dir</code> to $PATH.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>dir</em>  </p><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='prompt'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.prompt(str, typ)
+<a href="#prompt" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Changes the shell prompt to the provided string.  
+There are a few verbs that can be used in the prompt text.  
+These will be formatted and replaced with the appropriate values.  
+<code class="text-violet-600 dark:text-violet-400">%d</code> - Current working directory  
+<code class="text-violet-600 dark:text-violet-400">%u</code> - Name of current user  
+<code class="text-violet-600 dark:text-violet-400">%h</code> - Hostname of device  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>str</em>  </p><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>typ?</em>  
+Type of prompt, being left or right. Left by default.</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Example</h4><pre><code data-lang="lua">-- the default hilbish prompt without color
+hilbish.prompt &#39;%u %d ∆&#39;
+-- or something of old:
+hilbish.prompt &#39;%u@%h :%d $&#39;
+-- prompt: user@hostname: ~/directory $
+</code></pre><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='read'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.read(prompt) -> input (string)
+<a href="#read" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Read input from the user, using Hilbish&#39;s line editor/input reader.  
+This is a separate instance from the one Hilbish actually uses.  
+Returns <code class="text-violet-600 dark:text-violet-400">input</code>, will be nil if Ctrl-D is pressed, or an error occurs.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>prompt?</em>  
+Text to print before input, can be empty.</p><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='timeout'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.timeout(cb, time) -> @Timer
+<a href="#timeout" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Executed the <code class="text-violet-600 dark:text-violet-400">cb</code> function after a period of <code class="text-violet-600 dark:text-violet-400">time</code>.  
+This creates a Timer that starts ticking immediately.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">function</code> <em>cb</em>  </p><p><code class="text-violet-600 dark:text-violet-400">number</code> <em>time</em>  
+Time to run in milliseconds.</p><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'>
+<div id='which'>
+<h4 class='text-xl font-medium mb-2'>
+hilbish.which(name) -> string
+<a href="#which" class='heading-link'>
+	<i class="fas fa-paperclip"></i>
+</a>
+</h4>
+</div></div><p>Checks if <code class="text-violet-600 dark:text-violet-400">name</code> is a valid command.  
+Will return the path of the binary, or a basename if it&#39;s a commander.  </p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl">Parameters</h4><p><code class="text-violet-600 dark:text-violet-400">string</code> <em>name</em>  </p><h2 class="my-2 text-neutral-800 dark:text-neutral-300 font-bold text-3xl" id="Types">Types</h2><div><hr class='my-4 text-neutral-400 dark:text-neutral-600'></div><h2 class="my-2 text-neutral-800 dark:text-neutral-300 font-bold text-3xl" id="Sink">Sink</h2><p>A sink is a structure that has input and/or output to/from a desination.</p><h3 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-2xl" id="Methods">Methods</h3><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl" id="autoFlush(auto)">autoFlush(auto)</h4><p>Sets/toggles the option of automatically flushing output.
+A call with no argument will toggle the value.</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl" id="flush()">flush()</h4><p>Flush writes all buffered input to the sink.</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl" id="read()--&gt;-string">read() -&gt; string</h4><p>Reads a liine of input from the sink.</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl" id="readAll()--&gt;-string">readAll() -&gt; string</h4><p>Reads all input from the sink.</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl" id="write(str)">write(str)</h4><p>Writes data to a sink.</p><h4 class="my-1 text-neutral-800 dark:text-neutral-300 font-bold text-xl" id="writeln(str)">writeln(str)</h4><p>Writes data to a sink with a newline at the end.</p></div><footer class="z-100 py-4 px-6 flex flex-row justify-around border-t border-t-zinc-300"><div class="flex flex-col"><a class="flex items-center gap-1" href="https://hilbish.sammyette.party"><img class="h-24" src="https://hilbish.sammyette.party/hilbish-flower.png"><span class="self-center text-6xl">Hilbish</span></a><span class="text-xl">The Moon-powered shell!</span><span class="text-light text-neutral-500">MIT License, copyright sammyette 2025</span></div><div class="flex flex-col"><a href="https://github.com/sammy-ette/Hilbish" target="_blank"><span class="inline-flex text-light dark:text-pink-300 dark:hover:text-pink-200 text-pink-600 hover:text-pink-300 hover:underline"><tag><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+</svg>
+</tag>GitHub</span></a></div></footer></div></main></div></div></body></html>

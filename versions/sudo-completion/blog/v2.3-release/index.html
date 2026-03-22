@@ -1,0 +1,27 @@
+<!doctype html>
+<html class="bg-stone-50 dark:bg-neutral-900 text-black dark:text-white"><head><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://hilbish.sammyette.party/tailwind.css" rel="stylesheet"><title>Hilbish</title><meta content="#ff89dd" name="theme-color"><meta content="https://hilbish.sammyette.party/hilbish-flower.png" property="og:image"><meta content="Hilbish" property="og:title"><meta content="Hilbish" property="og:site_name"><meta content="website" property="og:type"><meta content="Something Unique. Hilbish is the new interactive shell for Lua fans. Extensible, scriptable, configurable: All in Lua." property="og:description"><meta content="Something Unique. Hilbish is the new interactive shell for Lua fans. Extensible, scriptable, configurable: All in Lua." name="description"><meta content="Lua,Shell,Hilbish,Linux,zsh,bash" name="keywords"><meta content="https://hilbish.sammyette.party" property="og:url"><meta name="darkreader-lock"></head><body class="flex flex-col min-h-screen"><nav class="z-100 sticky top-0 bg-stone-100/80 dark:bg-neutral-950/80 flex justify-around items-center w-full border-b border-b-zinc-300 backdrop-blur-md h-12"><div class="flex my-auto px-2"><div><a class="flex items-center gap-1" href="https://hilbish.sammyette.party/"><img class="h-8" src="https://hilbish.sammyette.party/hilbish-flower.png"><span class="self-center text-3xl font-medium">Hilbish</span></a></div></div><div class="flex gap-3"><a href="https://hilbish.sammyette.party/docs"><span class="inline-flex text-light dark:text-pink-300 dark:hover:text-pink-200 text-pink-600 hover:text-pink-300 hover:underline">Docs</span></a><a href="https://hilbish.sammyette.party/blog"><span class="inline-flex text-light dark:text-pink-300 dark:hover:text-pink-200 text-pink-600 hover:text-pink-300 hover:underline">Blog</span></a><a class="bg-pink-500/50 hover:bg-pink-400  px-2 rounded-sm" href="https://hilbish.sammyette.party/donate">Donate</a></div></nav><div class="mt-4 mx-auto md:w-1/2"><h1 class="text-5xl mb-2">v2.3 Release</h1><hr class="my-4 text-pink-600"><p>&gt; The release with full changelogs and prebuilt binaries can be
+seen at the <a href="https://github.com/sammy-ette/Hilbish/releases/tag/v2.3.0">v2.3.0</a>
+tag.</p><p>Hilbish v2.3 has now been released! This is small feature and bug fix release
+which took a while to cme ut since I took a long break from programming in general.
+The next release will be great, so stay tuned for that.</p><h1 class="my-4 text-neutral-800 dark:text-neutral-300 font-bold text-4xl" id="Features">Features</h1><h2 class="my-2 text-neutral-800 dark:text-neutral-300 font-bold text-3xl" id="Pipes-(via-Lua)-Commands-can-now-be-piped-to-each-other-via-the-Lua-API-with-the-hilbish.run-function-and-an-fs.pipe.">Pipes (via Lua)
+Commands can now be piped to each other via the Lua API with the <code class="text-violet-600 dark:text-violet-400">hilbish.run</code>
+function and an <code class="text-violet-600 dark:text-violet-400">fs.pipe</code>.</h2><p>Here is a minimal example of the new usage which allows users to now pipe commands
+directly via Lua functions:
+
+<code class="text-violet-600 dark:text-violet-400">lua
+local fs = require &#39;fs&#39;
+local pr, pw = fs.pipe()
+hilbish.run(&#39;ls -l&#39;, {
+	stdout = pw,
+	stderr = pw,
+})</code></p><p>pw:close()</p><p>hilbish.run(&#39;wc -l&#39;, {
+	stdin = pr
+})
+<code class="text-violet-600 dark:text-violet-400"></code></p><p>This also means it&#39;s easier to make commands output to any stream output,
+including in commanders.</p><h1 class="my-4 text-neutral-800 dark:text-neutral-300 font-bold text-4xl" id="Bug-Fixes---Commanders-can-now-be-cancelled-with-Ctrl-C-which-means-if-they-froze-for-some-reason-they-can-now-be-exited.---The-shell-script-interpreter-now-keeps-its-environment-and-this-also-fixes-the-current-working-directory-being-wrong-with-some-commands.---Some-greenhouse-bugs-have-been-fixed-like-randomly-appearing-when-resizing-the-terminal-and-some-text-attributes-like-color-appearing-where-they-weren&#39;t-supposed-to.">Bug Fixes
+- Commanders can now be cancelled with Ctrl-C, which means if they froze for some reason
+they can now be exited.
+- The shell script interpreter now keeps its environment, and this also fixes the
+current working directory being wrong with some commands.
+- Some greenhouse bugs have been fixed, like randomly appearing when resizing the terminal
+and some text attributes like color appearing where they weren&#39;t supposed to.</h1></div></body></html>
