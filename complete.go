@@ -82,6 +82,31 @@ func fileComplete(query, ctx string, fields []string) ([]string, string) {
 	return matchPath(path)
 }
 
+func dirComplete(query, ctx string, fields []string) ([]string, string) {
+	q := splitForFile(ctx)
+	path := ""
+	if len(q) != 0 {
+		path = q[len(q)-1]
+	}
+
+	var completions []string
+
+	fileCompletions, filePref := matchPath(path)
+	for _, f := range fileCompletions {
+		fullPath, _ := filepath.Abs(util.ExpandHome(query + strings.TrimPrefix(f, filePref)))
+		fi, err := os.Stat(fullPath)
+		if err != nil {
+			continue
+		}
+
+		if fi.IsDir() {
+			completions = append(completions, f)
+		}
+	}
+
+	return completions, query
+}
+
 func binaryComplete(query, ctx string, fields []string) ([]string, string) {
 	q := splitForFile(ctx)
 	query = ""
@@ -199,6 +224,7 @@ func completionLoader(rtm *rt.Runtime) *rt.Table {
 		"bins":    {hcmpBins, 3, false},
 		"call":    {hcmpCall, 4, false},
 		"files":   {hcmpFiles, 3, false},
+		"dirs":    {hcmpDirs, 3, false},
 		"handler": {hcmpHandler, 2, false},
 	}
 
@@ -313,6 +339,29 @@ func hcmpFiles(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	completions, pfx := fileComplete(query, ctx, fds)
+	luaComps := rt.NewTable()
+
+	for i, comp := range completions {
+		luaComps.Set(rt.IntValue(int64(i+1)), rt.StringValue(comp))
+	}
+
+	return c.PushingNext(t.Runtime, rt.TableValue(luaComps), rt.StringValue(pfx)), nil
+}
+
+// #interface completions
+// dirs(query, ctx, fields) -> entries (table), prefix (string)
+// Returns directory matches based on the provided parameters.
+// This function is meant to be used as a helper in a command completion handler.
+// #param query string
+// #param ctx string
+// #param fields table
+func hcmpDirs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	query, ctx, fds, err := getCompleteParams(t, c)
+	if err != nil {
+		return nil, err
+	}
+
+	completions, pfx := dirComplete(query, ctx, fds)
 	luaComps := rt.NewTable()
 
 	for i, comp := range completions {
