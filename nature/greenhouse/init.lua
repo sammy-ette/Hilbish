@@ -1,4 +1,5 @@
--- Greenhouse is a simple text scrolling handler for terminal programs.
+-- @module greenhouse
+-- Greenhouse is a simple text scrolling handler (pager) for terminal programs.
 -- The idea is that it can be set a region to do its scrolling and paging
 -- job and then the user can draw whatever outside it.
 -- This reduces code duplication for the message viewer
@@ -18,12 +19,20 @@ function Greenhouse:new(sink)
 	self.contents = nil -- or can be a table
 	self.start = 1 -- where to start drawing from (should replace with self.region.y)
 	self.offset = 1 -- vertical text offset
+	self.horizOffset = 1
 	self.sink = sink
 	self.pages = {}
 	self.curPage = 1
+	self.step = {
+		horizontal = 5,
+		vertical = 1
+	}
+	self.separator = '─'
 	self.keybinds = {
 		['Up'] = function(self) self:scroll 'up' end,
 		['Down'] = function(self) self:scroll 'down' end,
+		['Left'] = function(self) self:scroll 'left' end,
+		['Right'] = function(self) self:scroll 'right' end,
 		['Ctrl-Left'] = self.previous,
 		['Ctrl-Right'] = self.next,
 		['Ctrl-N'] = function(self) self:toc(true) end,
@@ -32,7 +41,9 @@ function Greenhouse:new(sink)
 				self:jump(self.specialPageIdx)
 				self:special(false)
 			end
-		end
+		end,
+		['Page-Down'] = function(self) self:scroll('down', {page = true}) end,
+		['Page-Up'] = function(self) self:scroll('up', {page = true}) end
 	}
 	self.isSpecial = false
 	self.specialPage = nil
@@ -51,19 +62,27 @@ function Greenhouse:updateCurrentPage(text)
 	page:setText(text)
 end
 
-local function sub(str, limit)
+local ansiPatters = {
+	'\x1b%[%d+;%d+;%d+;%d+;%d+%w',
+	'\x1b%[%d+;%d+;%d+;%d+%w',
+	'\x1b%[%d+;%d+;%d+%w',
+	'\x1b%[%d+;%d+%w',
+	'\x1b%[%d+%w'
+}
+
+function Greenhouse:sub(str, offset, limit)
 	local overhead = 0
 	local function addOverhead(s)
 		overhead = overhead + string.len(s)
 	end
 
-	local s = str:gsub('\x1b%[%d+;%d+;%d+;%d+;%d+%w', addOverhead)
-     :gsub('\x1b%[%d+;%d+;%d+;%d+%w', addOverhead)
-     :gsub('\x1b%[%d+;%d+;%d+%w',addOverhead)
-     :gsub('\x1b%[%d+;%d+%w', addOverhead)
-     :gsub('\x1b%[%d+%w', addOverhead)
+	local s = str
+	for _, pat in ipairs(ansiPatters) do
+		s = s:gsub(pat, addOverhead)
+	end
 
-	return s:sub(0, limit + overhead)
+	return s:sub(offset, utf8.offset(str, limit + overhead) or limit + overhead)
+	--return s:sub(offset, limit + overhead)
 end
 
 function Greenhouse:draw()
@@ -82,21 +101,52 @@ function Greenhouse:draw()
 	self.sink:write(ansikit.getCSI(self.start .. ';1', 'H'))
 	self.sink:write(ansikit.getCSI(2, 'J'))
 
+	local writer = self.sink.writeln
+	self.attributes = {}
 	for i = offset, offset + self.region.height - 1 do
+		local resetEnd = false
 		if i > #lines then break end
 
-		local writer = self.sink.writeln
 		if i == offset + self.region.height - 1 then writer = self.sink.write end
 
-		writer(self.sink, sub(lines[i]:gsub('\t', '        '), self.region.width))
+		self.sink:write(ansikit.getCSI(self.start + i - offset .. ';1', 'H'))
+		local line = lines[i]:gsub('{separator}', function() return self.separator:rep(self.region.width - 1) end)
+		for _, pat in ipairs(ansiPatters) do
+			line:gsub(pat, function(s)
+				if s == lunacolors.formatColors.reset then
+					self.attributes = {}
+					resetEnd = true
+				else
+					--resetEnd = false
+					--table.insert(self.attributes, s)
+				end
+			end)
+		end
+
+--[[
+		if #self.attributes ~= 0 then
+			for _, attr in ipairs(self.attributes) do
+				--writer(self.sink, attr)
+			end
+		end
+]]--
+
+		self.sink:write(lunacolors.formatColors.reset)
+		writer(self.sink, self:sub(line:gsub('\t', '        '), self.horizOffset, self.region.width + self.horizOffset))
+		if resetEnd then
+			self.sink:write(lunacolors.formatColors.reset)
+		end
 	end
+	writer(self.sink, '\27[0m')
 	self:render()
 end
 
 function Greenhouse:render()
 end
 
-function Greenhouse:scroll(direction)
+function Greenhouse:scroll(direction, opts)
+	opts = opts or {}
+
 	if self.isSpecial then
 		if direction == 'down' then
 			self:next(true)
@@ -109,13 +159,28 @@ function Greenhouse:scroll(direction)
 	local lines = self.pages[self.curPage].lines
 
 	local oldOffset = self.offset
-	if direction == 'down' then
-		self.offset = math.min(self.offset + 1, math.max(1, #lines - self.region.height))
-	elseif direction == 'up' then
-		self.offset = math.max(self.offset - 1, 1)
+	local oldHorizOffset = self.horizOffset
+	local amount = self.step.vertical
+	if opts.page then
+		amount = self.region.height
 	end
 
+	if direction == 'down' then
+		self.offset = math.min(self.offset + amount, math.max(1, #lines - self.region.height))
+	elseif direction == 'up' then
+		self.offset = math.max(self.offset - amount, 1)
+	end
+
+--[[
+	if direction == 'left' then
+		self.horizOffset = math.max(self.horizOffset - self.step.horizontal, 1)
+	elseif direction == 'right' then
+		self.horizOffset = self.horizOffset + self.step.horizontal
+	end
+]]--
+
 	if self.offset ~= oldOffset then self:draw() end
+	if self.horizOffset ~= oldHorizOffset then self:draw() end
 end
 
 function Greenhouse:update()
@@ -240,6 +305,15 @@ end
 function Greenhouse:input(char)
 end
 
+local function read()
+	terminal.saveState()
+	terminal.setRaw()
+	local c = hilbish.editor.readChar()
+
+	terminal.restoreState()
+	return c
+end
+
 function Greenhouse:initUi()
 	local ansikit = require 'ansikit'
 	local bait = require 'bait'
@@ -249,80 +323,44 @@ function Greenhouse:initUi()
 	local Page = require 'nature.greenhouse.page'
 	local done = false
 
-	bait.catch('signal.sigint', function()
+	local function sigint()
 		ansikit.clear()
 		done = true
-	end)
+	end
 
-	bait.catch('signal.resize', function()
+	local function resize()
 		self:update()
-	end)
+	end
+	bait.catch('signal.sigint', sigint)
+
+	bait.catch('signal.resize', resize)
 
 	ansikit.screenAlt()
 	ansikit.clear(true)
 	self:draw()
 
-	hilbish.goro(function()
-		while not done do
-			local c = read()
-			self:keybind('Ctrl-D', function()
-				done = true
-			end)
-
-			if self.keybinds[c] then
-				self.keybinds[c](self)
-			else
-				self:input(c)
-			end
-
-	--[[
-			if c == 27 then
-				local c1 = read()
-				if c1 == 91 then
-					local c2 = read()
-					if c2 == 66 then -- arrow down
-						self:scroll 'down'
-					elseif c2 == 65 then -- arrow up
-						self:scroll 'up'
-					end
-
-					if c2 == 49 then
-						local c3 = read()
-						if c3 == 59 then
-							local c4 = read()
-							if c4 == 53 then
-								local c5 = read()
-								if c5 == 67 then
-									self:next()
-								elseif c5 == 68 then
-									self:previous()
-								end
-							end
-						end
-					end
-				end
-				goto continue
-			end
-			]]--
-
-			::continue::
-		end
-	end)
-
 	while not done do
-		--
+		local c = read()
+		self:keybind('Ctrl-Q', function()
+			done = true
+		end)
+		self:keybind('Ctrl-D', function()
+			done = true
+		end)
+
+		if self.keybinds[c] then
+			self.keybinds[c](self)
+		else
+			self:input(c)
+		end
 	end
+
 	ansikit.showCursor()
 	ansikit.screenMain()
-end
 
-function read()
-	terminal.saveState()
-	terminal.setRaw()
-	local c = hilbish.editor.readChar()
-
-	terminal.restoreState()
-	return c
+	self = nil
+	bait.release('signal.sigint', sigint)
+	bait.release('signal.resize', resize)
 end
 
 return Greenhouse

@@ -56,8 +56,8 @@ func (j *job) start() error {
 		}
 		j.setHandle(&cmd)
 	}
-	// bgProcAttr is defined in execfile_<os>.go, it holds a procattr struct
-	// in a simple explanation, it makes signals from hilbish (sigint)
+	// bgProcAttr is defined in job_<os>.go, it holds a procattr struct
+	// in a simple explanation, it makes signals from hilbish (like sigint)
 	// not go to it (child process)
 	j.handle.SysProcAttr = bgProcAttr
 	// reset output buffers
@@ -136,7 +136,7 @@ func luaStartJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	if !j.running {
 		err := j.start()
-		exit := handleExecErr(err)
+		exit := util.HandleExecErr(err)
 		j.exitCode = int(exit)
 		j.finish()
 	}
@@ -414,10 +414,16 @@ func (j *jobHandler) luaGetJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 // #interface jobs
 // add(cmdstr, args, execPath)
-// Adds a new job to the job table. Note that this does not immediately run it.
-// --- @param cmdstr string
-// --- @param args table
-// --- @param execPath string
+// Creates a new job. This function does not run the job. This function is intended to be
+// used by runners, but can also be used to create jobs via Lua. Commanders cannot be ran as jobs.
+// #param cmdstr string String that a user would write for the job
+// #param args table Arguments for the commands. Has to include the name of the command.
+// #param execPath string Binary to use to run the command. Needs to be an absolute path.
+/*
+#example
+hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')
+#example
+*/
 func (j *jobHandler) luaAddJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(3); err != nil {
 		return nil, err
@@ -448,9 +454,9 @@ func (j *jobHandler) luaAddJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 }
 
 // #interface jobs
-// all() -> table<@Job>
+// all() -> table[@Job]
 // Returns a table of all job objects.
-// --- @returns table<Job>
+// #returns table[Job]
 func (j *jobHandler) luaAllJobs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
@@ -465,8 +471,8 @@ func (j *jobHandler) luaAllJobs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 // #interface jobs
 // disown(id)
-// Disowns a job. This deletes it from the job table.
-// --- @param id number
+// Disowns a job. This simply deletes it from the list of jobs without stopping it.
+// #param id number
 func (j *jobHandler) luaDisownJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.Check1Arg(); err != nil {
 		return nil, err
@@ -486,8 +492,8 @@ func (j *jobHandler) luaDisownJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 // #interface jobs
 // last() -> @Job
-// Returns the last added job from the table.
-// --- @returns Job
+// Returns the last added job to the table.
+// #returns Job
 func (j *jobHandler) luaLastJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	j.mu.RLock()
 	defer j.mu.RUnlock()

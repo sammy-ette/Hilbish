@@ -61,6 +61,7 @@ func moduleLoader(rtm *rt.Runtime) *rt.Table {
 // load(path)
 // Loads a module at the designated `path`.
 // It will throw if any error occurs.
+// #param path string 
 func moduleLoad(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(1); err != nil {
 		return nil, err

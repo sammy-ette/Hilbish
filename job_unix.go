@@ -1,4 +1,4 @@
-// +build darwin linux
+//go:build unix
 
 package main
 
@@ -9,6 +9,10 @@ import (
 	
 	"golang.org/x/sys/unix"
 )
+
+var bgProcAttr *syscall.SysProcAttr = &syscall.SysProcAttr{
+	Setpgid: true,
+}
 
 func (j *job) foreground() error {
 	if jobs.foreground {

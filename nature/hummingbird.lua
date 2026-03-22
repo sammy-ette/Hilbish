@@ -1,3 +1,14 @@
+-- @module hilbish.messages
+-- simplistic message passing
+-- The messages interface defines a way for Hilbish-integrated commands,
+-- user config and other tasks to send notifications to alert the user.z
+-- The `hilbish.message` type is a table with the following keys:
+-- `title` (string): A title for the message notification.
+-- `text` (string): The contents of the message.
+-- `channel` (string): States the origin of the message, `hilbish.*` is reserved for Hilbish tasks.
+-- `summary` (string): A short summary of the `text`.
+-- `icon` (string): Unicode (preferably standard emoji) icon for the message notification
+-- `read` (boolean): Whether the full message has been read or not.
 local bait = require 'bait'
 local commander = require 'commander'
 local lunacolors = require 'lunacolors'
@@ -44,24 +55,30 @@ function hilbish.messages.send(message)
 	bait.throw('hilbish.notification', message)
 end
 
+--- Marks a message at `idx` as read.
+--- @param idx number
 function hilbish.messages.read(idx)
 	local msg = M._messages[idx]
-	if msg then
+	if msg then 
 		M._messages[idx].read = true
 		unread = unread - 1
 	end
 end
 
-function hilbish.messages.readAll(idx)
+--- Marks all messages as read.
+function hilbish.messages.readAll()
 	for _, msg in ipairs(hilbish.messages.all()) do
 		hilbish.messages.read(msg.index)
 	end
 end
 
+--- Returns the amount of unread messages.
 function hilbish.messages.unreadCount()
 	return unread
 end
 
+--- Deletes the message at `idx`.
+--- @param idx number
 function hilbish.messages.delete(idx)
 	local msg = M._messages[idx]
 	if not msg then
@@ -71,12 +88,14 @@ function hilbish.messages.delete(idx)
 	M._messages[idx] = nil
 end
 
+--- Deletes all messages.
 function hilbish.messages.clear()
 	for _, msg in ipairs(hilbish.messages.all()) do
 		hilbish.messages.delete(msg.index)
 	end
 end
 
+--- Returns all messages.
 function hilbish.messages.all()
 	return M._messages
 end

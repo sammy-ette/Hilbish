@@ -2,17 +2,17 @@ package main
 
 // String vars that are free to be changed at compile time
 var (
-	defaultHistDir = ""
+	defaultHistDir     = ""
 	commonRequirePaths = "';./libs/?/init.lua;./?/init.lua;./?/?.lua'"
 
-	prompt string
+	prompt          string
 	multilinePrompt = "> "
 )
 
 // Version info
 var (
-	ver = "v2.2.0"
-	releaseName = "Poppy"
+	ver         = "v3.0.0"
+	releaseName = "Moonflower"
 
 	gitCommit string
 	gitBranch string
@@ -20,10 +20,9 @@ var (
 
 // Flags
 var (
-	running bool // Is a command currently running
+	running     bool // Is a command currently running
 	interactive bool
-	login bool // Are we the login shell?
-	noexecute bool // Should we run Lua or only report syntax errors
+	login       bool // Are we the login shell?
+	noexecute   bool // Should we run Lua or only report syntax errors
 	initialized bool
 )
-

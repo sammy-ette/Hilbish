@@ -4,6 +4,39 @@ local fs = require 'fs'
 local lunacolors = require 'lunacolors'
 local Greenhouse = require 'nature.greenhouse'
 local Page = require 'nature.greenhouse.page'
+local docfuncs = require 'nature.doc'
+
+local function strip(text, ...)
+	for _, pat in ipairs {...} do
+		text = text:gsub(pat, '\n')
+	end
+
+	return text
+end
+
+local function transformHTMLandMD(text)
+	return strip(text, '|||', '|%-%-%-%-|%-%-%-%-|')
+	:gsub('|(.-)|(.-)|', function(entry1, entry2)
+		return string.format('%s - %s', entry1, entry2)
+	end)
+	:gsub('<hr>', '{separator}')
+	:gsub('<.->', '')
+	--:gsub('^\n\n', '\n')
+	:gsub('\n%s+\n', '\n\n')
+	--:gsub('  \n', '\n\n')
+	:gsub('{{< (%w+) `(.-)` >}}', function(shortcode, text)
+		return docfuncs.renderInfoBlock(shortcode, text)
+	end)
+	:gsub('```(%w+)\n(.-)```', function(lang, text)
+		return docfuncs.renderCodeBlock(text)
+	end)
+	:gsub('```\n(.-)\n```', function(text)
+		return docfuncs.renderCodeBlock(text)
+	end)
+	:gsub('`[^\n].-`', lunacolors.cyan)
+	:gsub('#+ (.-\n)', function(heading) return lunacolors.blue(lunacolors.bold('→ ' .. heading)) end)
+	:gsub('%*%*(.-)%*%*', lunacolors.bold)
+end
 
 commander.register('doc', function(args, sinks)
 	local moddocPath = hilbish.dataDir .. '/docs/'
@@ -28,10 +61,13 @@ Available sections: ]] .. table.concat(modules, ', ')
 		local vals = {}
 		local docs = d
 
-		local valsStr = docs:match '%-%-%-\n([^%-%-%-]+)\n'
-		print(valsStr)
+		local valsStr = docs:match '^%-%-%-\n.-\n%-%-%-'
 		if valsStr then
-			docs = docs:sub(valsStr:len() + 10, #docs)
+			docs = docs:sub(valsStr:len() + 2, #docs)
+			local pre = docs:sub(1, 1)
+			if pre == '\n' then
+				docs = docs:sub(2)
+			end
 
 			-- parse vals
 			local lines = string.split(valsStr, '\n')
@@ -89,7 +125,7 @@ Available sections: ]] .. table.concat(modules, ', ')
 		local size = terminal.size()
 		self.region = {
 			width = size.width,
-			height = size.height - 3
+			height = size.height - 1
 		}
 	end
 	gh:resize()
@@ -101,11 +137,13 @@ Available sections: ]] .. table.concat(modules, ', ')
 			offset = self.specialOffset
 			workingPage = self.specialPage
 		end
+		local size = terminal.size()
 
-		self.sink:write(ansikit.getCSI(self.region.height + 2 .. ';1', 'H'))
+		self.sink:write(ansikit.getCSI(size.height - 1 .. ';1', 'H'))
+		self.sink:write(ansikit.getCSI(0, 'J'))
 		if not self.isSpecial then
 			if args[1] == 'api' then
-				self.sink:writeln(lunacolors.reset(string.format('%s', workingPage.title)))
+				self.sink:writeln(workingPage.title)
 				self.sink:write(lunacolors.format(string.format('{grayBg} ↳ {white}{italic}%s {reset}', workingPage.description or 'No description.')))
 			else
 				self.sink:write(lunacolors.reset(string.format('Viewing doc page %s', moddocPath)))
@@ -114,21 +152,19 @@ Available sections: ]] .. table.concat(modules, ', ')
 	end
 	local backtickOccurence = 0
 	local function formatDocText(d)
-		return lunacolors.format(d:gsub('`', function()
-			backtickOccurence = backtickOccurence + 1
-			if backtickOccurence % 2 == 0 then
-				return '{reset}'
-			else
-				return '{underline}{green}'
-			end
+		return transformHTMLandMD(d)
+		--[[
+		return lunacolors.format(d:gsub('`(.-)`', function(t)
+			return docfuncs.renderCodeBlock(t)
 		end):gsub('\n#+.-\n', function(t)
 			local signature = t:gsub('<.->(.-)</.->', '{underline}%1'):gsub('\\', '<')
 			return '{bold}{yellow}' .. signature .. '{reset}'
 		end))
+		]]--
 	end
 
 
-	local doc, vals = handleYamlInfo(#args == 0 and doc or formatDocText(f:read '*a':gsub('-([%d]+)', '%1')))
+	local doc, vals = handleYamlInfo(#args == 0 and doc or formatDocText(f:read '*a'))
 	if #moddocs ~= 0 and f then
 		doc = doc .. '\nSubdocs: ' .. table.concat(subdocs, ', ') .. '\n\n'
 	end
@@ -146,8 +182,8 @@ Available sections: ]] .. table.concat(modules, ', ')
 		end
 
 		local f = io.open(moddocPath .. sdFile, 'rb')
-		local doc, vals = handleYamlInfo(f:read '*a':gsub('-([%d]+)', '%1'))
-		local page = Page(vals.title, formatDocText(doc))
+		local doc, vals = handleYamlInfo(formatDocText(f:read '*a'))
+		local page = Page(vals.title or sdName, doc)
 		page.description = vals.description
 		gh:addPage(page)
 	end

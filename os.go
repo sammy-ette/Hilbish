@@ -8,10 +8,9 @@ import (
 )
 
 // #interface os
-// OS Info
-// The `os` interface provides simple text information properties about
-// the current OS on the systen. This mainly includes the name and
-// version.
+// operating system info
+// Provides simple text information properties about the current operating system.
+// This mainly includes the name and version.
 // #field family Family name of the current OS
 // #field name Pretty name of the current OS
 // #field version Version of the current OS

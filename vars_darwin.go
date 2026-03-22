@@ -1,4 +1,4 @@
-// +build darwin
+//go:build darwin
 
 package main
 
@@ -15,7 +15,5 @@ var (
 	.. hilbish.userDir.config	.. '/hilbish/?/?.lua;'
 	.. hilbish.userDir.config	.. '/hilbish/?.lua'`
 	dataDir = "/usr/local/share/hilbish"
-	preloadPath = dataDir + "/nature/init.lua"
-	sampleConfPath = dataDir + "/.hilbishrc.lua" // Path to default/sample config
 	defaultConfDir = getenv("XDG_CONFIG_HOME", "~/.config")
 )

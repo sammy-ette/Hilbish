@@ -9,6 +9,8 @@ commander.register('cat', function(args, sinks)
 usage: cat [file]...]]
 	end
 
+	local chunkSize = 2^13 -- 8K buffer size
+
 	for _, fName in ipairs(args) do
 		local f = io.open(fName)
 		if f == nil then
@@ -17,7 +19,11 @@ usage: cat [file]...]]
 			goto continue
 		end
 
-		sinks.out:writeln(f:read '*a')
+		while true do
+			local block = f:read(chunkSize)
+			if not block then break end
+			sinks.out:write(block)
+		end
 		::continue::
 	end
 	io.flush()

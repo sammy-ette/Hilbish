@@ -1,3 +1,4 @@
+-- @module greenhouse.page
 local Object = require 'nature.object'
 
 local Page = Object:extend()
@@ -9,6 +10,7 @@ function Page:new(title, text)
 	self.loaded = true
 	self.children = {}
 end
+
 
 function Page:setText(text)
 	self.lines = string.split(text, '\n')

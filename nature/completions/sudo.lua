@@ -39,7 +39,7 @@ hilbish.complete('command.sudo', function(query, ctx, fields)
 			return {compGroup}, query
 		end
 
-		local comps, pfx = hilbish.completion.bins(query, ctx, fields)
+		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
 		local compGroup = {
 			items = comps,
 			type = 'grid'
@@ -49,5 +49,5 @@ hilbish.complete('command.sudo', function(query, ctx, fields)
 	end
 
 	-- otherwise, get command flags
-	return hilbish.completion.call('command.' .. fields[2], query, ctx, fields)
+	return hilbish.completions.call('command.' .. fields[2], query, ctx, fields)
 end)

@@ -1,7 +1,53 @@
-+ `signal.sigint` > Sent when Hilbish receives SIGINT (on Ctrl-C).
+---
+title: Signal
+description:
+layout: doc
+menu:
+  docs:
+    parent: "Signals"
+---
 
-+ `signal.resize` > Sent when the terminal is resized.
+## signal.sigint
 
-+ `signal.sigusr1`
+Thrown when Hilbish receive the SIGINT signal,
+aka when Ctrl-C is pressed.
 
-+ `signal.sigusr2`
+#### Variables
+
+This signal returns no variables.
+
+``` =html
+<hr class="my-4">
+```
+	
+## signal.resize
+
+Thrown when the terminal is resized.
+
+#### Variables
+
+This signal returns no variables.
+
+``` =html
+<hr class="my-4">
+```
+
+## signal.sigusr1
+
+Thrown when SIGUSR1 is sent to Hilbish.
+
+#### Variables
+
+This signal returns no variables.
+
+``` =html
+<hr class="my-4">
+```
+
+## signal.sigusr2
+
+Thrown when SIGUSR2 is sent to Hilbish.
+
+#### Variables
+
+This signal returns no variables.

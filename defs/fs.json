@@ -1,0 +1,549 @@
+{
+	"name": "fs",
+	"shortDescription": "filesystem interaction and functionality library",
+	"description": "\nThe fs module provides filesystem functions to Hilbish. While Lua's standard\nlibrary has some I/O functions, they're missing a lot of the basics. The `fs`\nlibrary offers more functions and will work on any operating system Hilbish does.",
+	"properties": [],
+	"fields": [
+		{
+			"name": "pathSep",
+			"description": [
+				"The",
+				"operating",
+				"system's",
+				"path",
+				"separator."
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	],
+	"docs": [
+		{
+			"name": "abs",
+			"description": [
+				"Returns an absolute version of the `path`.",
+				"This can be used to resolve short paths like `..` to `/home/user`."
+			],
+			"signature": "abs(path) -\u003e string",
+			"goFuncName": "fabs",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					}
+				],
+				"returns": [
+					{
+						"id": "string",
+						"fields": [],
+						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "basename",
+			"description": [
+				"Returns the \"basename,\" or the last part of the provided `path`. If path is empty,",
+				"`.` will be returned."
+			],
+			"signature": "basename(path) -\u003e string",
+			"goFuncName": "fbasename",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": [
+						"Path",
+						"to",
+						"get",
+						"the",
+						"base",
+						"name",
+						"of."
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"string",
+							"Path",
+							"to",
+							"get",
+							"the",
+							"base",
+							"name",
+							"of."
+						],
+						"startIdx": 3
+					}
+				],
+				"returns": [
+					{
+						"id": "string",
+						"fields": [],
+						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "cd",
+			"description": [
+				"Changes Hilbish's directory to `dir`."
+			],
+			"signature": "cd(dir)",
+			"goFuncName": "fcd",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "dir",
+					"Type": "string",
+					"Doc": [
+						"Path",
+						"to",
+						"change",
+						"directory",
+						"to."
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "dir",
+						"fields": [
+							"string",
+							"Path",
+							"to",
+							"change",
+							"directory",
+							"to."
+						],
+						"startIdx": 2
+					}
+				]
+			}
+		},
+		{
+			"name": "dir",
+			"description": [
+				"Returns the directory part of `path`. If a file path like",
+				"`~/Documents/doc.txt` then this function will return `~/Documents`."
+			],
+			"signature": "dir(path) -\u003e string",
+			"goFuncName": "fdir",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": [
+						"Path",
+						"to",
+						"get",
+						"the",
+						"directory",
+						"for."
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"string",
+							"Path",
+							"to",
+							"get",
+							"the",
+							"directory",
+							"for."
+						],
+						"startIdx": 3
+					}
+				],
+				"returns": [
+					{
+						"id": "string",
+						"fields": [],
+						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "glob",
+			"description": [
+				"Match all files based on the provided `pattern`.",
+				"For the syntax' refer to Go's filepath.Match function: https://pkg.go.dev/path/filepath#Match",
+				"",
+				""
+			],
+			"signature": "glob(pattern) -\u003e matches (table)",
+			"goFuncName": "fglob",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "pattern",
+					"Type": "string",
+					"Doc": [
+						"Pattern",
+						"to",
+						"compare",
+						"files",
+						"with."
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"--[[",
+							"\tWithin a folder that contains the following files:",
+							"\ta.txt",
+							"\tinit.lua",
+							"\tcode.lua",
+							"\tdoc.pdf",
+							"]]--",
+							"local matches = fs.glob './*.lua'",
+							"print(matches)",
+							"-- -\u003e {'init.lua', 'code.lua'}"
+						],
+						"startIdx": 6
+					}
+				],
+				"param": [
+					{
+						"id": "pattern",
+						"fields": [
+							"string",
+							"Pattern",
+							"to",
+							"compare",
+							"files",
+							"with."
+						],
+						"startIdx": 3
+					}
+				],
+				"returns": [
+					{
+						"id": "table",
+						"fields": [
+							"A",
+							"list",
+							"of",
+							"file",
+							"names/paths",
+							"that",
+							"match."
+						],
+						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "join",
+			"description": [
+				"Takes any list of paths and joins them based on the operating system's path separator.",
+				"",
+				""
+			],
+			"signature": "join(...path) -\u003e string",
+			"goFuncName": "fjoin",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "...string",
+					"Doc": [
+						"Paths",
+						"to",
+						"join",
+						"together"
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- This prints the directory for Hilbish's config!",
+							"print(fs.join(hilbish.userDir.config, 'hilbish'))",
+							"-- -\u003e '/home/user/.config/hilbish' on Linux"
+						],
+						"startIdx": 5
+					}
+				],
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"...string",
+							"Paths",
+							"to",
+							"join",
+							"together"
+						],
+						"startIdx": 2
+					}
+				],
+				"returns": [
+					{
+						"id": "string",
+						"fields": [
+							"The",
+							"joined",
+							"path."
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "mkdir",
+			"description": [
+				"Creates a new directory with the provided `name`.",
+				"With `recursive`, mkdir will create parent directories.",
+				"",
+				""
+			],
+			"signature": "mkdir(name, recursive)",
+			"goFuncName": "fmkdir",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"Name",
+						"of",
+						"the",
+						"directory"
+					]
+				},
+				{
+					"Name": "recursive",
+					"Type": "boolean",
+					"Doc": [
+						"Whether",
+						"to",
+						"create",
+						"parent",
+						"directories",
+						"for",
+						"the",
+						"provided",
+						"name"
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- This will create the directory foo, then create the directory bar in the",
+							"-- foo directory. If recursive is false in this case, it will fail.",
+							"fs.mkdir('./foo/bar', true)"
+						],
+						"startIdx": 6
+					}
+				],
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string",
+							"Name",
+							"of",
+							"the",
+							"directory"
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "recursive",
+						"fields": [
+							"boolean",
+							"Whether",
+							"to",
+							"create",
+							"parent",
+							"directories",
+							"for",
+							"the",
+							"provided",
+							"name"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "pipe",
+			"description": [
+				"Returns a pair of connected files, also known as a pipe.",
+				"The type returned is a Lua file, same as returned from `io` functions."
+			],
+			"signature": "fpipe() -\u003e File, File",
+			"goFuncName": "fpipe",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"returns": [
+					{
+						"id": "File",
+						"fields": [],
+						"startIdx": 3
+					},
+					{
+						"id": "File",
+						"fields": [],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "readdir",
+			"description": [
+				"Returns a list of all files and directories in the provided path."
+			],
+			"signature": "readdir(path) -\u003e table[string]",
+			"goFuncName": "freaddir",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "dir",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "dir",
+						"fields": [
+							"string"
+						],
+						"startIdx": 2
+					}
+				],
+				"returns": [
+					{
+						"id": "table",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "stat",
+			"description": [
+				"Returns the information about a given `path`.",
+				"The returned table contains the following values:",
+				"name (string) - Name of the path",
+				"size (number) - Size of the path in bytes",
+				"mode (string) - Unix permission mode in an octal format string (with leading 0)",
+				"isDir (boolean) - If the path is a directory",
+				"",
+				""
+			],
+			"signature": "stat(path) -\u003e {}",
+			"goFuncName": "fstat",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"local inspect = require 'inspect'",
+							"",
+							"local stat = fs.stat '~'",
+							"print(inspect(stat))",
+							"--[[",
+							"Would print the following:",
+							"{",
+							"  isDir = true,",
+							"  mode = \"0755\",",
+							"  name = \"username\",",
+							"  size = 12288",
+							"}",
+							"]]--"
+						],
+						"startIdx": 10
+					}
+				],
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"string"
+						],
+						"startIdx": 7
+					}
+				],
+				"returns": [
+					{
+						"id": "table",
+						"fields": [],
+						"startIdx": 8
+					}
+				]
+			}
+		}
+	]
+}

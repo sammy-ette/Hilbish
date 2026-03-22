@@ -34,7 +34,7 @@ func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 
 // size()
 // Gets the dimensions of the terminal. Returns a table with `width` and `height`
-// Note: this is not the size in relation to the dimensions of the display
+// NOTE: The size refers to the amount of columns and rows of text that can fit in the terminal.
 func termsize(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	w, h, err := term.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
@@ -49,7 +49,7 @@ func termsize(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 }
 
 // saveState()
-// Saves the current state of the terminal
+// Saves the current state of the terminal.
 func termsaveState(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	state, err := term.GetState(int(os.Stdin.Fd()))
 	if err != nil {
@@ -72,7 +72,7 @@ func termrestoreState(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 }
 
 // setRaw()
-// Puts the terminal in raw mode
+// Puts the terminal into raw mode.
 func termsetRaw(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	_, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {

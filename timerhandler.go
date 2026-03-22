@@ -63,11 +63,10 @@ func (th *timersModule) get(id int) *timer {
 
 // #interface timers
 // create(type, time, callback) -> @Timer
-// Creates a timer that runs based on the specified `time` in milliseconds.
-// The `type` can either be `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`
-// --- @param type number
-// --- @param time number
-// --- @param callback function
+// Creates a timer that runs based on the specified `time`.
+// #param type number What kind of timer to create, can either be `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`
+// #param time number The amount of time the function should run in milliseconds.
+// #param callback function The function to run for the timer.
 func (th *timersModule) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(3); err != nil {
 		return nil, err
@@ -93,8 +92,8 @@ func (th *timersModule) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #interface timers
 // get(id) -> @Timer
 // Retrieves a timer via its ID.
-// --- @param id number
-// --- @returns Timer
+// #param id number
+// #returns Timer
 func (th *timersModule) luaGet(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.Check1Arg(); err != nil {
 		return nil, err
@@ -122,15 +121,10 @@ a few seconds, you don't have to rely on timing tricks, as Hilbish has a
 timer API to set intervals and timeouts.
 
 These are the simple functions `hilbish.interval` and `hilbish.timeout` (doc
-accessible with `doc hilbish`). But if you want slightly more control over
-them, there is the `hilbish.timers` interface. It allows you to get
-a timer via ID and control them.
-
-## Timer Object
-All functions documented with the `Timer` type refer to a Timer object.
+accessible with `doc hilbish`, or `Module hilbish` on the Website).
 
 An example of usage:
-```
+```lua
 local t = hilbish.timers.create(hilbish.timers.TIMEOUT, 5000, function()
 	print 'hello!'
 end)
