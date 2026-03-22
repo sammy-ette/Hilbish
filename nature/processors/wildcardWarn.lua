@@ -1,3 +1,4 @@
+local fs = require 'fs'
 local hilbish = require 'hilbish'
 local Greenhouse = require 'nature.greenhouse'
 local Page = require 'nature.greenhouse.page'
@@ -42,7 +43,9 @@ hilbish.processors.add {
 
                 ::ask::
                 local ans = hilbish.read '(Y/N, L to list files matched with wildcard) '
-                ans = ans:lower()
+                if ans then
+                    ans = ans:lower()
+                end
                 if ans == 'l' then
                     local gh = Greenhouse(stdoutSink)
                     local page = Page('Wildcard File List', '')
