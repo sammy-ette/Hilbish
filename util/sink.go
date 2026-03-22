@@ -15,10 +15,10 @@ var sinkMetaKey = rt.StringValue("hshsink")
 
 // #type
 // A sink is a structure that has input and/or output to/from a desination.
-type Sink struct{
-	Rw *bufio.ReadWriter
-	file *os.File
-	UserData *rt.UserData
+type Sink struct {
+	Rw        *bufio.ReadWriter
+	file      *os.File
+	UserData  *rt.UserData
 	autoFlush bool
 }
 
@@ -27,12 +27,12 @@ func SinkLoader(rtm *rt.Runtime) *rt.Table {
 
 	sinkMethods := rt.NewTable()
 	sinkFuncs := map[string]LuaExport{
-		"flush": {luaSinkFlush, 1, false},
-		"read": {luaSinkRead, 1, false},
-		"readAll": {luaSinkReadAll, 1, false},
+		"flush":     {luaSinkFlush, 1, false},
+		"read":      {luaSinkRead, 1, false},
+		"readAll":   {luaSinkReadAll, 1, false},
 		"autoFlush": {luaSinkAutoFlush, 2, false},
-		"write": {luaSinkWrite, 2, false},
-		"writeln": {luaSinkWriteln, 2, false},
+		"write":     {luaSinkWrite, 2, false},
+		"writeln":   {luaSinkWriteln, 2, false},
 	}
 	SetExports(rtm, sinkMethods, sinkFuncs)
 
@@ -49,12 +49,12 @@ func SinkLoader(rtm *rt.Runtime) *rt.Table {
 		keyStr, _ := arg.TryString()
 
 		switch keyStr {
-			case "pipe":
-				val = rt.BoolValue(false)
-				if s.file != nil {
-					fileInfo, _ := s.file.Stat();
-					val = rt.BoolValue(fileInfo.Mode() & os.ModeCharDevice == 0)
-				}
+		case "pipe":
+			val = rt.BoolValue(false)
+			if s.file != nil {
+				fileInfo, _ := s.file.Stat()
+				val = rt.BoolValue(fileInfo.Mode()&os.ModeCharDevice == 0)
+			}
 		}
 
 		return c.PushingNext1(t.Runtime, val), nil
@@ -70,9 +70,12 @@ func SinkLoader(rtm *rt.Runtime) *rt.Table {
 	mod := rt.NewTable()
 	SetExports(rtm, mod, exports)
 
+	SetField(rtm, mod, "stderr", rt.UserDataValue(NewSink(rtm, os.Stderr).UserData))
+	SetField(rtm, mod, "stdout", rt.UserDataValue(NewSink(rtm, os.Stdout).UserData))
+	SetField(rtm, mod, "stdin", rt.UserDataValue(NewSink(rtm, os.Stdin).UserData))
+
 	return mod
 }
-
 
 func luaSinkNew(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	snk := NewSink(t.Runtime, new(bytes.Buffer))
@@ -232,7 +235,7 @@ func luaSinkAutoFlush(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 func NewSink(rtm *rt.Runtime, Rw io.ReadWriter) *Sink {
 	s := &Sink{
-		Rw: bufio.NewReadWriter(bufio.NewReader(Rw), bufio.NewWriter(Rw)),
+		Rw:        bufio.NewReadWriter(bufio.NewReader(Rw), bufio.NewWriter(Rw)),
 		autoFlush: true,
 	}
 	s.UserData = sinkUserData(rtm, s)
@@ -259,7 +262,7 @@ func NewSinkInput(rtm *rt.Runtime, r io.Reader) *Sink {
 
 func NewSinkOutput(rtm *rt.Runtime, w io.Writer) *Sink {
 	s := &Sink{
-		Rw: bufio.NewReadWriter(nil, bufio.NewWriter(w)),
+		Rw:        bufio.NewReadWriter(nil, bufio.NewWriter(w)),
 		autoFlush: true,
 	}
 	s.UserData = sinkUserData(rtm, s)
@@ -270,7 +273,7 @@ func NewSinkOutput(rtm *rt.Runtime, w io.Writer) *Sink {
 func sinkArg(c *rt.GoCont, arg int) (*Sink, error) {
 	s, ok := valueToSink(c.Arg(arg))
 	if !ok {
-		return nil, fmt.Errorf("#%d must be a sink", arg + 1)
+		return nil, fmt.Errorf("#%d must be a sink", arg+1)
 	}
 
 	return s, nil

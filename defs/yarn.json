@@ -1,0 +1,40 @@
+{
+	"name": "yarn",
+	"shortDescription": "multi threading library",
+	"description": "Yarn is a simple multithreading library. Threads are individual Lua states,\nso they do NOT share the same environment as the code that runs the thread.\nBait and Commanders are shared though, so you *can* throw hooks from 1 thread to another.\n\nExample:\n\n```lua\nlocal yarn = require 'yarn'\n\n-- calling t will run the yarn thread.\nlocal t = yarn.thread(print)\nt 'printing from another lua state!'\n```",
+	"properties": [],
+	"fields": [],
+	"types": [
+		{
+			"name": "Thread",
+			"description": [],
+			"parent": "yarn",
+			"isInterface": false,
+			"isMember": false,
+			"isType": true,
+			"tags": {
+				"type": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	],
+	"docs": [
+		{
+			"name": "thread",
+			"description": [
+				"Creates a new, fresh Yarn thread.",
+				"`fun` is the function that will run in the thread."
+			],
+			"signature": "thread(fun) -\u003e @Thread",
+			"goFuncName": "yarnthread",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	]
+}

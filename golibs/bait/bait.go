@@ -3,15 +3,14 @@
 Bait is the event emitter for Hilbish. Much like Node.js and
 its `events` system, many actions in Hilbish emit events.
 Unlike Node.js, Hilbish events are global. So make sure to
-pick a unique name!
-
+pick a unique name!<nl>
 Usage of the Bait module consists of userstanding
 event-driven architecture, but it's pretty simple:
 If you want to act on a certain event, you can `catch` it.
-You can act on events via callback functions.
-
+You can act on events via callback functions.<nl>
 Examples of this are in the Hilbish default config!
 Consider this part of it:
+
 ```lua
 bait.catch('command.exit', function(code)
 	running = false
@@ -30,11 +29,12 @@ import (
 
 	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/arnodel/golua/lib/packagelib"
+	rt "github.com/arnodel/golua/runtime"
 )
 
 type listenerType int
+
 const (
 	goListener listenerType = iota
 	luaListener
@@ -44,25 +44,25 @@ const (
 type Recoverer func(event string, handler *Listener, err interface{})
 
 // Listener is a struct that holds the handler for an event.
-type Listener struct{
-	typ listenerType
-	once bool
-	caller func(...interface{}) rt.Value
+type Listener struct {
+	typ       listenerType
+	once      bool
+	caller    func(...interface{}) rt.Value
 	luaCaller *rt.Closure
 }
 
-type Bait struct{
-	Loader packagelib.Loader
+type Bait struct {
+	Loader    packagelib.Loader
 	recoverer Recoverer
-	handlers map[string][]*Listener
-	rtm *rt.Runtime
+	handlers  map[string][]*Listener
+	rtm       *rt.Runtime
 }
 
 // New creates a new Bait instance.
 func New(rtm *rt.Runtime) *Bait {
 	b := &Bait{
 		handlers: make(map[string][]*Listener),
-		rtm: rtm,
+		rtm:      rtm,
 	}
 	b.Loader = packagelib.Loader{
 		Load: b.loaderFunc,
@@ -93,8 +93,10 @@ func (b *Bait) Emit(event string, args ...interface{}) []rt.Value {
 			for _, arg := range args {
 				var luarg rt.Value
 				switch arg.(type) {
-					case rt.Value: luarg = arg.(rt.Value)
-					default: luarg = rt.AsValue(arg)
+				case rt.Value:
+					luarg = arg.(rt.Value)
+				default:
+					luarg = rt.AsValue(arg)
 				}
 				luaArgs = append(luaArgs, luarg)
 			}
@@ -130,7 +132,7 @@ func (b *Bait) Emit(event string, args ...interface{}) []rt.Value {
 // On adds a Go function handler for an event.
 func (b *Bait) On(event string, handler func(...interface{}) rt.Value) *Listener {
 	listener := &Listener{
-		typ: goListener,
+		typ:    goListener,
 		caller: handler,
 	}
 
@@ -141,7 +143,7 @@ func (b *Bait) On(event string, handler func(...interface{}) rt.Value) *Listener
 // OnLua adds a Lua function handler for an event.
 func (b *Bait) OnLua(event string, handler *rt.Closure) *Listener {
 	listener := &Listener{
-		typ: luaListener,
+		typ:       luaListener,
 		luaCaller: handler,
 	}
 	b.addListener(event, listener)
@@ -174,8 +176,8 @@ func (b *Bait) OffLua(event string, handler *rt.Closure) {
 // Once adds a Go function listener for an event that only runs once.
 func (b *Bait) Once(event string, handler func(...interface{}) rt.Value) *Listener {
 	listener := &Listener{
-		typ: goListener,
-		once: true,
+		typ:    goListener,
+		once:   true,
 		caller: handler,
 	}
 	b.addListener(event, listener)
@@ -186,8 +188,8 @@ func (b *Bait) Once(event string, handler func(...interface{}) rt.Value) *Listen
 // OnceLua adds a Lua function listener for an event that only runs once.
 func (b *Bait) OnceLua(event string, handler *rt.Closure) *Listener {
 	listener := &Listener{
-		typ: luaListener,
-		once: true,
+		typ:       luaListener,
+		once:      true,
 		luaCaller: handler,
 	}
 	b.addListener(event, listener)
@@ -208,11 +210,10 @@ func (b *Bait) addListener(event string, listener *Listener) {
 	b.handlers[event] = append(b.handlers[event], listener)
 }
 
-
 func (b *Bait) removeListener(event string, idx int) {
-	b.handlers[event][idx] = b.handlers[event][len(b.handlers[event]) - 1]
+	b.handlers[event][idx] = b.handlers[event][len(b.handlers[event])-1]
 
-	b.handlers[event] = b.handlers[event][:len(b.handlers[event]) - 1]
+	b.handlers[event] = b.handlers[event][:len(b.handlers[event])-1]
 }
 
 func (b *Bait) callRecoverer(event string, handler *Listener, err interface{}) {
@@ -224,11 +225,11 @@ func (b *Bait) callRecoverer(event string, handler *Listener, err interface{}) {
 
 func (b *Bait) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"catch": util.LuaExport{b.bcatch, 2, false},
+		"catch":     util.LuaExport{b.bcatch, 2, false},
 		"catchOnce": util.LuaExport{b.bcatchOnce, 2, false},
-		"throw": util.LuaExport{b.bthrow, 1, true},
-		"release": util.LuaExport{b.brelease, 2, false},
-		"hooks": util.LuaExport{b.bhooks, 1, false},
+		"throw":     util.LuaExport{b.bthrow, 1, true},
+		"release":   util.LuaExport{b.brelease, 2, false},
+		"hooks":     util.LuaExport{b.bhooks, 1, false},
 	}
 	mod := rt.NewTable()
 	util.SetExports(rtm, mod, exports)
@@ -294,8 +295,10 @@ func (b *Bait) bhooks(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	luaHandlers := rt.NewTable()
 	for _, handler := range handlers {
-		if handler.typ != luaListener { continue }
-		luaHandlers.Set(rt.IntValue(luaHandlers.Len() + 1), rt.FunctionValue(handler.luaCaller))
+		if handler.typ != luaListener {
+			continue
+		}
+		luaHandlers.Set(rt.IntValue(luaHandlers.Len()+1), rt.FunctionValue(handler.luaCaller))
 	}
 
 	if luaHandlers.Len() == 0 {

@@ -25,30 +25,31 @@ import (
 
 	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/arnodel/golua/lib/packagelib"
+	rt "github.com/arnodel/golua/runtime"
+
 	//"github.com/arnodel/golua/lib/iolib"
 	"github.com/maxlandon/readline"
 	//"mvdan.cc/sh/v3/interp"
 )
 
 var exports = map[string]util.LuaExport{
-	"alias": {hlalias, 2, false},
-	"appendPath": {hlappendPath, 1, false},
-	"complete": {hlcomplete, 2, false},
-	"cwd": {hlcwd, 0, false},
-	"exec": {hlexec, 1, false},
-	"goro": {hlgoro, 1, true},
+	"alias":       {hlalias, 2, false},
+	"appendPath":  {hlappendPath, 1, false},
+	"complete":    {hlcomplete, 2, false},
+	"cwd":         {hlcwd, 0, false},
+	"exec":        {hlexec, 1, false},
+	"goro":        {hlgoro, 1, true},
 	"highlighter": {hlhighlighter, 1, false},
-	"hinter": {hlhinter, 1, false},
+	"hinter":      {hlhinter, 1, false},
 	"multiprompt": {hlmultiprompt, 1, false},
 	"prependPath": {hlprependPath, 1, false},
-	"prompt": {hlprompt, 1, true},
-	"inputMode": {hlinputMode, 1, false},
-	"interval": {hlinterval, 2, false},
-	"read": {hlread, 1, false},
-	"timeout": {hltimeout, 2, false},
-	"which": {hlwhich, 1, false},
+	"prompt":      {hlprompt, 1, true},
+	"inputMode":   {hlinputMode, 1, false},
+	"interval":    {hlinterval, 2, false},
+	"read":        {hlread, 1, false},
+	"timeout":     {hltimeout, 2, false},
+	"which":       {hlwhich, 1, false},
 }
 
 var hshMod *rt.Table
@@ -61,7 +62,9 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	mod := rt.NewTable()
 
 	util.SetExports(rtm, mod, exports)
-	hshMod = mod
+	if hshMod == nil {
+		hshMod = mod
+	}
 
 	host, _ := os.Hostname()
 	username := curuser.Username
@@ -98,10 +101,8 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	historyModule := lr.Loader(rtm)
 	mod.Set(rt.StringValue("history"), rt.TableValue(historyModule))
 
-	// hilbish.completion table
+	// hilbish.completions table
 	hshcomp := completionLoader(rtm)
-	// TODO: REMOVE "completion" AND ONLY USE "completions" WITH AN S
-	mod.Set(rt.StringValue("completion"), rt.TableValue(hshcomp))
 	mod.Set(rt.StringValue("completions"), rt.TableValue(hshcomp))
 
 	// hilbish.runner table
@@ -118,9 +119,6 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	timersModule := timers.loader(rtm)
 	mod.Set(rt.StringValue("timers"), rt.TableValue(timersModule))
 
-	editorModule := editorLoader(rtm)
-	mod.Set(rt.StringValue("editor"), rt.TableValue(editorModule))
-
 	versionModule := rt.NewTable()
 	util.SetField(rtm, versionModule, "branch", rt.StringValue(gitBranch))
 	util.SetField(rtm, versionModule, "full", rt.StringValue(getVersion()))
@@ -131,18 +129,18 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	pluginModule := moduleLoader(rtm)
 	mod.Set(rt.StringValue("module"), rt.TableValue(pluginModule))
 
-	sinkModule := util.SinkLoader(l)
+	sinkModule := util.SinkLoader(rtm)
 	mod.Set(rt.StringValue("sink"), rt.TableValue(sinkModule))
 
 	return rt.TableValue(mod), nil
 }
 
 func getenv(key, fallback string) string {
-    value := os.Getenv(key)
-    if len(value) == 0 {
-        return fallback
-    }
-    return value
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		return fallback
+	}
+	return value
 }
 
 func setVimMode(mode string) {
@@ -194,7 +192,6 @@ func hlcwd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.PushingNext1(t.Runtime, rt.StringValue(cwd)), nil
 }
 
-
 // read(prompt) -> input (string)
 // Read input from the user, using Hilbish's line editor/input reader.
 // This is a separate instance from the one Hilbish actually uses.
@@ -212,7 +209,7 @@ func hlread(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		// substitute with an empty string
 		prompt = ""
 	}
-	
+
 	lualr := &lineReader{
 		rl: readline.NewInstance(),
 	}
@@ -265,11 +262,13 @@ func hlprompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	switch typ {
-		case "left":
-			prompt = p
-			lr.SetPrompt(fmtPrompt(prompt))
-		case "right": lr.SetRightPrompt(fmtPrompt(p))
-		default: return nil, errors.New("expected prompt type to be right or left, got " + typ)
+	case "left":
+		prompt = p
+		lr.SetPrompt(fmtPrompt(prompt))
+	case "right":
+		lr.SetRightPrompt(fmtPrompt(p))
+	default:
+		return nil, errors.New("expected prompt type to be right or left, got " + typ)
 	}
 
 	return c.Next(), nil
@@ -290,7 +289,7 @@ will look like:
 user ~ ∆ echo "hey
 --> ...!"
 
-so then you get 
+so then you get
 user ~ ∆ echo "hey
 --> ...!"
 hey ...!
@@ -386,7 +385,7 @@ func appendPath(dir string) {
 
 	// if dir isnt already in $PATH, add it
 	if !strings.Contains(pathenv, dir) {
-		os.Setenv("PATH", pathenv + string(os.PathListSeparator) + dir)
+		os.Setenv("PATH", pathenv+string(os.PathListSeparator)+dir)
 	}
 }
 
@@ -480,7 +479,7 @@ func hltimeout(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	interval := time.Duration(ms) * time.Millisecond
 	timer := timers.create(timerTimeout, interval, cb)
 	timer.start()
-	
+
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(timer.ud)), nil
 }
 
@@ -524,7 +523,7 @@ func hlinterval(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 hilbish.complete('command.sudo', function(query, ctx, fields)
 	if #fields == 0 then
 		-- complete for commands
-		local comps, pfx = hilbish.completion.bins(query, ctx, fields)
+		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
 		local compGroup = {
 			items = comps, -- our list of items to complete
 			type = 'grid' -- what our completions will look like.
@@ -535,7 +534,7 @@ hilbish.complete('command.sudo', function(query, ctx, fields)
 
 	-- otherwise just be boring and return files
 
-	local comps, pfx = hilbish.completion.files(query, ctx, fields)
+	local comps, pfx = hilbish.completions.files(query, ctx, fields)
 	local compGroup = {
 		items = comps,
 		type = 'grid'
@@ -571,7 +570,7 @@ func hlprependPath(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	// if dir isnt already in $PATH, add in
 	if !strings.Contains(pathenv, dir) {
-		os.Setenv("PATH", dir + string(os.PathListSeparator) + pathenv)
+		os.Setenv("PATH", dir+string(os.PathListSeparator)+pathenv)
 	}
 
 	return c.Next(), nil
@@ -625,14 +624,14 @@ func hlinputMode(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	switch mode {
-		case "emacs":
-			unsetVimMode()
-			lr.rl.InputMode = readline.Emacs
-		case "vim":
-			setVimMode("insert")
-			lr.rl.InputMode = readline.Vim
-		default:
-			return nil, errors.New("inputMode: expected vim or emacs, received " + mode)
+	case "emacs":
+		unsetVimMode()
+		lr.rl.InputMode = readline.Emacs
+	case "vim":
+		setVimMode("insert")
+		lr.rl.InputMode = readline.Vim
+	default:
+		return nil, errors.New("inputMode: expected vim or emacs, received " + mode)
 	}
 
 	return c.Next(), nil
@@ -667,7 +666,9 @@ func hlhinter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #example
 // --This code will highlight all double quoted strings in green.
 // function hilbish.highlighter(line)
-//    return line:gsub('"%w+"', function(c) return lunacolors.green(c) end)
+//
+//	return line:gsub('"%w+"', function(c) return lunacolors.green(c) end)
+//
 // end
 // #example
 // #param line string

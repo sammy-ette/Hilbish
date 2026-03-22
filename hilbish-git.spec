@@ -11,7 +11,7 @@ Source: {{{ git_dir_pack }}}
 BuildRequires: git golang go-task
 Requires: inspect succulent lunacolors
 
-Url: https://github.com/Rosettea/Hilbish
+Url: https://github.com/sammy-ette/Hilbish
 VCS: {{{ git_dir_vcs }}}
 
 %description
