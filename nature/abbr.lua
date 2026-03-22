@@ -40,21 +40,21 @@ bait.catch('hilbish.rawInput', function(c)
 	-- 0x0d == enter
 	if c == ' ' or c == string.char(0x0d) then
 		-- check if the last "word" was a valid abbreviation
-		local line = hilbish.editor.getLine()
+		local line = hilbish.editor:getLine()
 		local lineSplits = string.split(line, ' ')
 		local thisAbbr = hilbish.abbr.all[lineSplits[#lineSplits]]
 
 		if thisAbbr and (#lineSplits == 1 or thisAbbr.anywhere == true) then
-			hilbish.editor.deleteByAmount(-lineSplits[#lineSplits]:len())
+			hilbish.editor:deleteByAmount(-lineSplits[#lineSplits]:len())
 			if type(thisAbbr.expand) == 'string' then
-				hilbish.editor.insert(thisAbbr.expand)
+				hilbish.editor:insert(thisAbbr.expand)
 			elseif type(thisAbbr.expand) == 'function' then
 				local expandRet = thisAbbr.expand()
 				if type(expandRet) ~= 'string' then
 					print(string.format('abbr %s has an expand function that did not return a string. instead it returned: %s', thisAbbr.abbr, expandRet))
 					return
 				end
-				hilbish.editor.insert(expandRet)
+				hilbish.editor:insert(expandRet)
 			end
 		end
 	end

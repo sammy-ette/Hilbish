@@ -308,7 +308,7 @@ end
 local function read()
 	terminal.saveState()
 	terminal.setRaw()
-	local c = hilbish.editor.readChar()
+	local c = hilbish.editor:readChar()
 
 	terminal.restoreState()
 	return c

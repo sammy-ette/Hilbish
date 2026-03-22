@@ -44,7 +44,6 @@ var exports = map[string]util.LuaExport{
 	"multiprompt": {hlmultiprompt, 1, false},
 	"prependPath": {hlprependPath, 1, false},
 	"prompt":      {hlprompt, 1, true},
-	"inputMode":   {hlinputMode, 1, false},
 	"interval":    {hlinterval, 2, false},
 	"read":        {hlread, 1, false},
 	"timeout":     {hltimeout, 2, false},
@@ -561,34 +560,6 @@ func hlwhich(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	return c.PushingNext1(t.Runtime, rt.StringValue(path)), nil
-}
-
-// inputMode(mode)
-// Sets the input mode for Hilbish's line reader.
-// `emacs` is the default. Setting it to `vim` changes behavior of input to be
-// Vim-like with modes and Vim keybinds.
-// #param mode string Can be set to either `emacs` or `vim`
-func hlinputMode(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
-	}
-	mode, err := c.StringArg(0)
-	if err != nil {
-		return nil, err
-	}
-
-	switch mode {
-	case "emacs":
-		unsetVimMode()
-		lr.rl.InputMode = readline.Emacs
-	case "vim":
-		setVimMode("insert")
-		lr.rl.InputMode = readline.Vim
-	default:
-		return nil, errors.New("inputMode: expected vim or emacs, received " + mode)
-	}
-
-	return c.Next(), nil
 }
 
 // hinter(line, pos)
