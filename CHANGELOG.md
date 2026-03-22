@@ -5,7 +5,7 @@
 - Forward/Right arrow key will fill in hint text (#327)
 - The readline library adds the ability to create custom instances of the Hilbish
 line editor. Now, `hilbish.editor` has been changed to a readline instance, instead of just being a table of a few functions to access it.
-This means the colon operator is now the *preferred* way of accessing its functions,
+This means the colon operator is required accessing its functions,
 and the dot operator will cause errors in 3.0.
 Example: `hilbish.editor.getLine()` should be changed to `hilbish.editor:getLine()`
 before 3.0

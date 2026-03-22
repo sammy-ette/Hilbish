@@ -25,13 +25,13 @@ require 'nature.processors.wildcardWarn'
 
 require 'nature.commands'
 require 'nature.completions'
-require 'nature.opts'
 require 'nature.vim'
 require 'nature.runner'
 require 'nature.hummingbird'
 require 'nature.env'
 require 'nature.abbr'
 require 'nature.editor'
+require 'nature.opts'
 
 local shlvl = tonumber(os.getenv 'SHLVL')
 if shlvl ~= nil then

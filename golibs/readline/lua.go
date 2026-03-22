@@ -7,6 +7,7 @@
 package readline
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -28,6 +29,7 @@ func (rl *Readline) luaLoader(rtm *rt.Runtime) (rt.Value, func()) {
 		"readChar":       {rlReadChar, 1, false},
 		"setVimRegister": {rlSetRegister, 3, false},
 		"log":            {rlLog, 2, false},
+		"inputMode":      {rlInputMode, 2, false},
 	}
 	util.SetExports(rtm, rlMethods, rlMethodss)
 
@@ -64,6 +66,35 @@ func rlNew(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	ud := rlUserData(t.Runtime, rl)
 
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(ud)), nil
+}
+
+func rlInputMode(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.CheckNArgs(2); err != nil {
+		return nil, err
+	}
+
+	rl, err := rlArg(c, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	mode, err := c.StringArg(1)
+	if err != nil {
+		return nil, err
+	}
+
+	println(mode)
+
+	switch mode {
+	case "emacs":
+		rl.InputMode = Emacs
+	case "vim":
+		rl.InputMode = Vim
+	default:
+		return nil, errors.New("inputMode: expected vim or emacs, received " + mode)
+	}
+
+	return c.Next(), nil
 }
 
 // #member
