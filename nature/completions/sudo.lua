@@ -12,7 +12,7 @@ local addflag = curry(flag)
 addflag '-A' 'Ask for password via askpass or $SUDO_ASKPASS'
 addflag '-B' 'Ring the bell as part of the password prompt.'
 
-hilbish.complete('command.sudo', function(query, ctx, fields)
+hilbish.completions.add('command.sudo', function(query, ctx, fields)
 	table.remove(fields, 1)
 	local nonflags = table.filter(fields, function(v)
 		if v == '' then

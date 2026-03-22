@@ -7,7 +7,7 @@ menu:
     parent: "Features"
 ---
 
-Completions for commands can be created with the [`hilbish.complete`](../api/hilbish#complete)
+Completions for commands can be created with the [`hilbish.completions.add`](../api/hilbish#complete)
 function. See the link for how to use it.
 
 To create completions for a command is simple.

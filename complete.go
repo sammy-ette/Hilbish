@@ -225,6 +225,7 @@ func completionLoader(rtm *rt.Runtime) *rt.Table {
 		"call":    {hcmpCall, 4, false},
 		"files":   {hcmpFiles, 3, false},
 		"dirs":    {hcmpDirs, 3, false},
+		"add":     {hcmpAdd, 2, false},
 		"handler": {hcmpHandler, 2, false},
 	}
 
@@ -232,6 +233,52 @@ func completionLoader(rtm *rt.Runtime) *rt.Table {
 	util.SetExports(rtm, mod, exports)
 
 	return mod
+}
+
+// #interface completions
+// add(scope, cb)
+// Registers a completion handler for the specified scope.
+// A `scope` is expected to be `command.<cmd>`,
+// replacing <cmd> with the name of the command (for example `command.git`).
+// The documentation for completions, under Features/Completions or `doc completions`
+// provides more details.
+// #param scope string
+// #param cb function
+/*
+#example
+-- This is a very simple example. Read the full doc for completions for details.
+hilbish.completions.add('command.sudo', function(query, ctx, fields)
+	if #fields == 0 then
+		-- complete for commands
+		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
+		local compGroup = {
+			items = comps, -- our list of items to complete
+			type = 'grid' -- what our completions will look like.
+		}
+
+		return {compGroup}, pfx
+	end
+
+	-- otherwise just be boring and return files
+
+	local comps, pfx = hilbish.completions.files(query, ctx, fields)
+	local compGroup = {
+		items = comps,
+		type = 'grid'
+	}
+
+	return {compGroup}, pfx
+end)
+#example
+*/
+func hcmpAdd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	scope, cb, err := util.HandleStrCallback(t, c)
+	if err != nil {
+		return nil, err
+	}
+	luaCompletions[scope] = cb
+
+	return c.Next(), nil
 }
 
 // #interface completions
@@ -244,7 +291,7 @@ func completionLoader(rtm *rt.Runtime) *rt.Table {
 /*
 #example
 -- an extremely simple completer for sudo.
-hilbish.complete('command.sudo', function(query, ctx, fields)
+hilbish.completions.add('command.sudo', function(query, ctx, fields)
 	table.remove(fields, 1)
 	if #fields[1] then
 		-- return commands because sudo runs a command as root..!

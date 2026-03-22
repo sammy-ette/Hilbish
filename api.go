@@ -36,7 +36,6 @@ import (
 var exports = map[string]util.LuaExport{
 	"alias":       {hlalias, 2, false},
 	"appendPath":  {hlappendPath, 1, false},
-	"complete":    {hlcomplete, 2, false},
 	"cwd":         {hlcwd, 0, false},
 	"exec":        {hlexec, 1, false},
 	"goro":        {hlgoro, 1, true},
@@ -507,51 +506,6 @@ func hlinterval(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	timer.start()
 
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(timer.ud)), nil
-}
-
-// complete(scope, cb)
-// Registers a completion handler for the specified scope.
-// A `scope` is expected to be `command.<cmd>`,
-// replacing <cmd> with the name of the command (for example `command.git`).
-// The documentation for completions, under Features/Completions or `doc completions`
-// provides more details.
-// #param scope string
-// #param cb function
-/*
-#example
--- This is a very simple example. Read the full doc for completions for details.
-hilbish.complete('command.sudo', function(query, ctx, fields)
-	if #fields == 0 then
-		-- complete for commands
-		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
-		local compGroup = {
-			items = comps, -- our list of items to complete
-			type = 'grid' -- what our completions will look like.
-		}
-
-		return {compGroup}, pfx
-	end
-
-	-- otherwise just be boring and return files
-
-	local comps, pfx = hilbish.completions.files(query, ctx, fields)
-	local compGroup = {
-		items = comps,
-		type = 'grid'
-	}
-
-	return {compGroup}, pfx
-end)
-#example
-*/
-func hlcomplete(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	scope, cb, err := util.HandleStrCallback(t, c)
-	if err != nil {
-		return nil, err
-	}
-	luaCompletions[scope] = cb
-
-	return c.Next(), nil
 }
 
 // prependPath(dir)
