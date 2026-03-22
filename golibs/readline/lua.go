@@ -9,6 +9,7 @@ package readline
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"hilbish/util"
 
@@ -28,6 +29,8 @@ func (rl *Readline) luaLoader(rtm *rt.Runtime) (rt.Value, func()) {
 		"readChar":       {rlReadChar, 1, false},
 		"setVimRegister": {rlSetRegister, 3, false},
 		"log":            {rlLog, 2, false},
+		"prompt":         {rlPrompt, 2, false},
+		"refreshPrompt":  {rlRefreshPrompt, 1, false},
 	}
 	util.SetExports(rtm, rlMethods, rlMethodss)
 
@@ -251,6 +254,52 @@ func rlLog(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), nil
 }
 
+// #member
+// prompt(text)
+// Sets the prompt of the line reader. This is the text that shows up before user input.
+func rlPrompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.CheckNArgs(2); err != nil {
+		return nil, err
+	}
+
+	rl, err := rlArg(c, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := c.StringArg(1)
+	if err != nil {
+		return nil, err
+	}
+
+	halfPrompt := strings.Split(p, "\n")
+	if len(halfPrompt) > 1 {
+		rl.Multiline = true
+		rl.MultilinePrompt = halfPrompt[len(halfPrompt)-1:][0]
+		rl.SetPrompt(strings.Join(halfPrompt[:len(halfPrompt)-1], "\n"))
+	} else {
+		rl.Multiline = false
+		rl.MultilinePrompt = ""
+		rl.SetPrompt(p)
+	}
+
+	return c.Next(), nil
+}
+
+func rlRefreshPrompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
+	}
+
+	rl, err := rlArg(c, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	rl.RefreshPromptInPlace("")
+
+	return c.Next(), nil
+}
 func rlArg(c *rt.GoCont, arg int) (*Readline, error) {
 	j, ok := valueToRl(c.Arg(arg))
 	if !ok {

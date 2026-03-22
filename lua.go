@@ -16,14 +16,19 @@ import (
 	"github.com/arnodel/golua/lib"
 	"github.com/arnodel/golua/lib/debuglib"
 	rt "github.com/arnodel/golua/runtime"
+	"github.com/pborman/getopt"
 )
-
-var minimalconf = `hilbish.prompt '& '`
 
 func luaInit() {
 	l = rt.New(os.Stdout)
 
 	loadLibs(l)
+	luaArgs := rt.NewTable()
+	for i, arg := range getopt.Args() {
+		luaArgs.Set(rt.IntValue(int64(i)), rt.StringValue(arg))
+	}
+
+	l.GlobalEnv().Set(rt.StringValue("args"), rt.TableValue(luaArgs))
 
 	yarnPool := yarn.New(yarnloadLibs)
 	lib.LoadLibs(l, yarnPool.Loader)
@@ -36,6 +41,7 @@ func luaInit() {
 
 	err1 := util.DoFile(l, "nature/init.lua")
 	if err1 != nil {
+		fmt.Println(err1)
 		err2 := util.DoFile(l, filepath.Join(dataDir, "nature", "init.lua"))
 		if err2 != nil {
 			fmt.Fprintln(os.Stderr, "Missing nature module, some functionality and builtins will be missing.")
@@ -97,15 +103,4 @@ func yarnloadLibs(r *rt.Runtime) {
 	lib.LoadLibs(r, cmds.Loader)
 	lib.LoadLibs(l, lr.rl.Loader)
 
-}
-
-func runConfig(confpath string) {
-	if !interactive {
-		return
-	}
-	err := util.DoFile(l, confpath)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err, "\nAn error has occured while loading your config! Falling back to minimal default config.")
-		util.DoString(l, minimalconf)
-	}
 }
