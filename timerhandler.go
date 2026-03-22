@@ -10,10 +10,10 @@ import (
 	rt "github.com/arnodel/golua/runtime"
 )
 
-var timers *timerHandler
+var timers *timersModule
 var timerMetaKey = rt.StringValue("hshtimer")
 
-type timerHandler struct {
+type timersModule struct {
 	mu *sync.RWMutex
 	wg *sync.WaitGroup
 	timers map[int]*timer
@@ -21,8 +21,8 @@ type timerHandler struct {
 	running int
 }
 
-func newTimerHandler() *timerHandler {
-	return &timerHandler{
+func newTimersModule() *timersModule {
+	return &timersModule{
 		timers: make(map[int]*timer),
 		latestID: 0,
 		mu: &sync.RWMutex{},
@@ -30,11 +30,11 @@ func newTimerHandler() *timerHandler {
 	}
 }
 
-func (th *timerHandler) wait() {
+func (th *timersModule) wait() {
 	th.wg.Wait()
 }
 
-func (th *timerHandler) create(typ timerType, dur time.Duration, fun *rt.Closure) *timer {
+func (th *timersModule) create(typ timerType, dur time.Duration, fun *rt.Closure) *timer {
 	th.mu.Lock()
 	defer th.mu.Unlock()
 
@@ -54,14 +54,20 @@ func (th *timerHandler) create(typ timerType, dur time.Duration, fun *rt.Closure
 	return t
 }
 
-func (th *timerHandler) get(id int) *timer {
+func (th *timersModule) get(id int) *timer {
 	th.mu.RLock()
 	defer th.mu.RUnlock()
 
 	return th.timers[id]
 }
 
-func (th *timerHandler) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+// #interface timers
+// create(type, time, callback) -> @Timer
+// Creates a timer that runs based on the specified `time`.
+// #param type number What kind of timer to create, can either be `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`
+// #param time number The amount of time the function should run in milliseconds.
+// #param callback function The function to run for the timer.
+func (th *timersModule) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(3); err != nil {
 		return nil, err
 	}
@@ -83,7 +89,12 @@ func (th *timerHandler) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(tmr.ud)), nil
 }
 
-func (th *timerHandler) luaGet(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+// #interface timers
+// get(id) -> @Timer
+// Retrieves a timer via its ID.
+// #param id number
+// #returns Timer
+func (th *timersModule) luaGet(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.Check1Arg(); err != nil {
 		return nil, err
 	}
@@ -100,7 +111,29 @@ func (th *timerHandler) luaGet(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), nil
 }
 
-func (th *timerHandler) loader(rtm *rt.Runtime) *rt.Table {
+// #interface timers
+// #field INTERVAL Constant for an interval timer type
+// #field TIMEOUT Constant for a timeout timer type
+// timeout and interval API
+/*
+If you ever want to run a piece of code on a timed interval, or want to wait
+a few seconds, you don't have to rely on timing tricks, as Hilbish has a
+timer API to set intervals and timeouts.
+
+These are the simple functions `hilbish.interval` and `hilbish.timeout` (doc
+accessible with `doc hilbish`, or `Module hilbish` on the Website).
+
+An example of usage:
+```lua
+local t = hilbish.timers.create(hilbish.timers.TIMEOUT, 5000, function()
+	print 'hello!'
+end)
+
+t:start()
+print(t.running) // true
+```
+*/
+func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
 	timerMethods := rt.NewTable()
 	timerFuncs := map[string]util.LuaExport{
 		"start": {timerStart, 1, false},
@@ -140,6 +173,9 @@ func (th *timerHandler) loader(rtm *rt.Runtime) *rt.Table {
 
 	luaTh := rt.NewTable()
 	util.SetExports(rtm, luaTh, thExports)
+
+	util.SetField(rtm, luaTh, "INTERVAL", rt.IntValue(0))
+	util.SetField(rtm, luaTh, "TIMEOUT", rt.IntValue(1))
 
 	return luaTh
 }

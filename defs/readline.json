@@ -1,0 +1,282 @@
+{
+	"name": "readline",
+	"shortDescription": "line reader library",
+	"description": "The readline module is responsible for reading input from the user.\nThe readline module is what Hilbish uses to read input from the user,\nincluding all the interactive features of Hilbish like history search,\nsyntax highlighting, everything. The global Hilbish readline instance\nis usable at `hilbish.editor`.",
+	"properties": [],
+	"fields": [],
+	"types": [
+		{
+			"name": "Readline",
+			"description": [],
+			"parent": "readline",
+			"isInterface": false,
+			"isMember": false,
+			"isType": true,
+			"tags": {
+				"type": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	],
+	"docs": [
+		{
+			"name": "DeleteByAmount",
+			"description": [
+				"Deletes characters in the line by the given amount."
+			],
+			"signature": "deleteByAmount(amount)",
+			"goFuncName": "rldeletebyamount",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "amount",
+					"Type": "number",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "amount",
+						"fields": [
+							"number"
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "GetLine",
+			"description": [
+				"Returns the current input line."
+			],
+			"signature": "getLine() -\u003e string",
+			"goFuncName": "rlgetline",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"returns": [
+					{
+						"id": "string",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "GetRegister",
+			"description": [
+				"Returns the text that is at the register."
+			],
+			"signature": "getVimRegister(register) -\u003e string",
+			"goFuncName": "rlgetregister",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "register",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "register",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "Insert",
+			"description": [
+				"Inserts text into the Hilbish command line."
+			],
+			"signature": "insert(text)",
+			"goFuncName": "rlinsert",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "text",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "Log",
+			"description": [
+				"Prints a message *before* the prompt without it being interrupted by user input."
+			],
+			"signature": "log(text)",
+			"goFuncName": "rllog",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "New",
+			"description": [
+				"Creates a new readline instance."
+			],
+			"signature": "new() -\u003e @Readline",
+			"goFuncName": "rlnew",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "Read",
+			"description": [
+				"Reads input from the user."
+			],
+			"signature": "read() -\u003e string",
+			"goFuncName": "rlread",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "ReadChar",
+			"description": [
+				"Reads a keystroke from the user. This is in a format of something like Ctrl-L."
+			],
+			"signature": "getChar() -\u003e string",
+			"goFuncName": "rlreadchar",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "SetRegister",
+			"description": [
+				"Sets the vim register at `register` to hold the passed text."
+			],
+			"signature": "setVimRegister(register, text)",
+			"goFuncName": "rlsetregister",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "register",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "register",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "text",
+						"fields": [
+							"string"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	]
+}

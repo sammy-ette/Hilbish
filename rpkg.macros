@@ -1,0 +1,25 @@
+function git_short_hash {
+    short_hash="$(cached git_short_hash)"
+
+    if [ -z "$short_hash" ]; then
+        short_hash="$(git rev-parse --short HEAD)"
+    fi
+
+    output "$short_hash"
+}
+
+function git_tag_version {
+    tag="$(cached git_tag_version)"
+
+    if [ -z "$tag" ]; then
+        tag="$(git describe --tags --abbrev=0)"
+    fi
+
+    # Remove the potential prefix of `v`
+    if [[ $tag =~ ^v[0-9].* ]]; then
+        tag="${tag:1}"
+    fi
+
+    tag="${tag/"-"/"."}"
+    output "$tag"
+}

@@ -15,13 +15,19 @@ const (
 	timerTimeout
 )
 
+// #type
+// #interface timers
+// #property type What type of timer it is
+// #property running If the timer is running
+// #property duration The duration in milliseconds that the timer will run
+// The Job type describes a Hilbish timer.
 type timer struct{
 	id int
 	typ timerType
 	running bool
 	dur time.Duration
 	fun *rt.Closure
-	th *timerHandler
+	th *timersModule
 	ticker *time.Ticker
 	ud *rt.UserData
 	channel chan struct{}
@@ -73,6 +79,10 @@ func (t *timer) stop() error {
 	return nil
 }
 
+// #interface timers
+// #member
+// start()
+// Starts a timer.
 func timerStart(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.Check1Arg(); err != nil {
 		return nil, err
@@ -91,6 +101,10 @@ func timerStart(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), nil
 }
 
+// #interface timers
+// #member
+// stop()
+// Stops a timer.
 func timerStop(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.Check1Arg(); err != nil {
 		return nil, err

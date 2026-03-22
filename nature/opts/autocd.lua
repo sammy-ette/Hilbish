@@ -1,18 +1,27 @@
 local fs = require 'fs'
 
-local oldShRunner = hilbish.runner.sh
-function hilbish.runner.sh(input)
-	local res = oldShRunner(input)
+hilbish.processors.add {
+	name = 'hilbish.autocd',
+	func = function(path)
+		if hilbish.opts.autocd then
+			local ok, stat = pcall(fs.stat, path)
+			if ok and stat.isDir then
+				local oldPath = hilbish.cwd()
 
-	if res.exit ~= 0 and hilbish.opts.autocd then
-		local ok, stat = pcall(fs.stat, res.input)
-		if ok and stat.isDir then
-			-- discard here to not append the cd, which will be in history
-			local _, exitCode, err = hilbish.runner.sh('cd ' .. res.input)
-			res.exitCode = exitCode
-			res.err = err
+				local absPath = fs.abs(path)
+				fs.cd(path)
+
+				bait.throw('cd', path, oldPath)
+				bait.throw('hilbish.cd', absPath, oldPath)
+
+			end
+			return {
+				continue = not ok
+			}
+		else
+			return {
+				continue = true
+			}
 		end
 	end
-
-	return res
-end
+}

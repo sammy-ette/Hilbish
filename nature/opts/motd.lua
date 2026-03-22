@@ -2,8 +2,7 @@ local bait = require 'bait'
 local lunacolors = require 'lunacolors'
 
 hilbish.motd = [[
-Hilbish 2.0 is a {red}major{reset} update! If your config doesn't work
-anymore, that will definitely be why! A MOTD, very message, much day.
+{magenta}Hilbish{reset} blooms in the {blue}midnight.{reset}
 ]]
 
 bait.catch('hilbish.init', function()

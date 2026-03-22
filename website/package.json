@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@djot/djot": "^0.3.2",
+    "@tailwindcss/cli": "^4.1.10",
+    "npm-watch": "^0.13.0",
+    "tailwindcss": "^4.1.10"
+  },
+  "watch": {
+    "website": "src/*.gleam"
+  },
+  "scripts": {
+    "website": "npm run gleam-build && npm run tailwind",
+    "gleam-build": "gleam run -m website",
+    "tailwind": "npx @tailwindcss/cli -o public/tailwind.css",
+    "watch": "npm-watch"
+  }
+}

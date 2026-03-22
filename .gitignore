@@ -1,6 +1,9 @@
 *.exe
 hilbish
+!docs/api/hilbish
 docgen
+!cmd/docgen
 
 .vim
 petals/
+.hugo_build.lock

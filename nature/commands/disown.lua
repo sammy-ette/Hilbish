@@ -1,8 +1,8 @@
 local commander = require 'commander'
 
-commander.register('disown', function(args)
+commander.register('disown', function(args, sinks)
 	if #hilbish.jobs.all() == 0 then
-		print 'disown: no current job'
+		sinks.out:writeln 'disown: no current job'
 		return 1
 	end
 
@@ -10,7 +10,7 @@ commander.register('disown', function(args)
 	if #args < 0 then
 		id = tonumber(args[1])
 		if not id then
-			print 'disown: invalid id for job'
+			sinks.out:writeln 'disown: invalid id for job'
 			return 1
 		end
 	else
@@ -19,7 +19,7 @@ commander.register('disown', function(args)
 
 	local ok = pcall(hilbish.jobs.disown, id)
 	if not ok then
-		print 'disown: job does not exist'
+		sinks.out:writeln 'disown: job does not exist'
 		return 2
 	end
 end)

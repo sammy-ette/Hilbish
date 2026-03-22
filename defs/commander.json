@@ -1,0 +1,152 @@
+{
+	"name": "commander",
+	"shortDescription": "library for custom commands",
+	"description": "\nCommander is the library which handles Hilbish commands. This makes\nthe user able to add Lua-written commands to their shell without making\na separate script in a bin folder. Instead, you may simply use the Commander\nlibrary in your Hilbish config.\n\n```lua\nlocal commander = require 'commander'\n\ncommander.register('hello', function(args, sinks)\n\tsinks.out:writeln 'Hello world!'\nend)\n```\n\nIn this example, a command with the name of `hello` is created\nthat will print `Hello world!` to output. One question you may\nhave is: What is the `sinks` parameter?\\\n \\\nThe `sinks` parameter is a table with 3 keys: `input`, `out`, and `err`.\nThere is an `in` alias to `input`, but it requires using the string accessor syntax (`sinks['in']`)\nas `in` is also a Lua keyword, so `input` is preferred for use.\nAll of them are a @Sink.\nIn the future, `sinks.in` will be removed.\\\n \\\n- `in` is the standard input. You may use the read functions on this sink to get input from the user.\n- `out` is standard output. This is usually where command output should go.\n- `err` is standard error. This sink is for writing errors, as the name would suggest.",
+	"properties": [],
+	"fields": [],
+	"docs": [
+		{
+			"name": "deregister",
+			"description": [
+				"Removes the named command. Note that this will only remove Commander-registered commands."
+			],
+			"signature": "deregister(name)",
+			"goFuncName": "cderegister",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"Name",
+						"of",
+						"the",
+						"command",
+						"to",
+						"remove."
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string",
+							"Name",
+							"of",
+							"the",
+							"command",
+							"to",
+							"remove."
+						],
+						"startIdx": 2
+					}
+				]
+			}
+		},
+		{
+			"name": "register",
+			"description": [
+				"Adds a new command with the given `name`. When Hilbish has to run a command with a name,",
+				"it will run the function providing the arguments and sinks.",
+				"",
+				""
+			],
+			"signature": "register(name, cb)",
+			"goFuncName": "cregister",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"Name",
+						"of",
+						"the",
+						"command"
+					]
+				},
+				{
+					"Name": "cb",
+					"Type": "function",
+					"Doc": [
+						"Callback",
+						"to",
+						"handle",
+						"command",
+						"invocation"
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- When you run the command `hello` in the shell, it will print `Hello world`.",
+							"-- If you run it with, for example, `hello Hilbish`, it will print 'Hello Hilbish'",
+							"commander.register('hello', function(args, sinks)",
+							"\tlocal name = 'world'",
+							"\tif #args \u003e 0 then name = args[1] end",
+							"",
+							"\tsinks.out:writeln('Hello ' .. name)",
+							"end)"
+						],
+						"startIdx": 6
+					}
+				],
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string",
+							"Name",
+							"of",
+							"the",
+							"command"
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "cb",
+						"fields": [
+							"function",
+							"Callback",
+							"to",
+							"handle",
+							"command",
+							"invocation"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "registry",
+			"description": [
+				"Returns all registered commanders. Returns a list of tables with the following keys:",
+				"- `exec`: The function used to run the commander. Commanders require args and sinks to be passed."
+			],
+			"signature": "registry() -\u003e table",
+			"goFuncName": "cregistry",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"returns": [
+					{
+						"id": "table",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			}
+		}
+	]
+}

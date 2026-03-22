@@ -3,84 +3,100 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"hilbish/util"
 	"hilbish/golibs/bait"
 	"hilbish/golibs/commander"
 	"hilbish/golibs/fs"
+	"hilbish/golibs/snail"
 	"hilbish/golibs/terminal"
+	"hilbish/golibs/yarn"
+	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/arnodel/golua/lib"
 	"github.com/arnodel/golua/lib/debuglib"
+	rt "github.com/arnodel/golua/runtime"
 )
 
 var minimalconf = `hilbish.prompt '& '`
 
 func luaInit() {
 	l = rt.New(os.Stdout)
-	l.PushContext(rt.RuntimeContextDef{
-		MessageHandler: debuglib.Traceback,
-	})
-	lib.LoadAll(l)
 
-	lib.LoadLibs(l, hilbishLoader)
-	// yes this is stupid, i know
-	util.DoString(l, "hilbish = require 'hilbish'")
+	loadLibs(l)
 
-	// Add fs and terminal module module to Lua
-	lib.LoadLibs(l, fs.Loader)
-	lib.LoadLibs(l, terminal.Loader)
-
-	cmds := commander.New(l)
-	// When a command from Lua is added, register it for use
-	cmds.Events.On("commandRegister", func(args ...interface{}) {
-		cmdName := args[0].(string)
-		cmd := args[1].(*rt.Closure)
-
-		commands[cmdName] = cmd
-	})
-	cmds.Events.On("commandDeregister", func(args ...interface{}) {
-		cmdName := args[0].(string)
-
-		delete(commands, cmdName)
-	})
-	lib.LoadLibs(l, cmds.Loader)
-
-	hooks = bait.New(l)
-	hooks.SetRecoverer(func(event string, handler *bait.Listener, err interface{}) {
-		fmt.Println("Error in `error` hook handler:", err)
-		hooks.Off(event, handler)
-	})
-
-	lib.LoadLibs(l, hooks.Loader)
-
-	// Add Ctrl-C handler
-	hooks.On("signal.sigint", func(...interface{}) {
-		if !interactive {
-			os.Exit(0)
-		}
-	})
-
-	lr.rl.RawInputCallback = func(r []rune) {
-		hooks.Emit("hilbish.rawInput", string(r))
-	}
+	yarnPool := yarn.New(yarnloadLibs)
+	lib.LoadLibs(l, yarnPool.Loader)
 
 	// Add more paths that Lua can require from
-	err := util.DoString(l, "package.path = package.path .. " + requirePaths)
+	_, err := util.DoString(l, "package.path = package.path .. "+requirePaths)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Could not add Hilbish require paths! Libraries will be missing. This shouldn't happen.")
 	}
 
 	err1 := util.DoFile(l, "nature/init.lua")
 	if err1 != nil {
-		err2 := util.DoFile(l, preloadPath)
+		err2 := util.DoFile(l, filepath.Join(dataDir, "nature", "init.lua"))
 		if err2 != nil {
 			fmt.Fprintln(os.Stderr, "Missing nature module, some functionality and builtins will be missing.")
 			fmt.Fprintln(os.Stderr, "local error:", err1)
 			fmt.Fprintln(os.Stderr, "global install error:", err2)
 		}
 	}
+}
+
+func loadLibs(r *rt.Runtime) {
+	r.PushContext(rt.RuntimeContextDef{
+		MessageHandler: debuglib.Traceback,
+	})
+	lib.LoadAll(r)
+
+	lib.LoadLibs(r, hilbishLoader)
+	// yes this is stupid, i know
+	util.DoString(r, "hilbish = require 'hilbish'")
+
+	hooks = bait.New(r)
+	hooks.SetRecoverer(func(event string, handler *bait.Listener, err interface{}) {
+		fmt.Println("Error in `error` hook handler:", err)
+		hooks.Off(event, handler)
+	})
+	lib.LoadLibs(r, hooks.Loader)
+
+	// Add Ctrl-C handler
+	hooks.On("signal.sigint", func(...interface{}) rt.Value {
+		if !interactive {
+			os.Exit(0)
+		}
+		return rt.NilValue
+	})
+
+	lr.rl.RawInputCallback = func(rn []rune) {
+		hooks.Emit("hilbish.rawInput", string(rn))
+	}
+
+	lib.LoadLibs(r, fs.Loader)
+	lib.LoadLibs(r, terminal.Loader)
+	lib.LoadLibs(r, snail.Loader)
+
+	cmds = commander.New(r)
+	lib.LoadLibs(r, cmds.Loader)
+	lib.LoadLibs(l, lr.rl.Loader)
+}
+
+func yarnloadLibs(r *rt.Runtime) {
+	r.PushContext(rt.RuntimeContextDef{
+		MessageHandler: debuglib.Traceback,
+	})
+	lib.LoadAll(r)
+
+	lib.LoadLibs(r, hilbishLoader)
+	lib.LoadLibs(r, hooks.Loader)
+	lib.LoadLibs(r, fs.Loader)
+	lib.LoadLibs(r, terminal.Loader)
+	lib.LoadLibs(r, snail.Loader)
+	lib.LoadLibs(r, cmds.Loader)
+	lib.LoadLibs(l, lr.rl.Loader)
+
 }
 
 func runConfig(confpath string) {
