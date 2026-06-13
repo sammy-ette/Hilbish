@@ -143,10 +143,7 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 				return
 			}
 
-			items := []string{}
-			itemDescriptions := make(map[string]string)
-			itemDisplays := make(map[string]string)
-			itemAliases := make(map[string]string)
+			menuItems := []readline.MenuItem{}
 
 			util.ForEach(luaCompItems.AsTable(), func(lkey rt.Value, lval rt.Value) {
 				if keytyp := lkey.Type(); keytyp == rt.StringType {
@@ -161,17 +158,18 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 						return
 					}
 
-					items = append(items, itemName)
+					item := readline.MenuItem{Value: itemName}
+
 					itemDescription, ok := vlTbl.Get(rt.IntValue(1)).TryString()
 					if !ok {
 						// if we can't get it by number index, try by string key
 						itemDescription, _ = vlTbl.Get(rt.StringValue("description")).TryString()
 					}
-					itemDescriptions[itemName] = itemDescription
+					item.Description = itemDescription
 
 					// display
 					if itemDisplay, ok := vlTbl.Get(rt.StringValue("display")).TryString(); ok {
-						itemDisplays[itemName] = itemDisplay
+						item.Display = itemDisplay
 					}
 
 					itemAlias, ok := vlTbl.Get(rt.IntValue(2)).TryString()
@@ -179,14 +177,16 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 						// if we can't get it by number index, try by string key
 						itemAlias, _ = vlTbl.Get(rt.StringValue("alias")).TryString()
 					}
-					itemAliases[itemName] = itemAlias
+					item.Alias = itemAlias
+
+					menuItems = append(menuItems, item)
 				} else if keytyp == rt.IntType {
 					vlStr, ok := lval.TryString()
 					if !ok {
 						// TODO: error
 						return
 					}
-					items = append(items, vlStr)
+					menuItems = append(menuItems, readline.MenuItem{Value: vlStr})
 				} else {
 					// TODO: error
 					return
@@ -204,13 +204,10 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 			}
 
 			compGroups = append(compGroups, &readline.CompletionGroup{
-				DisplayType:  dispType,
-				Aliases:      itemAliases,
-				Descriptions: itemDescriptions,
-				ItemDisplays: itemDisplays,
-				Suggestions:  items,
-				TrimSlash:    false,
-				NoSpace:      true,
+				DisplayType: dispType,
+				Items:       menuItems,
+				TrimSlash:   false,
+				NoSpace:     true,
 			})
 		})
 
