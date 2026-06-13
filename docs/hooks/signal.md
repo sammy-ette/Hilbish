@@ -9,7 +9,7 @@ menu:
 
 ## signal.sigint
 
-Thrown when Hilbish receive the SIGINT signal,
+Thrown when Hilbish receives the SIGINT signal,
 aka when Ctrl-C is pressed.
 
 #### Variables
@@ -19,7 +19,7 @@ This signal returns no variables.
 ``` =html
 <hr class="my-4">
 ```
-	
+
 ## signal.resize
 
 Thrown when the terminal is resized.
