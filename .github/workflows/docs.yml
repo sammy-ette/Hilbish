@@ -14,16 +14,10 @@ jobs:
           submodules: true
           fetch-depth: 0
       - uses: actions/setup-go@v5
-      - name: Download Task
-        run: 'sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d'
-      - name: Build
-        run: ./bin/task
-      - name: Run docgen (go-written)
+      - name: Run docgen
         run: go run cmd/docgen/docgen.go
-      - name: Run docgen (lua-written)
-        run: ./hilbish cmd/docgen/docgen.lua
       - name: Commit new docs
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "docs: [ci] generate new docs"
-          file_pattern: docs/ emmyLuaDocs/
+          file_pattern: docs/ defs/

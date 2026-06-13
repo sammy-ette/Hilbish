@@ -1,0 +1,73 @@
+{
+	"name": "doc",
+	"section": "nature",
+	"shortDescription": "command-line doc rendering",
+	"description": "The doc module contains a small set of functions\nused by the Greenhouse pager to render parts of the documentation pages.\nThis is only documented for the sake of it. It's only intended use\nis by the Greenhouse pager.",
+	"properties": null,
+	"fields": null,
+	"docs": [
+		{
+			"name": "highlight",
+			"description": [
+				"Performs basic Lua code highlighting."
+			],
+			"signature": "highlight(text)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": [
+						"Code/text to do highlighting on."
+					]
+				}
+			]
+		},
+		{
+			"name": "renderCodeBlock",
+			"description": [
+				"Assembles and renders a code block. This returns",
+				"the supplied text based on the number of command line columns,",
+				"and styles it to resemble a code block."
+			],
+			"signature": "renderCodeBlock(text)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "renderInfoBlock",
+			"description": [
+				"Renders an info block. An info block is a block of text with",
+				"an icon and styled text block."
+			],
+			"signature": "renderInfoBlock(type, text)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "type",
+					"Type": "string",
+					"Doc": [
+						"Type of info block. The only one specially styled is the `warning`."
+					]
+				},
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		}
+	]
+}

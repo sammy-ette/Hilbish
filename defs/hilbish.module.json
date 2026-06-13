@@ -1,0 +1,88 @@
+{
+	"name": "hilbish.module",
+	"section": "api",
+	"shortDescription": "native module loading",
+	"description": "\nThe hilbish.module interface provides a function to load\nHilbish plugins/modules. Hilbish modules are Go-written\nplugins (see https://pkg.go.dev/plugin) that are used to add functionality\nto Hilbish that cannot be written in Lua for any reason.\n\nNote that you don't ever need to use the load function that is here as\nmodules can be loaded with a `require` call like Lua C modules, and the\nsearch paths can be changed with the `paths` property here.\n\nTo make a valid native module, the Go plugin has to export a Loader function\nwith a signature like so: `func(*rt.Runtime) rt.Value`.\n\n`rt` in this case refers to the Runtime type at\nhttps://pkg.go.dev/github.com/arnodel/golua@master/runtime#Runtime\n\nHilbish uses this package as its Lua runtime. You will need to read\nit to use it for a native plugin.\n\nHere is some code for an example plugin:\n```go\npackage main\n\nimport (\n\trt \"github.com/arnodel/golua/runtime\"\n)\n\nfunc Loader(rtm *rt.Runtime) rt.Value {\n\treturn rt.StringValue(\"hello world!\")\n}\n```\n\nThis can be compiled with `go build -buildmode=plugin plugin.go`.\nIf you attempt to require and print the result (`print(require 'plugin')`), it will show \"hello world!\"",
+	"parent": "hilbish",
+	"properties": [],
+	"fields": [
+		{
+			"name": "paths",
+			"description": [
+				"A",
+				"list",
+				"of",
+				"paths",
+				"to",
+				"search",
+				"when",
+				"loading",
+				"native",
+				"modules.",
+				"This",
+				"is",
+				"in",
+				"the",
+				"style",
+				"of",
+				"Lua",
+				"search",
+				"paths",
+				"and",
+				"will",
+				"be",
+				"used",
+				"when",
+				"requiring",
+				"native",
+				"modules.",
+				"Example:",
+				"`?.so;?/?.so`"
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	],
+	"docs": [
+		{
+			"name": "module.load",
+			"description": [
+				"Loads a module at the designated `path`.",
+				"It will throw if any error occurs."
+			],
+			"parent": "hilbish",
+			"interfaces": "module",
+			"signature": "load(path)",
+			"goFuncName": "moduleload",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "module",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"string"
+						],
+						"startIdx": 4
+					}
+				]
+			}
+		}
+	]
+}

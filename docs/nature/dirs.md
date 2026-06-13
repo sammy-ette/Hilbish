@@ -7,97 +7,92 @@ menu:
     parent: "Nature"
 ---
 
-
 ## Introduction
+
 The dirs module defines a small set of functions to store and manage
 directories.
 
 ## Functions
-|||
-|----|----|
-|<a href="#setOld">setOld(d)</a>|Sets the old directory string.|
-|<a href="#recent">recent(idx)</a>|Get entry from recent directories list based on index.|
-|<a href="#push">push(dir)</a>|Add `dir` to the recent directories list.|
-|<a href="#pop">pop(num)</a>|Remove the specified amount of dirs from the recent directories list.|
-|<a href="#peak">peak(num)</a>|Look at `num` amount of recent directories, starting from the latest.|
-<hr>
-<div id='peak'>
-<h4 class='heading'>
+
+- [`dirs.peak(num)`](#peak): Look at `num` amount of recent directories, starting from the latest.
+- [`dirs.pop(num)`](#pop): Remove the specified amount of dirs from the recent directories list.
+- [`dirs.push(dir)`](#push): Add `dir` to the recent directories list.
+- [`dirs.recent(idx)`](#recent): Get entry from recent directories list based on index.
+- [`dirs.setOld(d)`](#setOld): Sets the old directory string.
+
+---
+
+#### peak
+
 dirs.peak(num)
-<a href="#peak" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
 
-Look at `num` amount of recent directories, starting from the latest.
-This returns  a table of recent directories, up to the `num` amount.
+Look at `num` amount of recent directories, starting from the latest.  
+This returns  a table of recent directories, up to the `num` amount.  
+
 #### Parameters
-`num` **`number`**  
+
+`number` _num?_  
 
 
-</div>
 
-<hr>
-<div id='pop'>
-<h4 class='heading'>
+
+---
+
+#### pop
+
 dirs.pop(num)
-<a href="#pop" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
 
-Remove the specified amount of dirs from the recent directories list.
+Remove the specified amount of dirs from the recent directories list.  
+
 #### Parameters
-`num` **`number`**  
+
+`number` _num_  
 
 
-</div>
 
-<hr>
-<div id='push'>
-<h4 class='heading'>
+
+---
+
+#### push
+
 dirs.push(dir)
-<a href="#push" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
 
-Add `dir` to the recent directories list.
+Add `dir` to the recent directories list.  
+
 #### Parameters
-`dir` **`string`**  
+
+`string` _dir_  
 
 
-</div>
 
-<hr>
-<div id='recent'>
-<h4 class='heading'>
+
+---
+
+#### recent
+
 dirs.recent(idx)
-<a href="#recent" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
 
-Get entry from recent directories list based on index.
+Get entry from recent directories list based on index.  
+
 #### Parameters
-`idx` **`number`**  
+
+`number` _idx_  
 
 
-</div>
 
-<hr>
-<div id='setOld'>
-<h4 class='heading'>
+
+---
+
+#### setOld
+
 dirs.setOld(d)
-<a href="#setOld" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
 
-Sets the old directory string.
+Sets the old directory string.  
+
 #### Parameters
-`d` **`string`**  
+
+`string` _d_  
 
 
-</div>
+
 

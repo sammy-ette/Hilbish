@@ -1,5 +1,6 @@
 {
 	"name": "readline",
+	"section": "api",
 	"shortDescription": "line reader library",
 	"description": "The readline module is responsible for reading input from the user.\nThe readline module is what Hilbish uses to read input from the user,\nincluding all the interactive features of Hilbish like history search,\nsyntax highlighting, everything. The global Hilbish readline instance\nis usable at `hilbish.editor`.",
 	"properties": [],

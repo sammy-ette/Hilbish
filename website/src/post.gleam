@@ -1,5 +1,4 @@
 import glaml
-import gleam/option
 
 pub type Post {
   Post(

@@ -16,84 +16,26 @@ library offers more functions and will work on any operating system Hilbish does
 
 ## Functions
 
-``` =html
-<div class='relative overflow-x-auto sm:rounded-lg my-4'>
-<table class='w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>
-<tbody>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#abs">abs(path) -> string</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Returns an absolute version of the `path`.</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#basename">basename(path) -> string</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Returns the "basename," or the last part of the provided `path`. If path is empty,</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#cd">cd(dir)</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Changes Hilbish's directory to `dir`.</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#dir">dir(path) -> string</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Returns the directory part of `path`. If a file path like</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#glob">glob(pattern) -> matches (table)</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Match all files based on the provided `pattern`.</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#join">join(...path) -> string</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Takes any list of paths and joins them based on the operating system's path separator.</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#mkdir">mkdir(name, recursive)</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Creates a new directory with the provided `name`.</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#pipe">fpipe() -> File, File</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Returns a pair of connected files, also known as a pipe.</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#readdir">readdir(path) -> table[string]</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Returns a list of all files and directories in the provided path.</td>
-</tr>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'><a href="#stat">stat(path) -> {}</a></td>
-<td class='p-3 font-medium text-black dark:text-white'>Returns the information about a given `path`.</td>
-</tr>
-</tbody>
-</table>
-</div>
-```
+- [`fs.abs(path) -> string`](#abs): Returns an absolute version of the `path`.
+- [`fs.basename(path) -> string`](#basename): Returns the "basename," or the last part of the provided `path`. If path is empty,
+- [`fs.cd(dir)`](#cd): Changes Hilbish's directory to `dir`.
+- [`fs.dir(path) -> string`](#dir): Returns the directory part of `path`. If a file path like
+- [`fs.glob(pattern) -> matches (table)`](#glob): Match all files based on the provided `pattern`.
+- [`fs.join(...path) -> string`](#join): Takes any list of paths and joins them based on the operating system's path separator.
+- [`fs.mkdir(name, recursive)`](#mkdir): Creates a new directory with the provided `name`.
+- [`fs.fpipe() -> File, File`](#pipe): Returns a pair of connected files, also known as a pipe.
+- [`fs.readdir(path) -> table[string]`](#readdir): Returns a list of all files and directories in the provided path.
+- [`fs.stat(path) -> {}`](#stat): Returns the information about a given `path`.
 
 ## Static module fields
 
-``` =html
-<div class='relative overflow-x-auto sm:rounded-lg my-4'>
-<table class='w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>
-<tbody>
-<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>
-<td class='p-3 font-medium text-black dark:text-white'>pathSep</td>
-<td class='p-3 font-medium text-black dark:text-white'>The operating system's path separator.</td>
-</tr>
-</tbody>
-</table>
-</div>
-```
+- `pathSep`: The operating system's path separator.
 
-## Functions
+---
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='abs'>
-<h4 class='text-xl font-medium mb-2'>
+#### abs
+
 fs.abs(path) -> string
-<a href="#abs" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
-
-```
 
 Returns an absolute version of the `path`.  
 This can be used to resolve short paths like `..` to `/home/user`.  
@@ -105,18 +47,11 @@ This can be used to resolve short paths like `..` to `/home/user`.
 
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='basename'>
-<h4 class='text-xl font-medium mb-2'>
-fs.basename(path) -> string
-<a href="#basename" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### basename
+
+fs.basename(path) -> string
 
 Returns the "basename," or the last part of the provided `path`. If path is empty,  
 `.` will be returned.  
@@ -128,18 +63,11 @@ Path to get the base name of.
 
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='cd'>
-<h4 class='text-xl font-medium mb-2'>
-fs.cd(dir)
-<a href="#cd" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### cd
+
+fs.cd(dir)
 
 Changes Hilbish's directory to `dir`.  
 
@@ -150,18 +78,11 @@ Path to change directory to.
 
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='dir'>
-<h4 class='text-xl font-medium mb-2'>
-fs.dir(path) -> string
-<a href="#dir" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### dir
+
+fs.dir(path) -> string
 
 Returns the directory part of `path`. If a file path like  
 `~/Documents/doc.txt` then this function will return `~/Documents`.  
@@ -173,18 +94,11 @@ Path to get the directory for.
 
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='glob'>
-<h4 class='text-xl font-medium mb-2'>
-fs.glob(pattern) -> matches (table)
-<a href="#glob" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### glob
+
+fs.glob(pattern) -> matches (table)
 
 Match all files based on the provided `pattern`.  
 For the syntax' refer to Go's filepath.Match function: https://pkg.go.dev/path/filepath#Match  
@@ -210,18 +124,11 @@ print(matches)
 ```
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='join'>
-<h4 class='text-xl font-medium mb-2'>
-fs.join(...path) -> string
-<a href="#join" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### join
+
+fs.join(...path) -> string
 
 Takes any list of paths and joins them based on the operating system's path separator.  
 
@@ -239,18 +146,11 @@ print(fs.join(hilbish.userDir.config, 'hilbish'))
 ```
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='mkdir'>
-<h4 class='text-xl font-medium mb-2'>
-fs.mkdir(name, recursive)
-<a href="#mkdir" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### mkdir
+
+fs.mkdir(name, recursive)
 
 Creates a new directory with the provided `name`.  
 With `recursive`, mkdir will create parent directories.  
@@ -272,18 +172,11 @@ fs.mkdir('./foo/bar', true)
 ```
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='pipe'>
-<h4 class='text-xl font-medium mb-2'>
-fs.fpipe() -> File, File
-<a href="#pipe" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### pipe
+
+fs.fpipe() -> File, File
 
 Returns a pair of connected files, also known as a pipe.  
 The type returned is a Lua file, same as returned from `io` functions.  
@@ -293,18 +186,11 @@ The type returned is a Lua file, same as returned from `io` functions.
 This function has no parameters.  
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='readdir'>
-<h4 class='text-xl font-medium mb-2'>
-fs.readdir(path) -> table[string]
-<a href="#readdir" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### readdir
+
+fs.readdir(path) -> table[string]
 
 Returns a list of all files and directories in the provided path.  
 
@@ -315,18 +201,11 @@ Returns a list of all files and directories in the provided path.
 
 
 
-``` =html
-<hr class='my-4 text-neutral-400 dark:text-neutral-600'>
-<div id='stat'>
-<h4 class='text-xl font-medium mb-2'>
-fs.stat(path) -> {}
-<a href="#stat" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
+---
 
-```
+#### stat
+
+fs.stat(path) -> {}
 
 Returns the information about a given `path`.  
 The returned table contains the following values:  

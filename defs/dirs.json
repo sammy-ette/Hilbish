@@ -1,0 +1,96 @@
+{
+	"name": "dirs",
+	"section": "nature",
+	"shortDescription": "internal directory management",
+	"description": "The dirs module defines a small set of functions to store and manage\ndirectories.",
+	"properties": null,
+	"fields": null,
+	"docs": [
+		{
+			"name": "peak",
+			"description": [
+				"Look at `num` amount of recent directories, starting from the latest.",
+				"This returns  a table of recent directories, up to the `num` amount."
+			],
+			"signature": "peak(num)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "num?",
+					"Type": "number",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "push",
+			"description": [
+				"Add `dir` to the recent directories list."
+			],
+			"signature": "push(dir)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "dir",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "pop",
+			"description": [
+				"Remove the specified amount of dirs from the recent directories list."
+			],
+			"signature": "pop(num)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "num",
+					"Type": "number",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "recent",
+			"description": [
+				"Get entry from recent directories list based on index."
+			],
+			"signature": "recent(idx)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "idx",
+					"Type": "number",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "setOld",
+			"description": [
+				"Sets the old directory string."
+			],
+			"signature": "setOld(d)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "d",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,650 @@
+{
+	"name": "hilbish.jobs",
+	"section": "api",
+	"shortDescription": "background job management",
+	"description": "\nManage interactive jobs in Hilbish via Lua.\n\nJobs are the name of background tasks/commands. A job can be started via\ninteractive usage or with the functions defined below for use in external runners.",
+	"parent": "hilbish",
+	"properties": [],
+	"fields": [],
+	"types": [
+		{
+			"name": "Job",
+			"description": [
+				"The Job type describes a Hilbish job."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"isInterface": true,
+			"isMember": false,
+			"isType": true,
+			"properties": [
+				{
+					"name": "cmd",
+					"description": [
+						"The",
+						"user",
+						"entered",
+						"command",
+						"string",
+						"for",
+						"the",
+						"job."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "running",
+					"description": [
+						"Whether",
+						"the",
+						"job",
+						"is",
+						"running",
+						"or",
+						"not."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "id",
+					"description": [
+						"The",
+						"ID",
+						"of",
+						"the",
+						"job",
+						"in",
+						"the",
+						"job",
+						"table"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "pid",
+					"description": [
+						"The",
+						"Process",
+						"ID"
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "exitCode",
+					"description": [
+						"The",
+						"last",
+						"exit",
+						"code",
+						"of",
+						"the",
+						"job."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "stdout",
+					"description": [
+						"The",
+						"standard",
+						"output",
+						"of",
+						"the",
+						"job.",
+						"This",
+						"just",
+						"means",
+						"the",
+						"normal",
+						"logs",
+						"of",
+						"the",
+						"process."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
+					"name": "stderr",
+					"description": [
+						"The",
+						"standard",
+						"error",
+						"stream",
+						"of",
+						"the",
+						"process.",
+						"This",
+						"(usually)",
+						"includes",
+						"error",
+						"messages",
+						"of",
+						"the",
+						"job."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 1
+					}
+				],
+				"property": [
+					{
+						"id": "cmd",
+						"fields": [
+							"The",
+							"user",
+							"entered",
+							"command",
+							"string",
+							"for",
+							"the",
+							"job."
+						],
+						"startIdx": 2
+					},
+					{
+						"id": "running",
+						"fields": [
+							"Whether",
+							"the",
+							"job",
+							"is",
+							"running",
+							"or",
+							"not."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "id",
+						"fields": [
+							"The",
+							"ID",
+							"of",
+							"the",
+							"job",
+							"in",
+							"the",
+							"job",
+							"table"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "pid",
+						"fields": [
+							"The",
+							"Process",
+							"ID"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "exitCode",
+						"fields": [
+							"The",
+							"last",
+							"exit",
+							"code",
+							"of",
+							"the",
+							"job."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "stdout",
+						"fields": [
+							"The",
+							"standard",
+							"output",
+							"of",
+							"the",
+							"job.",
+							"This",
+							"just",
+							"means",
+							"the",
+							"normal",
+							"logs",
+							"of",
+							"the",
+							"process."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "stderr",
+						"fields": [
+							"The",
+							"standard",
+							"error",
+							"stream",
+							"of",
+							"the",
+							"process.",
+							"This",
+							"(usually)",
+							"includes",
+							"error",
+							"messages",
+							"of",
+							"the",
+							"job."
+						],
+						"startIdx": 0
+					}
+				],
+				"type": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	],
+	"docs": [
+		{
+			"name": "jobs.background",
+			"description": [
+				"Puts a job in the background. This acts the same as initially running a job."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "background()",
+			"goFuncName": "luabackgroundjob",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.foreground",
+			"description": [
+				"Puts a job in the foreground. This will cause it to run like it was",
+				"executed normally and wait for it to complete."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "foreground()",
+			"goFuncName": "luaforegroundjob",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.start",
+			"description": [
+				"Starts running the job."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "start()",
+			"goFuncName": "luastartjob",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.stop",
+			"description": [
+				"Stops the job from running."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "stop()",
+			"goFuncName": "luastopjob",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.add",
+			"description": [
+				"Creates a new job. This function does not run the job. This function is intended to be",
+				"used by runners, but can also be used to create jobs via Lua. Commanders cannot be ran as jobs.",
+				"",
+				""
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "add(cmdstr, args, execPath)",
+			"goFuncName": "luaaddjob",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cmdstr",
+					"Type": "string",
+					"Doc": [
+						"String",
+						"that",
+						"a",
+						"user",
+						"would",
+						"write",
+						"for",
+						"the",
+						"job"
+					]
+				},
+				{
+					"Name": "args",
+					"Type": "table",
+					"Doc": [
+						"Arguments",
+						"for",
+						"the",
+						"commands.",
+						"Has",
+						"to",
+						"include",
+						"the",
+						"name",
+						"of",
+						"the",
+						"command."
+					]
+				},
+				{
+					"Name": "execPath",
+					"Type": "string",
+					"Doc": [
+						"Binary",
+						"to",
+						"use",
+						"to",
+						"run",
+						"the",
+						"command.",
+						"Needs",
+						"to",
+						"be",
+						"an",
+						"absolute",
+						"path."
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')"
+						],
+						"startIdx": 8
+					}
+				],
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "cmdstr",
+						"fields": [
+							"string",
+							"String",
+							"that",
+							"a",
+							"user",
+							"would",
+							"write",
+							"for",
+							"the",
+							"job"
+						],
+						"startIdx": 4
+					},
+					{
+						"id": "args",
+						"fields": [
+							"table",
+							"Arguments",
+							"for",
+							"the",
+							"commands.",
+							"Has",
+							"to",
+							"include",
+							"the",
+							"name",
+							"of",
+							"the",
+							"command."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "execPath",
+						"fields": [
+							"string",
+							"Binary",
+							"to",
+							"use",
+							"to",
+							"run",
+							"the",
+							"command.",
+							"Needs",
+							"to",
+							"be",
+							"an",
+							"absolute",
+							"path."
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.all",
+			"description": [
+				"Returns a table of all job objects."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "all() -\u003e table[@Job]",
+			"goFuncName": "luaalljobs",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"returns": [
+					{
+						"id": "table[Job]",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.disown",
+			"description": [
+				"Disowns a job. This simply deletes it from the list of jobs without stopping it."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "disown(id)",
+			"goFuncName": "luadisownjob",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "id",
+					"Type": "number",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "id",
+						"fields": [
+							"number"
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.get",
+			"description": [
+				"Get a job object via its ID."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "get(id) -\u003e @Job",
+			"goFuncName": "luagetjob",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.last",
+			"description": [
+				"Returns the last added job to the table."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "last() -\u003e @Job",
+			"goFuncName": "lualastjob",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"returns": [
+					{
+						"id": "Job",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			}
+		}
+	]
+}
