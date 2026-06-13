@@ -1,0 +1,37 @@
+{
+	"name": "hilbish.userDir",
+	"section": "api",
+	"shortDescription": "user-related directories",
+	"description": "This interface just contains properties to know about certain user directories.\nIt is equivalent to XDG on Linux and gets the user's preferred directories\nfor configs and data.",
+	"parent": "hilbish",
+	"properties": [],
+	"fields": [
+		{
+			"name": "config",
+			"description": [
+				"The",
+				"user's",
+				"config",
+				"directory"
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "data",
+			"description": [
+				"The",
+				"user's",
+				"directory",
+				"for",
+				"program",
+				"data"
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	],
+	"docs": null
+}

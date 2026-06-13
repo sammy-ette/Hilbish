@@ -422,7 +422,7 @@ func hcmpDirs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // handler(line, pos)
 // This function contains the general completion handler for Hilbish. This function handles
 // completion of everything, which includes calling other command handlers, binaries, and files.
-// This function can be overriden to supply a custom handler. Note that alias resolution is required to be done in this function.
+// This function can be overridden to supply a custom handler. Note that alias resolution is required to be done in this function.
 // #param line string The current Hilbish command line
 // #param pos number Numerical position of the cursor
 /*

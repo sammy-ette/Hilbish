@@ -10,18 +10,19 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	//"regexp"
 	//"sync"
 )
 
 var header = `---
-title: %s %s
+title: Module %s
 description: %s
 layout: doc
 menu:
   docs:
-    parent: "API"
+    parent: "%s"
 ---
 
 `
@@ -34,17 +35,15 @@ type emmyPiece struct {
 }
 
 type module struct {
-	Name             string            `json:"name"`
-	ShortDescription string            `json:"shortDescription"`
-	Description      string            `json:"description"`
-	ParentModule     string            `json:"parent,omitempty"`
-	HasInterfaces    bool              `json:"-"`
-	HasTypes         bool              `json:"-"`
-	Properties       []docPiece        `json:"properties"`
-	Fields           []docPiece        `json:"fields"`
-	Types            []docPiece        `json:"types,omitempty"`
-	Docs             []docPiece        `json:"docs"`
-	Interfaces       map[string]module `json:"interfaces,omitempty"`
+	Name             string     `json:"name"`
+	Section          string     `json:"section,omitempty"` // "api" or "nature", picks the docs/ subdir
+	ShortDescription string     `json:"shortDescription"`
+	Description      string     `json:"description"`
+	ParentModule     string     `json:"parent,omitempty"`
+	Properties       []docPiece `json:"properties"`
+	Fields           []docPiece `json:"fields"`
+	Types            []docPiece `json:"types,omitempty"`
+	Docs             []docPiece `json:"docs"`
 }
 
 type param struct {
@@ -309,181 +308,218 @@ start:
 }
 
 func main() {
-	if len(os.Args) == 1 {
-		fset := token.NewFileSet()
-		os.Mkdir("defs", 0777)
-		/*
-			os.Mkdir("emmyLuaDocs", 0777)
-		*/
+	// collect documentation from Go and Lua sources into defs.
+	collectDefs()
+	// render the defs into markdown docs.
+	renderDocs()
+}
 
-		dirs := []string{"./", "./util"}
-		filepath.Walk("golibs/", func(path string, info os.FileInfo, err error) error {
-			if !info.IsDir() {
-				return nil
-			}
-			dirs = append(dirs, "./"+path)
+// collectDefs parses both the Go source (via go/doc) and the Lua source (via
+// collectLuaModules) into a flat set of module defs, one JSON file per page,
+// written to defs/<name>.json. Each def carries its Section ("api"/"nature")
+// so the renderer knows which docs/ subdir it belongs in.
+func collectDefs() {
+	fset := token.NewFileSet()
+	os.RemoveAll("defs")
+	os.Mkdir("defs", 0777)
+
+	dirs := []string{"./", "./util"}
+	filepath.Walk("golibs/", func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
 			return nil
-		})
-
-		pkgs := make(map[string]*ast.Package)
-		for _, path := range dirs {
-			d, err := parser.ParseDir(fset, path, nil, parser.ParseComments)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			for k, v := range d {
-				pkgs[k] = v
-			}
 		}
+		dirs = append(dirs, "./"+path)
+		return nil
+	})
 
-		interfaceModules := make(map[string]*module)
-		for l, f := range pkgs {
-			p := doc.New(f, "./", doc.AllDecls)
-			pieces := []docPiece{}
-			typePieces := []docPiece{}
-			mod := l
-			if mod == "main" || mod == "util" {
-				mod = "hilbish"
+	pkgs := make(map[string]*ast.Package)
+	for _, path := range dirs {
+		d, err := parser.ParseDir(fset, path, nil, parser.ParseComments)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		for k, v := range d {
+			pkgs[k] = v
+		}
+	}
+
+	// Go interfaces (#interface tags) become standalone modules of their own,
+	// e.g. hilbish.jobs, keyed by "<parent>.<interface>".
+	interfaceModules := make(map[string]*module)
+	for l, f := range pkgs {
+		p := doc.New(f, "./", doc.AllDecls)
+		pieces := []docPiece{}
+		typePieces := []docPiece{}
+		mod := l
+		if mod == "main" || mod == "util" {
+			mod = "hilbish"
+		}
+		for _, t := range p.Funcs {
+			piece := setupDoc(mod, t)
+			if piece == nil {
+				continue
 			}
-			var hasInterfaces bool
-			for _, t := range p.Funcs {
-				piece := setupDoc(mod, t)
+
+			pieces = append(pieces, *piece)
+		}
+		for _, t := range p.Types {
+			typePiece := setupDocType(mod, t)
+			if typePiece != nil {
+				typePieces = append(typePieces, *typePiece)
+			}
+
+			for _, m := range t.Methods {
+				piece := setupDoc(mod, m)
 				if piece == nil {
 					continue
 				}
 
 				pieces = append(pieces, *piece)
-				if piece.IsInterface {
-					hasInterfaces = true
-				}
-			}
-			for _, t := range p.Types {
-				typePiece := setupDocType(mod, t)
-				if typePiece != nil {
-					typePieces = append(typePieces, *typePiece)
-					if typePiece.IsInterface {
-						hasInterfaces = true
-					}
-				}
-
-				for _, m := range t.Methods {
-					piece := setupDoc(mod, m)
-					if piece == nil {
-						continue
-					}
-
-					pieces = append(pieces, *piece)
-					if piece.IsInterface {
-						hasInterfaces = true
-					}
-				}
-			}
-
-			tags, descParts := getTagsAndDocs(strings.TrimSpace(p.Doc))
-			shortDesc := descParts[0]
-			desc := descParts[1:]
-			filteredPieces := []docPiece{}
-			filteredTypePieces := []docPiece{}
-			for _, piece := range pieces {
-				if !piece.IsInterface {
-					filteredPieces = append(filteredPieces, piece)
-					continue
-				}
-
-				modname := piece.ParentModule + "." + piece.Interfacing
-				if interfaceModules[modname] == nil {
-					interfaceModules[modname] = &module{
-						Name:         modname,
-						ParentModule: piece.ParentModule,
-					}
-				}
-
-				if strings.HasSuffix(piece.GoFuncName, strings.ToLower("loader")) {
-					shortDesc := piece.Doc[0]
-					desc := piece.Doc[1:]
-					interfaceModules[modname].ShortDescription = shortDesc
-					interfaceModules[modname].Description = strings.Replace(strings.Join(desc, "\n"), "<nl>", "\\\n \\", -1)
-					interfaceModules[modname].Fields = piece.Fields
-					interfaceModules[modname].Properties = piece.Properties
-					continue
-				}
-
-				interfaceModules[modname].Docs = append(interfaceModules[modname].Docs, piece)
-			}
-
-			for _, piece := range typePieces {
-				if !piece.IsInterface {
-					filteredTypePieces = append(filteredTypePieces, piece)
-					continue
-				}
-
-				modname := piece.ParentModule + "." + piece.Interfacing
-				if interfaceModules[modname] == nil {
-					interfaceModules[modname] = &module{
-						ParentModule: piece.ParentModule,
-					}
-				}
-
-				interfaceModules[modname].Types = append(interfaceModules[modname].Types, piece)
-			}
-
-			fmt.Println(filteredTypePieces)
-			if newDoc, ok := docs[mod]; ok {
-				oldMod := docs[mod]
-				newDoc.Types = append(filteredTypePieces, oldMod.Types...)
-				newDoc.Docs = append(filteredPieces, oldMod.Docs...)
-
-				docs[mod] = newDoc
-			} else {
-				docs[mod] = module{
-					Name:             mod,
-					Types:            filteredTypePieces,
-					Docs:             filteredPieces,
-					ShortDescription: shortDesc,
-					Description:      strings.Replace(strings.Join(desc, "\n"), "<nl>", "\\\n \\", -1),
-					HasInterfaces:    hasInterfaces,
-					Properties:       docPieceTag("property", tags),
-					Fields:           docPieceTag("field", tags),
-					Interfaces:       make(map[string]module),
-				}
 			}
 		}
 
-		for key, mod := range interfaceModules {
-			fmt.Println(key, mod.ParentModule)
-			parentMod := docs[mod.ParentModule]
-			parentMod.Interfaces[key] = *mod
-		}
-
-		//var wg sync.WaitGroup
-		//wg.Add(len(docs) * 2)
-
-		for mod, v := range docs {
-			u, err := json.MarshalIndent(v, "", "	")
-			if err != nil {
-				panic(err)
+		tags, descParts := getTagsAndDocs(strings.TrimSpace(p.Doc))
+		shortDesc := descParts[0]
+		desc := descParts[1:]
+		filteredPieces := []docPiece{}
+		filteredTypePieces := []docPiece{}
+		for _, piece := range pieces {
+			if !piece.IsInterface {
+				filteredPieces = append(filteredPieces, piece)
+				continue
 			}
 
-			fmt.Println(mod)
-			f, err := os.Create("defs/" + mod + ".json")
-			if err != nil {
-				panic(err)
+			modname := piece.ParentModule + "." + piece.Interfacing
+			if interfaceModules[modname] == nil {
+				interfaceModules[modname] = &module{
+					Name:         modname,
+					Section:      "api",
+					ParentModule: piece.ParentModule,
+				}
 			}
-			f.WriteString(string(u))
-		}
-		//wg.Wait()
-	} else if os.Args[1] == "md" {
-		fmt.Println("Generating MD files from Hilbish doc defs!")
-		os.Mkdir("docs", 0777)
-		os.RemoveAll("docs/api")
-		os.Mkdir("docs/api", 0777)
 
-		f, err := os.Create("docs/api/_index.md")
+			if strings.HasSuffix(piece.GoFuncName, strings.ToLower("loader")) {
+				shortDesc := piece.Doc[0]
+				desc := piece.Doc[1:]
+				interfaceModules[modname].ShortDescription = shortDesc
+				interfaceModules[modname].Description = strings.Replace(strings.Join(desc, "\n"), "<nl>", "\n", -1)
+				interfaceModules[modname].Fields = piece.Fields
+				interfaceModules[modname].Properties = piece.Properties
+				continue
+			}
+
+			interfaceModules[modname].Docs = append(interfaceModules[modname].Docs, piece)
+		}
+
+		for _, piece := range typePieces {
+			if !piece.IsInterface {
+				filteredTypePieces = append(filteredTypePieces, piece)
+				continue
+			}
+
+			modname := piece.ParentModule + "." + piece.Interfacing
+			if interfaceModules[modname] == nil {
+				interfaceModules[modname] = &module{
+					Name:         modname,
+					Section:      "api",
+					ParentModule: piece.ParentModule,
+				}
+			}
+
+			interfaceModules[modname].Types = append(interfaceModules[modname].Types, piece)
+		}
+
+		if newDoc, ok := docs[mod]; ok {
+			oldMod := docs[mod]
+			newDoc.Types = append(filteredTypePieces, oldMod.Types...)
+			newDoc.Docs = append(filteredPieces, oldMod.Docs...)
+			if newDoc.ShortDescription == "" && shortDesc != "" {
+				newDoc.ShortDescription = shortDesc
+				newDoc.Description = strings.Replace(strings.Join(desc, "\n"), "<nl>", "\n", -1)
+				newDoc.Properties = docPieceTag("property", tags)
+				newDoc.Fields = docPieceTag("field", tags)
+			}
+
+			docs[mod] = newDoc
+		} else {
+			docs[mod] = module{
+				Name:             mod,
+				Section:          "api",
+				Types:            filteredTypePieces,
+				Docs:             filteredPieces,
+				ShortDescription: shortDesc,
+				Description:      strings.Replace(strings.Join(desc, "\n"), "<nl>", "\n", -1),
+				Properties:       docPieceTag("property", tags),
+				Fields:           docPieceTag("field", tags),
+			}
+		}
+	}
+
+	// Lua-implemented modules (nature/*.lua). A Lua module that shares a name
+	// with a Go module/interface (hilbish, hilbish.runner) is the Lua-side of
+	// the same thing, so its functions merge into the existing def.
+	for _, lmod := range collectLuaModules() {
+		if existing, ok := docs[lmod.Name]; ok {
+			existing.Docs = append(existing.Docs, lmod.Docs...)
+			if existing.ShortDescription == "" {
+				existing.ShortDescription = lmod.ShortDescription
+				existing.Description = lmod.Description
+			}
+			docs[lmod.Name] = existing
+			continue
+		}
+		if existing, ok := interfaceModules[lmod.Name]; ok {
+			existing.Docs = append(existing.Docs, lmod.Docs...)
+			if existing.ShortDescription == "" {
+				existing.ShortDescription = lmod.ShortDescription
+				existing.Description = lmod.Description
+			}
+			continue
+		}
+		docs[lmod.Name] = lmod
+	}
+
+	// Flatten everything (top-level modules + interfaces) and write one def
+	// per page.
+	all := make(map[string]module)
+	for name, mod := range docs {
+		all[name] = mod
+	}
+	for name, mod := range interfaceModules {
+		all[name] = *mod
+	}
+
+	for name, v := range all {
+		u, err := json.MarshalIndent(v, "", "	")
 		if err != nil {
 			panic(err)
 		}
-		f.WriteString(`---
+
+		f, err := os.Create("defs/" + name + ".json")
+		if err != nil {
+			panic(err)
+		}
+		f.WriteString(string(u))
+		f.Close()
+	}
+}
+
+// renderDocs reads every def written by collectDefs and renders it to
+// docs/<section>/<name>.md. The api section is regenerated wholesale; the
+// nature section is only overwritten per-file so hand-written pages such as
+// docs/nature/_index.md survive.
+func renderDocs() {
+	os.Mkdir("docs", 0777)
+	os.RemoveAll("docs/api")
+	os.MkdirAll("docs/api", 0777)
+	os.MkdirAll("docs/nature", 0777)
+
+	f, err := os.Create("docs/api/_index.md")
+	if err != nil {
+		panic(err)
+	}
+	f.WriteString(`---
 title: API
 layout: doc
 weight: -70
@@ -493,144 +529,258 @@ menu: docs
 Welcome to the API documentation for Hilbish. This documents Lua functions
 provided by Hilbish.
 `)
-		f.Close()
+	f.Close()
 
-		defs, err := os.ReadDir("defs")
+	defs, err := os.ReadDir("defs")
+	if err != nil {
+		panic(err)
+	}
+
+	for _, defEntry := range defs {
+		defContent, err := os.ReadFile(filepath.Join("defs", defEntry.Name()))
 		if err != nil {
 			panic(err)
 		}
 
-		for _, defEntry := range defs {
-			defContent, err := os.ReadFile(filepath.Join(".", "defs", defEntry.Name()))
-			if err != nil {
-				panic(err)
-			}
-
-			var def module
-			err = json.Unmarshal(defContent, &def)
-			if err != nil {
-				panic(err)
-			}
-
-			generateFile(def)
+		var def module
+		err = json.Unmarshal(defContent, &def)
+		if err != nil {
+			panic(err)
 		}
+
+		generateFile(def)
 	}
+}
+
+// collectLuaModules parses the Lua-implemented modules under nature/ into the
+// same module/docPiece structs the Go side produces, so a single renderer
+// handles both. It ports the line-based parsing that used to live in
+// cmd/docgen/docgen.lua: a leading `--- @module <name>` header, a top comment
+// block as the description, and per-function doc comments (`@param`,
+// `@return`/`@returns`, and `#example`...`#example` blocks).
+func collectLuaModules() []module {
+	var files []string
+	for _, pat := range []string{"nature/*.lua", "nature/*/*.lua"} {
+		matches, _ := filepath.Glob(pat)
+		files = append(files, matches...)
+	}
+
+	modPattern := regexp.MustCompile(`^--+ @module (.+)`)
+	docPattern := regexp.MustCompile(`^--+ (.+)`)
+	emmyPattern := regexp.MustCompile(`^@(\w+)`)
+
+	var mods []module
+	for _, fname := range files {
+		content, err := os.ReadFile(fname)
+		if err != nil {
+			continue
+		}
+
+		lines := strings.Split(strings.ReplaceAll(string(content), "\r\n", "\n"), "\n")
+		if len(lines) == 0 {
+			continue
+		}
+		m := modPattern.FindStringSubmatch(lines[0])
+		if m == nil {
+			continue
+		}
+		modName := m[1]
+
+		// the body is everything after the @module header line
+		body := lines[1:]
+		funcPattern := regexp.MustCompile(`^function ` + regexp.QuoteMeta(modName) + `\.(\w+)\(([^)]*)\)`)
+		methodPattern := regexp.MustCompile(`^function [A-Z]\w*:(\w+)\(([^)]*)\)`)
+
+		var descriptions []string
+		var pieces []docPiece
+		doingDescription := true
+
+		for idx, line := range body {
+			if dm := docPattern.FindStringSubmatch(line); dm != nil {
+				if doingDescription {
+					descriptions = append(descriptions, dm[1])
+				}
+				continue
+			}
+			doingDescription = false
+
+			var funcName, paramStr string
+			if fm := funcPattern.FindStringSubmatch(line); fm != nil {
+				funcName, paramStr = fm[1], fm[2]
+			} else if mm := methodPattern.FindStringSubmatch(line); mm != nil {
+				funcName, paramStr = mm[1], mm[2]
+			}
+			if funcName == "" {
+				continue
+			}
+
+			// walk backwards over the preceding doc-comment block
+			var descLines, exampleLines []string
+			var params []param
+			var returns []string
+			doingExample := false
+			for offset := 1; idx-offset >= 0; offset++ {
+				dm := docPattern.FindStringSubmatch(body[idx-offset])
+				if dm == nil {
+					break
+				}
+				docline := dm[1]
+
+				if em := emmyPattern.FindStringSubmatch(docline); em != nil {
+					emmy := em[1]
+					rest := strings.TrimSpace(strings.TrimPrefix(docline, "@"+emmy))
+					switch emmy {
+					case "param":
+						fields := strings.Split(rest, " ")
+						p := param{}
+						if len(fields) > 0 {
+							p.Name = fields[0]
+						}
+						if len(fields) > 1 {
+							p.Type = fields[1]
+						}
+						if len(fields) > 2 {
+							p.Doc = []string{strings.Join(fields[2:], " ")}
+						}
+						params = append([]param{p}, params...)
+					case "return", "returns":
+						returns = append([]string{rest}, returns...)
+					}
+					continue
+				}
+
+				if strings.Contains(docline, "#example") {
+					doingExample = !doingExample
+					continue
+				}
+				if doingExample {
+					exampleLines = append([]string{docline}, exampleLines...)
+				} else {
+					descLines = append([]string{docline}, descLines...)
+				}
+			}
+
+			// skip functions without any documentation at all
+			if len(descLines) == 0 && len(params) == 0 && len(returns) == 0 {
+				continue
+			}
+
+			// signature is stored without the module prefix; the renderer
+			// prepends "<mod>." itself
+			sig := fmt.Sprintf("%s(%s)", funcName, paramStr)
+			if len(returns) > 0 {
+				sig += " -> " + strings.Join(returns, ", ")
+			}
+
+			piece := docPiece{
+				FuncName: funcName,
+				FuncSig:  sig,
+				Doc:      descLines,
+				Params:   params,
+			}
+			if len(exampleLines) > 0 {
+				piece.Tags = map[string][]tag{
+					"example": {{Fields: exampleLines}},
+				}
+			}
+			pieces = append(pieces, piece)
+		}
+
+		section := "nature"
+		if modName == "hilbish" || strings.HasPrefix(modName, "hilbish.") {
+			section = "api"
+		}
+
+		var shortDesc, longDesc string
+		if len(descriptions) > 0 {
+			shortDesc = descriptions[0]
+			longDesc = strings.Join(descriptions[1:], "\n")
+		}
+
+		mods = append(mods, module{
+			Name:             modName,
+			Section:          section,
+			ShortDescription: shortDesc,
+			Description:      longDesc,
+			Docs:             pieces,
+		})
+	}
+
+	return mods
 }
 
 func generateFile(v module) {
 	mod := v.Name
-	docPath := "docs/api/" + mod + ".md"
-	if v.HasInterfaces {
-		os.Mkdir("docs/api/"+mod, 0777)
-		os.Remove(docPath) // remove old doc path if it exists
-		docPath = "docs/api/" + mod + "/_index.md"
+	section := v.Section
+	if section == "" {
+		section = "api"
 	}
-	if v.ParentModule != "" {
-		docPath = "docs/api/" + v.ParentModule + "/" + mod + ".md"
+	docParent := "API"
+	if section == "nature" {
+		docParent = "Nature"
 	}
+	docPath := "docs/" + section + "/" + mod + ".md"
 
-	modOrIface := "Module"
-	if v.ParentModule != "" {
-		modOrIface = "Module"
-	}
-	lastHeader := ""
+	sort.SliceStable(v.Docs, func(i, j int) bool {
+		return v.Docs[i].FuncName < v.Docs[j].FuncName
+	})
 
 	f, _ := os.Create(docPath)
-	f.WriteString(fmt.Sprintf(header, modOrIface, mod, v.ShortDescription))
+	f.WriteString(fmt.Sprintf(header, mod, v.ShortDescription, docParent))
 	typeTag, _ := regexp.Compile(`\B@\w+`)
-	/*modDescription := typeTag.ReplaceAllStringFunc(strings.Replace(strings.Replace(v.Description, "<", `\<`, -1), "{{\\<", "{{<", -1), func(typ string) string {
-		typName := typ[1:]
-		typLookup := typeTable[strings.ToLower(typName)]
-		ifaces := typLookup[0] + "." + typLookup[1] + "/"
-		if typLookup[1] == "" {
-			ifaces = ""
-		}
-		linkedTyp := fmt.Sprintf("/Hilbish/docs/api/%s/%s#%s", typLookup[0], ifaces, strings.ToLower(typName))
-		return fmt.Sprintf(`<a href="%s" style="text-decoration: none;">%s</a>`, linkedTyp, typName)
-	})*/
 	modDescription := v.Description
 	f.WriteString(heading("Introduction", 2))
 	f.WriteString(modDescription)
 	f.WriteString("\n\n")
 	if len(v.Docs) != 0 {
-		funcCount := 0
-		for _, dps := range v.Docs {
-			if dps.IsMember {
-				continue
-			}
-			funcCount++
-		}
-
 		f.WriteString(heading("Functions", 2))
-		//lastHeader = "functions"
 
-		diff := 0
-		funcTable := [][]string{}
+		funcList := [][]string{}
 		for _, dps := range v.Docs {
 			if dps.IsMember {
-				diff++
 				continue
 			}
 
 			if len(dps.Doc) == 0 {
 				fmt.Printf("WARNING! Function %s on module %s has no documentation!\n", dps.FuncName, mod)
-			} else {
-				funcTable = append(funcTable, []string{fmt.Sprintf(`<a href="#%s">%s</a>`, dps.FuncName, dps.FuncSig), dps.Doc[0]})
+				continue
 			}
+
+			funcList = append(funcList, []string{
+				fmt.Sprintf("[`%s.%s`](#%s)", mod, dps.FuncSig, dps.FuncName),
+				dps.Doc[0],
+			})
 		}
-		f.WriteString(table(funcTable))
+		f.WriteString(bulletList(funcList))
 	}
 
 	if len(v.Fields) != 0 {
 		f.WriteString(heading("Static module fields", 2))
 
-		fieldsTable := [][]string{}
+		fieldsList := [][]string{}
 		for _, dps := range v.Fields {
-			fieldsTable = append(fieldsTable, []string{dps.FuncName, strings.Join(dps.Doc, " ")})
+			fieldsList = append(fieldsList, []string{fmt.Sprintf("`%s`", dps.FuncName), strings.Join(dps.Doc, " ")})
 		}
-		f.WriteString(table(fieldsTable))
+		f.WriteString(bulletList(fieldsList))
 	}
 	if len(v.Properties) != 0 {
 		f.WriteString(heading("Object properties", 2))
 
-		propertiesTable := [][]string{}
+		propertiesList := [][]string{}
 		for _, dps := range v.Properties {
-			propertiesTable = append(propertiesTable, []string{dps.FuncName, strings.Join(dps.Doc, " ")})
+			propertiesList = append(propertiesList, []string{fmt.Sprintf("`%s`", dps.FuncName), strings.Join(dps.Doc, " ")})
 		}
-		f.WriteString(table(propertiesTable))
+		f.WriteString(bulletList(propertiesList))
 	}
 
 	if len(v.Docs) != 0 {
-		if lastHeader != "functions" {
-			f.WriteString(heading("Functions", 2))
-		}
 		for _, dps := range v.Docs {
 			if dps.IsMember {
 				continue
 			}
-			f.WriteString("``` =html\n")
-			f.WriteString(fmt.Sprintf("<hr class='my-4 text-neutral-400 dark:text-neutral-600'>\n<div id='%s'>", dps.FuncName))
-			htmlSig := strings.Replace(mod+"."+dps.FuncSig, "<", `\<`, -1) /*typeTag.ReplaceAllStringFunc(strings.Replace(mod+"."+dps.FuncSig, "<", `\<`, -1), func(typ string) string {
-				typName := typ[1:]
-				typLookup := typeTable[strings.ToLower(typName)]
-				ifaces := typLookup[0] + "." + typLookup[1] + "/"
-				if typLookup[1] == "" {
-					ifaces = ""
-				}
-				linkedTyp := fmt.Sprintf("/Hilbish/docs/api/%s/%s#%s", typLookup[0], ifaces, strings.ToLower(typName))
-				return fmt.Sprintf(`<a href="%s" style="text-decoration: none;" id="lol">%s</a>`, linkedTyp, typName)
-			})*/
-			f.WriteString(fmt.Sprintf(`
-<h4 class='text-xl font-medium mb-2'>
-%s
-<a href="#%s" class='heading-link'>
-	<i class="fas fa-paperclip"></i>
-</a>
-</h4>
-</div>
-
-`, htmlSig, dps.FuncName))
-			f.WriteString("```\n\n")
+			f.WriteString("---\n\n")
+			f.WriteString(heading(dps.FuncName, 4))
+			f.WriteString(fmt.Sprintf("%s.%s\n\n", mod, dps.FuncSig))
 
 			for _, doc := range dps.Doc {
 				if !strings.HasPrefix(doc, "---") && doc != "" {
@@ -669,7 +819,7 @@ func generateFile(v module) {
 	if len(v.Types) != 0 {
 		f.WriteString(heading("Types", 2))
 		for _, dps := range v.Types {
-			f.WriteString("``` =html\n<hr class='my-4 text-neutral-400 dark:text-neutral-600'>\n```\n\n")
+			f.WriteString("---\n\n")
 			f.WriteString(heading(dps.FuncName, 2))
 			for _, doc := range dps.Doc {
 				if !strings.HasPrefix(doc, "---") {
@@ -679,11 +829,11 @@ func generateFile(v module) {
 			if len(dps.Properties) != 0 {
 				f.WriteString(heading("Object Properties", 2))
 
-				propertiesTable := [][]string{}
-				for _, dps := range v.Properties {
-					propertiesTable = append(propertiesTable, []string{dps.FuncName, strings.Join(dps.Doc, " ")})
+				propertiesList := [][]string{}
+				for _, p := range dps.Properties {
+					propertiesList = append(propertiesList, []string{fmt.Sprintf("`%s`", p.FuncName), strings.Join(p.Doc, " ")})
 				}
-				f.WriteString(table(propertiesTable))
+				f.WriteString(bulletList(propertiesList))
 			}
 			f.WriteString("\n")
 			f.WriteString(heading("Methods", 3))
@@ -698,7 +848,6 @@ func generateFile(v module) {
 					linkedTyp := fmt.Sprintf("/Hilbish/docs/api/%s/%s/#%s", typLookup[0], typLookup[0]+"."+typLookup[1], strings.ToLower(typName))
 					return fmt.Sprintf(`<a href="#%s" style="text-decoration: none;">%s</a>`, linkedTyp, typName)
 				})
-				//f.WriteString(fmt.Sprintf("#### %s\n", htmlSig))
 				f.WriteString(heading(htmlSig, 4))
 				for _, doc := range dps.Doc {
 					if !strings.HasPrefix(doc, "---") {
@@ -715,25 +864,12 @@ func heading(name string, level int) string {
 	return fmt.Sprintf("%s %s\n\n", strings.Repeat("#", level), name)
 }
 
-func table(elems [][]string) string {
+func bulletList(elems [][]string) string {
 	var b strings.Builder
-	b.WriteString("``` =html\n")
-	b.WriteString("<div class='relative overflow-x-auto sm:rounded-lg my-4'>\n")
-	b.WriteString("<table class='w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>\n")
-	b.WriteString("<tbody>\n")
 	for _, line := range elems {
-		b.WriteString("<tr class='bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 border-neutral-200'>\n")
-		for _, col := range line {
-			b.WriteString("<td class='p-3 font-medium text-black dark:text-white'>")
-			b.WriteString(col)
-			b.WriteString("</td>\n")
-		}
-		b.WriteString("</tr>\n")
+		b.WriteString(fmt.Sprintf("- %s: %s\n", line[0], line[1]))
 	}
-	b.WriteString("</tbody>\n")
-	b.WriteString("</table>\n")
-	b.WriteString("</div>\n")
-	b.WriteString("```\n\n")
+	b.WriteString("\n")
 
 	return b.String()
 }

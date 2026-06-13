@@ -4,7 +4,7 @@ Bait is the event emitter for Hilbish. Much like Node.js and
 its `events` system, many actions in Hilbish emit events.
 Unlike Node.js, Hilbish events are global. So make sure to
 pick a unique name!<nl>
-Usage of the Bait module consists of userstanding
+Usage of the Bait module consists of understanding
 event-driven architecture, but it's pretty simple:
 If you want to act on a certain event, you can `catch` it.
 You can act on events via callback functions.<nl>

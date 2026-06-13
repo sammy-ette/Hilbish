@@ -1,0 +1,482 @@
+{
+	"name": "hilbish.completions",
+	"section": "api",
+	"shortDescription": "tab completions",
+	"description": "The completions interface deals with tab completions.",
+	"parent": "hilbish",
+	"properties": [],
+	"fields": [],
+	"docs": [
+		{
+			"name": "completions.add",
+			"description": [
+				"Registers a completion handler for the specified scope.",
+				"A `scope` is expected to be `command.\u003ccmd\u003e`,",
+				"replacing \u003ccmd\u003e with the name of the command (for example `command.git`).",
+				"The documentation for completions, under Features/Completions or `doc completions`",
+				"provides more details.",
+				"",
+				""
+			],
+			"parent": "hilbish",
+			"interfaces": "completions",
+			"signature": "add(scope, cb)",
+			"goFuncName": "hcmpadd",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "scope",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "cb",
+					"Type": "function",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- This is a very simple example. Read the full doc for completions for details.",
+							"hilbish.completions.add('command.sudo', function(query, ctx, fields)",
+							"\tif #fields == 0 then",
+							"\t\t-- complete for commands",
+							"\t\tlocal comps, pfx = hilbish.completions.bins(query, ctx, fields)",
+							"\t\tlocal compGroup = {",
+							"\t\t\titems = comps, -- our list of items to complete",
+							"\t\t\ttype = 'grid' -- what our completions will look like.",
+							"\t\t}",
+							"",
+							"\t\treturn {compGroup}, pfx",
+							"\tend",
+							"",
+							"\t-- otherwise just be boring and return files",
+							"",
+							"\tlocal comps, pfx = hilbish.completions.files(query, ctx, fields)",
+							"\tlocal compGroup = {",
+							"\t\titems = comps,",
+							"\t\ttype = 'grid'",
+							"\t}",
+							"",
+							"\treturn {compGroup}, pfx",
+							"end)"
+						],
+						"startIdx": 10
+					}
+				],
+				"interface": [
+					{
+						"id": "completions",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "scope",
+						"fields": [
+							"string"
+						],
+						"startIdx": 7
+					},
+					{
+						"id": "cb",
+						"fields": [
+							"function"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "completions.bins",
+			"description": [
+				"Return binaries/executables based on the provided parameters.",
+				"This function is meant to be used as a helper in a command completion handler.",
+				"",
+				""
+			],
+			"parent": "hilbish",
+			"interfaces": "completions",
+			"signature": "bins(query, ctx, fields) -\u003e entries (table), prefix (string)",
+			"goFuncName": "hcmpbins",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "query",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "ctx",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "fields",
+					"Type": "table",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- an extremely simple completer for sudo.",
+							"hilbish.completions.add('command.sudo', function(query, ctx, fields)",
+							"\ttable.remove(fields, 1)",
+							"\tif #fields[1] then",
+							"\t\t-- return commands because sudo runs a command as root..!",
+							"",
+							"\t\tlocal entries, pfx = hilbish.completions.bins(query, ctx, fields)",
+							"\t\treturn {",
+							"\t\t\ttype = 'grid',",
+							"\t\t\titems = entries",
+							"\t\t}, pfx",
+							"\tend",
+							"",
+							"\t-- ... else suggest files or anything else ..",
+							"end)"
+						],
+						"startIdx": 8
+					}
+				],
+				"interface": [
+					{
+						"id": "completions",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "query",
+						"fields": [
+							"string"
+						],
+						"startIdx": 4
+					},
+					{
+						"id": "ctx",
+						"fields": [
+							"string"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "fields",
+						"fields": [
+							"table"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "completions.call",
+			"description": [
+				"Calls a completer function. This is mainly used to call a command completer, which will have a `name`",
+				"in the form of `command.name`, example: `command.git`.",
+				"You can check the Completions doc or `doc completions` for info on the `completionGroups` return value."
+			],
+			"parent": "hilbish",
+			"interfaces": "completions",
+			"signature": "call(name, query, ctx, fields) -\u003e completionGroups (table), prefix (string)",
+			"goFuncName": "hcmpcall",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "query",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "ctx",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "fields",
+					"Type": "table",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "completions",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string"
+						],
+						"startIdx": 5
+					},
+					{
+						"id": "query",
+						"fields": [
+							"string"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "ctx",
+						"fields": [
+							"string"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "fields",
+						"fields": [
+							"table"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "completions.dirs",
+			"description": [
+				"Returns directory matches based on the provided parameters.",
+				"This function is meant to be used as a helper in a command completion handler."
+			],
+			"parent": "hilbish",
+			"interfaces": "completions",
+			"signature": "dirs(query, ctx, fields) -\u003e entries (table), prefix (string)",
+			"goFuncName": "hcmpdirs",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "query",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "ctx",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "fields",
+					"Type": "table",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "completions",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "query",
+						"fields": [
+							"string"
+						],
+						"startIdx": 4
+					},
+					{
+						"id": "ctx",
+						"fields": [
+							"string"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "fields",
+						"fields": [
+							"table"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "completions.files",
+			"description": [
+				"Returns file matches based on the provided parameters.",
+				"This function is meant to be used as a helper in a command completion handler."
+			],
+			"parent": "hilbish",
+			"interfaces": "completions",
+			"signature": "files(query, ctx, fields) -\u003e entries (table), prefix (string)",
+			"goFuncName": "hcmpfiles",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "query",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "ctx",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "fields",
+					"Type": "table",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "completions",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "query",
+						"fields": [
+							"string"
+						],
+						"startIdx": 4
+					},
+					{
+						"id": "ctx",
+						"fields": [
+							"string"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "fields",
+						"fields": [
+							"table"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "completions.handler",
+			"description": [
+				"This function contains the general completion handler for Hilbish. This function handles",
+				"completion of everything, which includes calling other command handlers, binaries, and files.",
+				"This function can be overridden to supply a custom handler. Note that alias resolution is required to be done in this function.",
+				"",
+				""
+			],
+			"parent": "hilbish",
+			"interfaces": "completions",
+			"signature": "handler(line, pos)",
+			"goFuncName": "hcmphandler",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "line",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"current",
+						"Hilbish",
+						"command",
+						"line"
+					]
+				},
+				{
+					"Name": "pos",
+					"Type": "number",
+					"Doc": [
+						"Numerical",
+						"position",
+						"of",
+						"the",
+						"cursor"
+					]
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- stripped down version of the default implementation",
+							"function hilbish.completions.handler(line, pos)",
+							"\tlocal query = fields[#fields]",
+							"",
+							"\tif #fields == 1 then",
+							"\t\t-- call bins handler here",
+							"\telse",
+							"\t\t-- call command completer or files completer here",
+							"\tend",
+							"end"
+						],
+						"startIdx": 8
+					}
+				],
+				"interface": [
+					{
+						"id": "completions",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "line",
+						"fields": [
+							"string",
+							"The",
+							"current",
+							"Hilbish",
+							"command",
+							"line"
+						],
+						"startIdx": 5
+					},
+					{
+						"id": "pos",
+						"fields": [
+							"number",
+							"Numerical",
+							"position",
+							"of",
+							"the",
+							"cursor"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		}
+	]
+}

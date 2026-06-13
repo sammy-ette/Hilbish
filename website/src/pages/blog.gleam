@@ -3,9 +3,7 @@ import gleam/list
 import lustre/attribute
 import lustre/element
 import lustre/element/html
-import lustre/element/svg
 import post
-import util
 
 pub fn page(blog_list: List(#(String, post.Post))) {
   html.div(

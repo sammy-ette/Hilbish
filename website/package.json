@@ -11,7 +11,7 @@
   "scripts": {
     "website": "npm run gleam-build && npm run tailwind",
     "gleam-build": "gleam run -m website",
-    "tailwind": "npx @tailwindcss/cli -o public/tailwind.css",
+    "tailwind": "npx @tailwindcss/cli -i input.css -o public/tailwind.css",
     "watch": "npm-watch"
   }
 }
