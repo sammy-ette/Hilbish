@@ -26,7 +26,7 @@ func (rl *Readline) viDelete(r rune) {
 		vii := rl.getViIterations()
 		rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpB, vii)
 		for i := 1; i <= vii; i++ {
-			rl.viDeleteByAdjust(rl.viJumpB(tokeniseSplitSpaces))
+			rl.viDeleteByAdjust(rl.viJumpBWORD(tokeniseSplitSpaces))
 		}
 
 	case 'd':
@@ -46,7 +46,7 @@ func (rl *Readline) viDelete(r rune) {
 		vii := rl.getViIterations()
 		rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpE, vii)
 		for i := 1; i <= vii; i++ {
-			rl.viDeleteByAdjust(rl.viJumpE(tokeniseSplitSpaces) + 1)
+			rl.viDeleteByAdjust(rl.viJumpEWORD(tokeniseSplitSpaces) + 1)
 		}
 
 	case 'w':
@@ -60,7 +60,7 @@ func (rl *Readline) viDelete(r rune) {
 		vii := rl.getViIterations()
 		rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpW, vii)
 		for i := 1; i <= vii; i++ {
-			rl.viDeleteByAdjust(rl.viJumpW(tokeniseSplitSpaces))
+			rl.viDeleteByAdjust(rl.viJumpWWORD(tokeniseSplitSpaces))
 		}
 
 	case '%':

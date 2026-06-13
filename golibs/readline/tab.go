@@ -74,7 +74,7 @@ func (rl *Readline) getRegisterCompletion() {
 	// escape the completion mode from here directly.
 	var items bool
 	for _, group := range rl.tcGroups {
-		if len(group.Suggestions) > 0 {
+		if len(group.Items) > 0 {
 			items = true
 		}
 	}
@@ -118,7 +118,7 @@ func (rl *Readline) getHistorySearchCompletion() {
 	rl.getCurrentGroup()                     // Make sure there is a current group
 
 	// The history info is already set, but overwrite it if we don't have completions
-	if len(rl.tcGroups[0].Suggestions) == 0 {
+	if len(rl.tcGroups[0].Items) == 0 {
 		rl.histInfo = []rune(fmt.Sprintf("%s%s%s %s", DIM, RED,
 			"No command history source, or empty (Ctrl-G/Esc to cancel)", RESET))
 		rl.infoText = rl.histInfo
@@ -134,7 +134,7 @@ func (rl *Readline) getHistorySearchCompletion() {
 	rl.tcGroups[0].updateTabFind(rl)
 
 	// If no items matched history, add info text that we failed to search
-	if len(rl.tcGroups[0].Suggestions) == 0 {
+	if len(rl.tcGroups[0].Items) == 0 {
 		rl.infoText = append(rl.histInfo, []rune(DIM+RED+" ! no matches (Ctrl-G/Esc to cancel)"+RESET)...)
 		return
 	}
@@ -160,7 +160,7 @@ func (rl *Readline) getNormalCompletion() {
 	// escape the completion mode from here directly.
 	var items bool
 	for _, group := range rl.tcGroups {
-		if len(group.Suggestions) > 1 {
+		if len(group.Items) > 1 {
 			items = true
 		}
 	}
@@ -219,7 +219,7 @@ func (rl *Readline) moveTabCompletionHighlight(x, y int) {
 	g := rl.getCurrentGroup()
 
 	// If there is no current group, we leave any current completion mode.
-	if g == nil || g.Suggestions == nil {
+	if g == nil || g.Items == nil {
 		rl.modeTabCompletion = false
 		return
 	}
@@ -411,7 +411,7 @@ func (rl *Readline) getCompletionLine() (line []rune, pos int) {
 
 func (rl *Readline) getCurrentGroup() (group *CompletionGroup) {
 	for _, g := range rl.tcGroups {
-		if g.isCurrent && len(g.Suggestions) > 0 {
+		if g.isCurrent && len(g.Items) > 0 {
 			return g
 		}
 	}
@@ -420,7 +420,7 @@ func (rl *Readline) getCurrentGroup() (group *CompletionGroup) {
 	if len(rl.tcGroups) > 0 {
 		// Find first group that has list > 0, as another checkup
 		for _, g := range rl.tcGroups {
-			if len(g.Suggestions) > 0 {
+			if len(g.Items) > 0 {
 				g.isCurrent = true
 				return g
 			}
@@ -442,7 +442,7 @@ func (rl *Readline) cycleNextGroup() {
 				// Here, we check if the cycled group is not empty.
 				// If yes, cycle to next one now.
 				new := rl.getCurrentGroup()
-				if len(new.Suggestions) == 0 {
+				if len(new.Items) == 0 {
 					rl.cycleNextGroup()
 				}
 			}
@@ -461,7 +461,7 @@ func (rl *Readline) cyclePreviousGroup() {
 			} else {
 				rl.tcGroups[i-1].isCurrent = true
 				new := rl.getCurrentGroup()
-				if len(new.Suggestions) == 0 {
+				if len(new.Items) == 0 {
 					rl.cyclePreviousGroup()
 				}
 			}
@@ -482,7 +482,7 @@ func (rl *Readline) hasOneCandidate() bool {
 		if cur == nil {
 			return false
 		}
-		if len(cur.Suggestions) == 1 {
+		if len(cur.Items) == 1 {
 			return true
 		}
 		return false
@@ -492,7 +492,7 @@ func (rl *Readline) hasOneCandidate() bool {
 	if len(rl.tcGroups) > 1 {
 		var count int
 		for _, group := range rl.tcGroups {
-			for range group.Suggestions {
+			for range group.Items {
 				count++
 			}
 		}
@@ -520,13 +520,13 @@ func (rl *Readline) promptCompletionConfirm(sentence string) {
 
 func (rl *Readline) getCompletionCount() (comps int, lines int, adjusted int) {
 	for _, group := range rl.tcGroups {
-		comps += len(group.Suggestions)
+		comps += len(group.Items)
 		// if group.Name != "" {
 		adjusted++ // Title
 		// }
-		if group.tcMaxY > len(group.Suggestions) {
-			lines += len(group.Suggestions)
-			adjusted += len(group.Suggestions)
+		if group.tcMaxY > len(group.Items) {
+			lines += len(group.Items)
+			adjusted += len(group.Items)
 		} else {
 			lines += group.tcMaxY
 			adjusted += group.tcMaxY

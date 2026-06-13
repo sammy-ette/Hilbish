@@ -119,7 +119,7 @@ func (rl *Readline) vi(r rune) {
 		rl.viUndoSkipAppend = true
 		vii := rl.getViIterations()
 		for i := 1; i <= vii; i++ {
-			rl.moveCursorByAdjust(rl.viJumpB(tokeniseSplitSpaces))
+			rl.moveCursorByAdjust(rl.viJumpBWORD(tokeniseSplitSpaces))
 		}
 
 	case 'd':
@@ -162,7 +162,7 @@ func (rl *Readline) vi(r rune) {
 		rl.viUndoSkipAppend = true
 		vii := rl.getViIterations()
 		for i := 1; i <= vii; i++ {
-			rl.moveCursorByAdjust(rl.viJumpE(tokeniseSplitSpaces))
+			rl.moveCursorByAdjust(rl.viJumpEWORD(tokeniseSplitSpaces))
 		}
 
 	case 'h':
@@ -302,7 +302,7 @@ func (rl *Readline) vi(r rune) {
 		}
 		vii := rl.getViIterations()
 		for i := 1; i <= vii; i++ {
-			rl.moveCursorByAdjust(rl.viJumpW(tokeniseSplitSpaces))
+			rl.moveCursorByAdjust(rl.viJumpWWORD(tokeniseSplitSpaces))
 		}
 
 	case 'x':
@@ -422,55 +422,35 @@ func (rl *Readline) viInfoMessage() {
 	rl.renderHelpers()
 }
 
+// viJumpB returns the adjust value to jump back one word (vim 'b').
+// For now, kept as public to maintain call compatibility; will be refactored in cleanup.
 func (rl *Readline) viJumpB(tokeniser tokeniser) (adjust int) {
-	split, index, pos := tokeniser(rl.line, rl.pos)
-	switch {
-	case len(split) == 0:
-		return
-	case index == 0 && pos == 0:
-		return
-	case pos == 0:
-		adjust = len(split[index-1])
-	default:
-		adjust = pos
-	}
-	return adjust * -1
+	return rl.WordBackward(rl.pos) - rl.pos
 }
 
+// viJumpBWORD returns the adjust value to jump back one WORD (vim 'B').
+func (rl *Readline) viJumpBWORD(tokeniser tokeniser) (adjust int) {
+	return rl.WORDBackward(rl.pos) - rl.pos
+}
+
+// viJumpE returns the adjust value to jump to end of word (vim 'e').
 func (rl *Readline) viJumpE(tokeniser tokeniser) (adjust int) {
-	split, index, pos := tokeniser(rl.line, rl.pos)
-	if len(split) == 0 {
-		return
-	}
-
-	word := rTrimWhiteSpace(split[index])
-
-	switch {
-	case len(split) == 0:
-		return
-	case index == len(split)-1 && pos >= len(word)-1:
-		return
-	case pos >= len(word)-1:
-		word = rTrimWhiteSpace(split[index+1])
-		adjust = len(split[index]) - pos
-		adjust += len(word) - 1
-	default:
-		adjust = len(word) - pos - 1
-	}
-	return
+	return rl.WordEnd(rl.pos) - rl.pos
 }
 
+// viJumpEWORD returns the adjust value to jump to end of WORD (vim 'E').
+func (rl *Readline) viJumpEWORD(tokeniser tokeniser) (adjust int) {
+	return rl.WORDEnd(rl.pos) - rl.pos
+}
+
+// viJumpW returns the adjust value to jump forward one word (vim 'w').
 func (rl *Readline) viJumpW(tokeniser tokeniser) (adjust int) {
-	split, index, pos := tokeniser(rl.line, rl.pos)
-	switch {
-	case len(split) == 0:
-		return
-	case index+1 == len(split):
-		adjust = len(rl.line) - rl.pos
-	default:
-		adjust = len(split[index]) - pos
-	}
-	return
+	return rl.WordForward(rl.pos) - rl.pos
+}
+
+// viJumpWWORD returns the adjust value to jump forward one WORD (vim 'W').
+func (rl *Readline) viJumpWWORD(tokeniser tokeniser) (adjust int) {
+	return rl.WORDForward(rl.pos) - rl.pos
 }
 
 func (rl *Readline) viJumpPreviousBrace() (adjust int) {

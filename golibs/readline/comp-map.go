@@ -2,23 +2,19 @@ package readline
 
 import (
 	"fmt"
-	"strconv"
+	"strings"
 )
 
 // initMap - Map display details. Called each time we want to be sure to have
 // a working completion group either immediately, or later on. Generally defered.
 func (g *CompletionGroup) initMap(rl *Readline) {
 
-	// We make the map anyway, especially if we need to use it later
-	if g.Descriptions == nil {
-		g.Descriptions = make(map[string]string)
-	}
-
-	// Compute size of each completion item box. Group independent
+	// Compute size of each completion item box. Group independent (display width, not byte length)
 	g.tcMaxLength = 1
-	for i := range g.Suggestions {
-		if len(g.Descriptions[g.Suggestions[i]]) > g.tcMaxLength {
-			g.tcMaxLength = len(g.Descriptions[g.Suggestions[i]])
+	for i := range g.Items {
+		w := displayWidth([]rune(g.Items[i].Description))
+		if w > g.tcMaxLength {
+			g.tcMaxLength = w
 		}
 	}
 
@@ -27,10 +23,10 @@ func (g *CompletionGroup) initMap(rl *Readline) {
 	g.tcOffset = 0
 
 	// Number of lines allowed to be printed for group
-	if len(g.Suggestions) > g.MaxLength {
+	if len(g.Items) > g.MaxLength {
 		g.tcMaxY = g.MaxLength
 	} else {
-		g.tcMaxY = len(g.Suggestions)
+		g.tcMaxY = len(g.Items)
 	}
 }
 
@@ -56,15 +52,15 @@ func (g *CompletionGroup) moveTabMapHighlight(rl *Readline, x, y int) (done bool
 		g.tcOffset++
 	}
 
-	if g.tcOffset+g.tcPosY < 1 && len(g.Suggestions) > 0 {
+	if g.tcOffset+g.tcPosY < 1 && len(g.Items) > 0 {
 		g.tcPosY = g.tcMaxY
-		g.tcOffset = len(g.Suggestions) - g.tcMaxY
+		g.tcOffset = len(g.Items) - g.tcMaxY
 	}
 	if g.tcOffset < 0 {
 		g.tcOffset = 0
 	}
 
-	if g.tcOffset+g.tcPosY > len(g.Suggestions) {
+	if g.tcOffset+g.tcPosY > len(g.Items) {
 		g.tcOffset--
 		return true, true
 	}
@@ -93,9 +89,6 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 		maxLength = termWidth - 9
 	}
 	maxDescWidth := termWidth - maxLength - 4
-
-	cellWidth := strconv.Itoa(maxLength)
-	itemWidth := strconv.Itoa(maxDescWidth)
 	y := 0
 
 	// Highlighting function
@@ -108,32 +101,48 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 
 	// String formating
 	var item, description string
-	for i := g.tcOffset; i < len(g.Suggestions); i++ {
+	for i := g.tcOffset; i < len(g.Items); i++ {
 		y++ // Consider new item
 		if y > g.tcMaxY {
 			break
 		}
 
-		item = g.Suggestions[i]
-
-		if len(item) > maxDescWidth {
-			item = item[:maxDescWidth-3] + "..."
+		item = g.Items[i].display()
+		itemRunes := []rune(item)
+		if displayWidth(itemRunes) > maxDescWidth {
+			itemRunes = truncateToWidth(itemRunes, maxDescWidth-3)
+			item = string(itemRunes) + "..."
 		}
 
-		description = g.Descriptions[g.Suggestions[i]]
-		if len(description) > maxLength {
-			description = description[:maxLength-3] + "..."
+		description = g.Items[i].Description
+		descRunes := []rune(description)
+		if displayWidth(descRunes) > maxLength {
+			descRunes = truncateToWidth(descRunes, maxLength-3)
+			description = string(descRunes) + "..."
 		}
 
-		comp += fmt.Sprintf("\r%-"+cellWidth+"s %s %-"+itemWidth+"s %s\n",
-			description, highlight(y), fmtEscape(item), seqReset)
+		// Format with width-based padding
+		itemWidth := displayWidth([]rune(item))
+		itemPadding := maxDescWidth - itemWidth
+		if itemPadding < 0 {
+			itemPadding = 0
+		}
+
+		descWidth := displayWidth([]rune(description))
+		descPadding := maxLength - descWidth
+		if descPadding < 0 {
+			descPadding = 0
+		}
+
+		comp += fmt.Sprintf("\r%s%s %s %s%s %s\n",
+			description, strings.Repeat(" ", descPadding), highlight(y), fmtEscape(item), strings.Repeat(" ", itemPadding), seqReset)
 	}
 
 	// Add the equivalent of this group's size to final screen clearing
-	if len(g.Suggestions) > g.MaxLength {
+	if len(g.Items) > g.MaxLength {
 		rl.tcUsedY += g.MaxLength
 	} else {
-		rl.tcUsedY += len(g.Suggestions)
+		rl.tcUsedY += len(g.Items)
 	}
 
 	return

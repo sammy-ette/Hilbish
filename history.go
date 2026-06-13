@@ -53,6 +53,37 @@ func (h *luaHistory) Dump() interface{} {
 	return nil
 }
 
+// encodeHistoryLine escapes backslashes and newlines for newline-delimited storage.
+// Allows multiline history entries to be stored correctly.
+func encodeHistoryLine(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, "\n", `\n`)
+	return s
+}
+
+// decodeHistoryLine reverses encodeHistoryLine escaping.
+// Handles trailing lone backslash edge case.
+func decodeHistoryLine(s string) string {
+	var result strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\\' && i+1 < len(s) {
+			next := s[i+1]
+			if next == '\\' {
+				result.WriteByte('\\')
+				i++ // skip the next backslash
+			} else if next == 'n' {
+				result.WriteByte('\n')
+				i++ // skip the 'n'
+			} else {
+				result.WriteByte(s[i])
+			}
+		} else {
+			result.WriteByte(s[i])
+		}
+	}
+	return result.String()
+}
+
 type fileHistory struct {
 	items []string
 	f *os.File
@@ -79,7 +110,7 @@ func newFileHistory(path string) *fileHistory {
 		if i == len(lines) - 1 {
 			continue
 		}
-		itms[i] = l
+		itms[i] = decodeHistoryLine(l)
 	}
 	f, err := os.OpenFile(path, os.O_APPEND | os.O_WRONLY | os.O_CREATE, 0755)
 	if err != nil {
@@ -99,7 +130,8 @@ func (h *fileHistory) Write(line string) (int, error) {
 		return len(h.items), nil
 	}
 
-	_, err := h.f.WriteString(line + "\n")
+	encodedLine := encodeHistoryLine(line)
+	_, err := h.f.WriteString(encodedLine + "\n")
 	if err != nil {
 		return 0, err
 	}

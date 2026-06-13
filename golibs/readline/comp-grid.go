@@ -4,19 +4,18 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/rivo/uniseg"
 )
 
 // initGrid - Grid display details. Called each time we want to be sure to have
 // a working completion group either immediately, or later on. Generally defered.
 func (g *CompletionGroup) initGrid(rl *Readline) {
 
-	// Compute size of each completion item box
+	// Compute size of each completion item box (display width, not byte length)
 	tcMaxLength := 1
-	for i := range g.Suggestions {
-		if uniseg.GraphemeClusterCount(g.Suggestions[i]) > tcMaxLength {
-			tcMaxLength = uniseg.GraphemeClusterCount(g.Suggestions[i])
+	for i := range g.Items {
+		w := displayWidth([]rune(g.Items[i].display()))
+		if w > tcMaxLength {
+			tcMaxLength = w
 		}
 	}
 
@@ -31,8 +30,8 @@ func (g *CompletionGroup) initGrid(rl *Readline) {
 	}
 
 	// Maximum number of lines
-	maxY := len(g.Suggestions) / g.tcMaxX
-	rest := len(g.Suggestions) % g.tcMaxX
+	maxY := len(g.Items) / g.tcMaxX
+	rest := len(g.Items) % g.tcMaxX
 	if rest != 0 {
 		// if rest != 0 && maxY != 1 {
 		maxY++
@@ -74,8 +73,8 @@ func (g *CompletionGroup) moveTabGridHighlight(rl *Readline, x, y int) (done boo
 
 	// Real max number of suggestions.
 	max := g.tcMaxX * g.tcMaxY
-	if max > len(g.Suggestions) {
-		max = len(g.Suggestions)
+	if max > len(g.Items) {
+		max = len(g.Items)
 	}
 
 	// We arrived at the end of suggestions. This condition can never be triggered
@@ -109,7 +108,7 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 	x := 0
 	y := 1
 
-	for i := range g.Suggestions {
+	for i := range g.Items {
 		x++
 		if x > g.tcMaxX {
 			x = 1
@@ -126,15 +125,26 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 			comp += seqInvert
 		}
 
-		sugg := g.Suggestions[i]
-		if len(sugg) > GetTermWidth() {
-			sugg = sugg[:GetTermWidth()-4] + "..."
+		sugg := g.Items[i].display()
+		suggRunes := []rune(sugg)
+		if displayWidth(suggRunes) > GetTermWidth() {
+			suggRunes = truncateToWidth(suggRunes, GetTermWidth()-4)
+			sugg = string(suggRunes) + "..."
 		}
-		formatStr := "%-" + cellWidth + "s%s "
+
+		// Pad to cellWidth with spaces, accounting for display width
 		if g.tcMaxX == 1 {
-			formatStr = "%s%s"
+			comp += fmt.Sprintf("%s%s", fmtEscape(sugg), seqReset)
+		} else {
+			// Manual width-based padding
+			suggWidth := displayWidth([]rune(sugg))
+			targetWidth, _ := strconv.Atoi(cellWidth)
+			padding := targetWidth - suggWidth
+			if padding < 0 {
+				padding = 0
+			}
+			comp += fmt.Sprintf("%s%s%s ", fmtEscape(sugg), strings.Repeat(" ", padding), seqReset)
 		}
-		comp += fmt.Sprintf(formatStr, fmtEscape(sugg), seqReset)
 	}
 
 	// Always add a newline to the group if the end if not punctuated with one

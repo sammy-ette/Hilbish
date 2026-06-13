@@ -202,6 +202,7 @@ func (rl *Readline) completeHistory() (hist []*CompletionGroup) {
 
 	rl.tcPrefix = string(rl.line) // We use the current full line for filtering
 
+	seen := make(map[string]bool)
 	for i := history.Len() - 1; i >= 1; i-- {
 		line, err = history.GetLine(i)
 		if err != nil {
@@ -212,16 +213,20 @@ func (rl *Readline) completeHistory() (hist []*CompletionGroup) {
 			continue
 		}
 
-		line = strings.Replace(line, "\n", ` `, -1)
-
-		if hist[0].Descriptions[line] != "" {
+		// Display collapses newlines to spaces for a single-row view; Value
+		// keeps the original (possibly multi-line) text for insertion (#182).
+		display := strings.Replace(line, "\n", ` `, -1)
+		if seen[display] {
 			continue
 		}
+		seen[display] = true
 
-		hist[0].Suggestions = append(hist[0].Suggestions, line)
 		num = strconv.Itoa(i)
-
-		hist[0].Descriptions[line] = "\033[38;5;237m" + num + RESET
+		hist[0].Items = append(hist[0].Items, MenuItem{
+			Value:       line,
+			Display:     display,
+			Description: "\033[38;5;237m" + num + RESET,
+		})
 	}
 
 	return

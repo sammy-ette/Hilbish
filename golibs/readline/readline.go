@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"regexp"
 	"syscall"
 )
 
-var rxMultiline = regexp.MustCompile(`[\r\n]+`)
 
 // Readline displays the readline prompt.
 // It will return a string (user entered data) or an error.
@@ -52,21 +50,6 @@ func (rl *Readline) Readline() (string, error) {
 	rl.histOffset = 0
 	rl.viUndoHistory = []undoItem{{line: "", pos: 0}}
 
-	// Multisplit
-	if len(rl.multisplit) > 0 {
-		r := []rune(rl.multisplit[0])
-		if len(r) >= 1 {
-			rl.editorInput(r)
-		}
-
-		rl.carridgeReturn()
-		if len(rl.multisplit) > 1 {
-			rl.multisplit = rl.multisplit[1:]
-		} else {
-			rl.multisplit = []string{}
-		}
-		return string(rl.line), nil
-	}
 
 	// Finally, print any info or completions
 	// if the TabCompletion engines so desires
@@ -76,53 +59,20 @@ func (rl *Readline) Readline() (string, error) {
 	for {
 		rl.viUndoSkipAppend = false
 		b := make([]byte, 1024)
-		var i int
-
-		if !rl.skipStdinRead {
-			var err error
-			i, err = os.Stdin.Read(b)
-			if err != nil {
-				if errors.Is(err, syscall.EAGAIN) {
-					err = syscall.SetNonblock(syscall.Stdin, false)
-					if err == nil {
-						continue
-					}
+		var err error
+		i, err := os.Stdin.Read(b)
+		if err != nil {
+			if errors.Is(err, syscall.EAGAIN) {
+				err = syscall.SetNonblock(syscall.Stdin, false)
+				if err == nil {
+					continue
 				}
-				return "", err
 			}
+			return "", err
 		}
-
-		rl.skipStdinRead = false
 		r := []rune(string(b))
 		if rl.RawInputCallback != nil {
 			rl.RawInputCallback(r[:i])
-		}
-
-		if isMultiline(r[:i]) || len(rl.multiline) > 0 {
-			rl.multiline = append(rl.multiline, b[:i]...)
-			if i == len(b) {
-				continue
-			}
-
-			if !rl.allowMultiline(rl.multiline) {
-				rl.multiline = []byte{}
-				continue
-			}
-
-			s := string(rl.multiline)
-			rl.multisplit = rxMultiline.Split(s, -1)
-
-			r = []rune(rl.multisplit[0])
-			rl.modeViMode = VimInsert
-			rl.editorInput(r)
-			rl.carridgeReturn()
-			rl.multiline = []byte{}
-			if len(rl.multisplit) > 1 {
-				rl.multisplit = rl.multisplit[1:]
-			} else {
-				rl.multisplit = []string{}
-			}
-			return string(rl.line), nil
 		}
 
 		s := string(r[:i])
@@ -529,9 +479,16 @@ func (rl *Readline) Readline() (string, error) {
 				continue
 			} else {
 				rl.resetVirtualComp(false)
-				rl.editorInput(r[:i])
-				if len(rl.multiline) > 0 && rl.modeViMode == VimKeys {
-					rl.skipStdinRead = true
+				// Distinguish paste vs Enter: multi-byte read (i > 1) is a paste burst
+				if i > 1 {
+					// Paste: insert all bytes as literal content, treating embedded \r/\n as real newlines
+					pasteBytes := bytes.ReplaceAll(b[:i], []byte{'\r', '\n'}, []byte{'\n'})
+					pasteBytes = bytes.ReplaceAll(pasteBytes, []byte{'\r'}, []byte{'\n'})
+					rl.insert([]rune(string(pasteBytes)))
+					rl.writeHintText()
+				} else {
+					// Single character: process normally
+					rl.editorInput(r[:i])
 				}
 			}
 
@@ -587,10 +544,7 @@ func (rl *Readline) editorInput(r []rune) {
 	}
 
 	rl.echoRightPrompt()
-
-	if len(rl.multisplit) == 0 {
-		rl.syntaxCompletion()
-	}
+	rl.syntaxCompletion()
 }
 
 // viEscape - In case th user is using Vim input, and the escape sequence has not
@@ -614,7 +568,7 @@ func (rl *Readline) viEscape(r []rune) {
 func (rl *Readline) escapeSeq(r []rune) {
 	switch string(r) {
 	// Vim escape sequences & dispatching --------------------------------------------------------
-	case string(charEscape):
+	case string(rune(charEscape)):
 		switch {
 		case rl.modeAutoFind:
 			rl.resetVirtualComp(true)
@@ -915,49 +869,3 @@ func (rl *Readline) carridgeReturn() {
 	}
 }
 
-func isMultiline(r []rune) bool {
-	for i := range r {
-		if (r[i] == '\r' || r[i] == '\n') && i != len(r)-1 {
-			return true
-		}
-	}
-	return false
-}
-
-func (rl *Readline) allowMultiline(data []byte) bool {
-	rl.clearHelpers()
-	printf("\r\nWARNING: %d bytes of multiline data was dumped into the shell!", len(data))
-	for {
-		print("\r\nDo you wish to proceed (yes|no|preview)? [y/n/p] ")
-
-		b := make([]byte, 1024)
-
-		i, err := os.Stdin.Read(b)
-		if err != nil {
-			return false
-		}
-
-		s := string(b[:i])
-		print(s)
-
-		switch s {
-		case "y", "Y":
-			print("\r\n" + rl.mainPrompt)
-			return true
-
-		case "n", "N":
-			print("\r\n" + rl.mainPrompt)
-			return false
-
-		case "p", "P":
-			preview := string(bytes.Replace(data, []byte{'\r'}, []byte{'\r', '\n'}, -1))
-			if rl.SyntaxHighlighter != nil {
-				preview = rl.SyntaxHighlighter([]rune(preview))
-			}
-			print("\r\n" + preview)
-
-		default:
-			print("\r\nInvalid response. Please answer `y` (yes), `n` (no) or `p` (preview)")
-		}
-	}
-}

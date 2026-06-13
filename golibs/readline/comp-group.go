@@ -10,13 +10,12 @@ type CompletionGroup struct {
 	Name        string // If not nil, printed on top of the group's completions
 	Description string
 
-	// Candidates & related
-	Suggestions  []string
-	Aliases      map[string]string // A candidate has an alternative name (ex: --long, -l option flags)
-	Descriptions map[string]string // Items descriptions
-	ItemDisplays map[string]string // What to display the item as (can be used for styling items)
-	DisplayType  TabDisplayType    // Map, list or normal
-	MaxLength    int               // Each group can be limited in the number of comps offered
+	// Items are the completion candidates. Each carries its own Value (inserted
+	// text), Display (shown text), Alias, and Description — replacing the old
+	// parallel Suggestions/Aliases/Descriptions/ItemDisplays maps.
+	Items       []MenuItem
+	DisplayType TabDisplayType // Map, list or normal
+	MaxLength   int            // Each group can be limited in the number of comps offered
 
 	// When this is true, the completion is inserted really (not virtually) without
 	// the trailing slash, if any. This is used when we want to complete paths.
@@ -48,6 +47,47 @@ type CompletionGroup struct {
 	isCurrent bool
 }
 
+// itemValue returns the Value (inserted text) of the item at index i, or "" if out of range.
+func (g *CompletionGroup) itemValue(i int) string {
+	if i < 0 || i >= len(g.Items) {
+		return ""
+	}
+	return g.Items[i].Value
+}
+
+// findItem returns the item whose Value matches, or nil.
+func (g *CompletionGroup) findItem(value string) *MenuItem {
+	for i := range g.Items {
+		if g.Items[i].Value == value {
+			return &g.Items[i]
+		}
+	}
+	return nil
+}
+
+// hasAliases reports whether any item carries an Alias (used by list display
+// to decide whether to render the alternate-name column).
+func (g *CompletionGroup) hasAliases() bool {
+	for i := range g.Items {
+		if g.Items[i].Alias != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// upsertItem returns a pointer to the item with the given Value, appending a
+// new one if it doesn't exist yet. Used by the async DelayedTabContext API.
+func (g *CompletionGroup) upsertItem(value string) *MenuItem {
+	for i := range g.Items {
+		if g.Items[i].Value == value {
+			return &g.Items[i]
+		}
+	}
+	g.Items = append(g.Items, MenuItem{Value: value})
+	return &g.Items[len(g.Items)-1]
+}
+
 // init - The completion group computes and sets all its values, and is then ready to work.
 func (g *CompletionGroup) init(rl *Readline) {
 
@@ -72,26 +112,34 @@ func (g *CompletionGroup) init(rl *Readline) {
 // The rx parameter is passed, as the shell already checked that the search pattern is valid.
 func (g *CompletionGroup) updateTabFind(rl *Readline) {
 
-	suggs := rl.Searcher(rl.search, g.Suggestions)
-	// We perform filter right here, so we create a new completion group, and populate it with our results.
-	/*for i := range g.Suggestions {
-		if rl.regexSearch == nil { continue }
-		if rl.regexSearch.MatchString(g.Suggestions[i]) {
-			suggs = append(suggs, g.Suggestions[i])
-		} else if g.DisplayType == TabDisplayList && rl.regexSearch.MatchString(g.Descriptions[g.Suggestions[i]]) {
-			// this is a list so lets also check the descriptions
-			suggs = append(suggs, g.Suggestions[i])
+	// Build the haystack of candidate display strings, run the searcher,
+	// then keep only the items whose display matched.
+	haystack := make([]string, len(g.Items))
+	for i, item := range g.Items {
+		haystack[i] = item.display()
+	}
+	matched := rl.Searcher(rl.search, haystack)
+
+	// Map matched display strings back to their items, preserving order.
+	matchedSet := make(map[string]bool, len(matched))
+	for _, m := range matched {
+		matchedSet[m] = true
+	}
+	filtered := make([]MenuItem, 0, len(matched))
+	for _, item := range g.Items {
+		if matchedSet[item.display()] {
+			filtered = append(filtered, item)
 		}
-	}*/
+	}
 
 	// We overwrite the group's items, (will be refreshed as soon as something is typed in the search)
-	g.Suggestions = suggs
+	g.Items = filtered
 
 	// Finally, the group computes its new printing settings
 	g.init(rl)
 
 	// If we are in history completion, we directly pass to the first candidate
-	if rl.modeAutoFind && rl.searchMode == HistoryFind && len(g.Suggestions) > 0 {
+	if rl.modeAutoFind && rl.searchMode == HistoryFind && len(g.Items) > 0 {
 		g.tcPosY = 1
 	}
 }
@@ -129,15 +177,12 @@ func (g *CompletionGroup) checkMaxLength(rl *Readline) {
 
 }
 
-// checkNilItems - For each completion group we avoid nil maps and possibly other items
+// checkNilItems - For each completion group we ensure a non-nil item slice.
 func checkNilItems(groups []*CompletionGroup) (checked []*CompletionGroup) {
 
 	for _, grp := range groups {
-		if grp.Descriptions == nil || len(grp.Descriptions) == 0 {
-			grp.Descriptions = make(map[string]string)
-		}
-		if grp.Aliases == nil || len(grp.Aliases) == 0 {
-			grp.Aliases = make(map[string]string)
+		if grp.Items == nil {
+			grp.Items = []MenuItem{}
 		}
 		checked = append(checked, grp)
 	}
@@ -150,7 +195,7 @@ func checkNilItems(groups []*CompletionGroup) (checked []*CompletionGroup) {
 func (g *CompletionGroup) writeCompletion(rl *Readline) (comp string) {
 
 	// Avoids empty groups in suggestions
-	if len(g.Suggestions) == 0 {
+	if len(g.Items) == 0 {
 		return
 	}
 
@@ -167,54 +212,56 @@ func (g *CompletionGroup) writeCompletion(rl *Readline) (comp string) {
 	return
 }
 
-// getCurrentCell - The completion groups computes the current cell value,
-// depending on its display type and its different parameters
-func (g *CompletionGroup) getCurrentCell(rl *Readline) string {
-
+// currentCellIndex returns the index into g.Items of the currently highlighted
+// cell, depending on display type and position state. Returns -1 if out of range.
+func (g *CompletionGroup) currentCellIndex() int {
 	switch g.DisplayType {
 	case TabDisplayGrid:
-		// x & y coodinates + safety check
 		cell := (g.tcMaxX * (g.tcPosY - 1)) + g.tcOffset + g.tcPosX - 1
 		if cell < 0 {
 			cell = 0
 		}
-
-		if cell < len(g.Suggestions) {
-			return g.Suggestions[cell]
+		if cell < len(g.Items) {
+			return cell
 		}
-		return ""
+		return -1
 
-	case TabDisplayMap:
-		// x & y coodinates + safety check
+	case TabDisplayMap, TabDisplayList:
 		cell := g.tcOffset + g.tcPosY - 1
 		if cell < 0 {
 			cell = 0
 		}
-
-		sugg := g.Suggestions[cell]
-		return sugg
-
-	case TabDisplayList:
-		// x & y coodinates + safety check
-		cell := g.tcOffset + g.tcPosY - 1
-		if cell < 0 {
-			cell = 0
+		if cell < len(g.Items) {
+			return cell
 		}
-
-		sugg := g.Suggestions[cell]
-
-		// If we are in the alt suggestions column, check key and return
-		if g.tcPosX == 1 {
-			if alt, ok := g.Aliases[sugg]; ok {
-				return alt
-			}
-			return sugg
-		}
-		return sugg
+		return -1
 	}
+	return -1
+}
 
-	// We should never get here
-	return ""
+// getCurrentItem returns the currently highlighted MenuItem, or nil.
+func (g *CompletionGroup) getCurrentItem() *MenuItem {
+	idx := g.currentCellIndex()
+	if idx < 0 {
+		return nil
+	}
+	return &g.Items[idx]
+}
+
+// getCurrentCell - The completion groups computes the current cell value (the
+// text that would be inserted), depending on its display type and parameters.
+func (g *CompletionGroup) getCurrentCell(rl *Readline) string {
+	idx := g.currentCellIndex()
+	if idx < 0 {
+		return ""
+	}
+	item := g.Items[idx]
+
+	// In list display, the alt-suggestions column inserts the alias instead.
+	if g.DisplayType == TabDisplayList && g.tcPosX == 1 && item.Alias != "" {
+		return item.Alias
+	}
+	return item.Value
 }
 
 func (g *CompletionGroup) goFirstCell() {
@@ -241,7 +288,7 @@ func (g *CompletionGroup) goLastCell() {
 	case TabDisplayGrid:
 		g.tcPosY = g.tcMaxY
 
-		restX := len(g.Suggestions) % g.tcMaxX
+		restX := len(g.Items) % g.tcMaxX
 		if restX != 0 {
 			g.tcPosX = restX
 		} else {
@@ -251,8 +298,8 @@ func (g *CompletionGroup) goLastCell() {
 		// We need to adjust the X position depending
 		// on the interpretation of the remainder with
 		// respect to the group's MaxLength.
-		restY := len(g.Suggestions) % g.tcMaxY
-		maxY := len(g.Suggestions) / g.tcMaxX
+		restY := len(g.Items) % g.tcMaxY
+		maxY := len(g.Items) / g.tcMaxX
 		if restY == 0 && maxY > g.MaxLength {
 			g.tcPosX = g.tcMaxX
 		}
@@ -266,8 +313,8 @@ func (g *CompletionGroup) goLastCell() {
 
 		// If the max length is smaller than the number
 		// of suggestions, we need to adjust the offset.
-		if len(g.Suggestions) > g.MaxLength {
-			g.tcOffset = len(g.Suggestions) - g.tcMaxY
+		if len(g.Items) > g.MaxLength {
+			g.tcOffset = len(g.Items) - g.tcMaxY
 		}
 
 		// We do not take into account the alternative suggestions
@@ -279,8 +326,8 @@ func (g *CompletionGroup) goLastCell() {
 
 		// If the max length is smaller than the number
 		// of suggestions, we need to adjust the offset.
-		if len(g.Suggestions) > g.MaxLength {
-			g.tcOffset = len(g.Suggestions) - g.tcMaxY
+		if len(g.Items) > g.MaxLength {
+			g.tcOffset = len(g.Items) - g.tcMaxY
 		}
 
 		// We do not take into account the alternative suggestions

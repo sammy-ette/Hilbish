@@ -217,6 +217,12 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 		return pfx, compGroups
 	}
 
+	// GetMultiLine callback: since the buffer now supports literal \n,
+	// we simply return the buffer as-is for $EDITOR multi-line editing
+	rl.GetMultiLine = func(line []rune) []rune {
+		return line
+	}
+
 	return lr
 }
 

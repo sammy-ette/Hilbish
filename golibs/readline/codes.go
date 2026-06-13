@@ -204,7 +204,7 @@ func (rl *Readline) ReadChar() string {
 		return "Enter"
 	case charEscape:
 		switch s {
-		case string(charEscape):
+		case string(rune(charEscape)):
 			return "Escape"
 		case seqUp:
 			return "Up"
