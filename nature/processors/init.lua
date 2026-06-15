@@ -14,6 +14,8 @@ function hilbish.processors.add(processor)
 		error 'processor is missing function'
 	end
 
+	processor.priority = processor.priority or 0
+
 	table.insert(hilbish.processors.list, processor)
 	table.sort(hilbish.processors.list, function(a, b) return a.priority < b.priority end)
 end
