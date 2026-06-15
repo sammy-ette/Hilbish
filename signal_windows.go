@@ -15,9 +15,6 @@ func handleSignals() {
 		switch s {
 		case os.Interrupt:
 			hooks.Emit("signal.sigint")
-			if !running && interactive {
-				lr.ClearInput()
-			}
 		}
 	}
 }
