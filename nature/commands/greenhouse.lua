@@ -106,9 +106,10 @@ commander.register('greenhouse', function(args, sinks)
 		local f <close> = io.open(name, 'r')
 		if not f then
 			sinks.err:writeln(string.format('could not open file %s', name))
+		else
+			local page = Page(name, f:read '*a')
+			gh:addPage(page)
 		end
-		local page = Page(name, f:read '*a')
-		gh:addPage(page)
 	end
 
 	if #gh.pages == 0 then
