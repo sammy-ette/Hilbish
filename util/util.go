@@ -32,15 +32,6 @@ func (e ExecError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Cmd, e.Typ)
 }
 
-func (e ExecError) sprint() error {
-	sep := " "
-	if e.Colon {
-		sep = ": "
-	}
-
-	return fmt.Errorf("hilbish: %s%s%s", e.Cmd, sep, e.Err.Error())
-}
-
 func IsExecError(err error) (ExecError, bool) {
 	if exErr, ok := err.(ExecError); ok {
 		return exErr, true
@@ -85,7 +76,7 @@ func SetField(rtm *rt.Runtime, module *rt.Table, field string, value rt.Value) {
 // is one which has a metatable proxy to ensure no overrides happen to it.
 // It sets the field in the table and sets the __docProp metatable on the
 // user facing table.
-func SetFieldProtected(module, realModule *rt.Table, field string, value rt.Value) {
+func SetFieldProtected(realModule *rt.Table, field string, value rt.Value) {
 	realModule.Set(rt.StringValue(field), value)
 }
 

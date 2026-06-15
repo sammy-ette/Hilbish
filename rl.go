@@ -17,9 +17,6 @@ type lineReader struct {
 	fileHist *fileHistory
 }
 
-var hinter *rt.Closure
-var highlighter *rt.Closure
-
 func newLineReader(noHist bool) *lineReader {
 	rl := readline.NewInstance()
 	lr := &lineReader{

@@ -13,7 +13,6 @@
 package main
 
 import (
-	//"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -28,9 +27,7 @@ import (
 	"github.com/arnodel/golua/lib/packagelib"
 	rt "github.com/arnodel/golua/runtime"
 
-	//"github.com/arnodel/golua/lib/iolib"
 	"github.com/maxlandon/readline"
-	//"mvdan.cc/sh/v3/interp"
 )
 
 var exports = map[string]util.LuaExport{
@@ -150,37 +147,6 @@ func setVimMode(mode string) {
 func unsetVimMode() {
 	util.SetField(l, hshMod, "vimMode", rt.NilValue)
 }
-
-/*
-func handleStream(v rt.Value, strms *streams, errStream bool) error {
-	ud, ok := v.TryUserData()
-	if !ok {
-		return errors.New("expected metatable argument")
-	}
-
-	val := ud.Value()
-	var varstrm io.Writer
-	if f, ok := val.(*iolib.File); ok {
-		varstrm = f.Handle()
-	}
-
-	if f, ok := val.(*sink); ok {
-		varstrm = f.writer
-	}
-
-	if varstrm == nil {
-		return errors.New("expected either a sink or file")
-	}
-
-	if errStream {
-		strms.stderr = varstrm
-	} else {
-		strms.stdout = varstrm
-	}
-
-	return nil
-}
-*/
 
 // cwd() -> string
 // Returns the current directory of the shell.
