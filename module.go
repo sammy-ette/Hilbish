@@ -84,7 +84,7 @@ func moduleLoad(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	loader, ok := value.(func(*rt.Runtime) rt.Value)
 	if !ok {
-		return nil, nil
+		return nil, fmt.Errorf("module has wrong function signature: should be func(*rt.Runtime) rt.Value")
 	}
 
 	val := loader(t.Runtime)
