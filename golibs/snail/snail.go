@@ -150,7 +150,7 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 						select {
 						case <-sig:
 							t.KillContext()
-						case <-done:
+						case <-done: // branch allows the goroutine to go away
 						}
 					}()
 
@@ -172,8 +172,9 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 					if code, ok := luaexitcode.TryInt(); ok {
 						exitcode = uint8(code)
 					} else if luaexitcode != rt.NilValue {
-						// deregister commander
-						delete(cmds, args[0])
+						commanderMod := util.MustDoString(s.runtime, "return require 'commander'").AsTable()
+						deregister := commanderMod.Get(rt.StringValue("deregister"))
+						rt.Call1(s.runtime.MainThread(), deregister, rt.StringValue(args[0]))
 						fmt.Fprintf(os.Stderr, "Commander did not return number for exit code. %s, you're fired.\n", args[0])
 					}
 
