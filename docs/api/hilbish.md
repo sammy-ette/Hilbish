@@ -18,7 +18,6 @@ interfaces and functions which directly relate to shell functionality.
 - [`hilbish.appendPath(dir)`](#appendPath): Appends the provided dir to the command path (`$PATH`)
 - [`hilbish.cwd() -> string`](#cwd): Returns the current directory of the shell.
 - [`hilbish.exec(cmd)`](#exec): Replaces the currently running Hilbish instance with the supplied command.
-- [`hilbish.goro(fn)`](#goro): Puts `fn` in a Goroutine.
 - [`hilbish.highlighter(line)`](#highlighter): Line highlighter handler.
 - [`hilbish.hinter(line, pos)`](#hinter): The command line hint handler. It gets called on every key insert to
 - [`hilbish.inputMode(mode)`](#inputMode): Sets the input mode for Hilbish's line reader.
@@ -124,24 +123,6 @@ This can be used to do an in-place restart.
 #### Parameters
 
 `string` _cmd_  
-
-
-
-
----
-
-#### goro
-
-hilbish.goro(fn)
-
-Puts `fn` in a Goroutine.  
-This can be used to run any function in another thread at the same time as other Lua code.  
-**NOTE: THIS FUNCTION MAY CRASH HILBISH IF OUTSIDE VARIABLES ARE ACCESSED.**  
-**This is a limitation of the Lua runtime.**  
-
-#### Parameters
-
-`function` _fn_  
 
 
 

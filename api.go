@@ -35,7 +35,6 @@ var exports = map[string]util.LuaExport{
 	"appendPath":  {Function: hlappendPath, ArgNum: 1, Variadic: false},
 	"cwd":         {Function: hlcwd, ArgNum: 0, Variadic: false},
 	"exec":        {Function: hlexec, ArgNum: 1, Variadic: false},
-	"goro":        {Function: hlgoro, ArgNum: 1, Variadic: true},
 	"highlighter": {Function: hlhighlighter, ArgNum: 1, Variadic: false},
 	"hinter":      {Function: hlhinter, ArgNum: 1, Variadic: false},
 	"multiprompt": {Function: hlmultiprompt, ArgNum: 1, Variadic: false},
@@ -386,38 +385,6 @@ func hlexec(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		cmd.Run()
 		os.Exit(0)
 	}
-
-	return c.Next(), nil
-}
-
-// goro(fn)
-// Puts `fn` in a Goroutine.
-// This can be used to run any function in another thread at the same time as other Lua code.
-// **NOTE: THIS FUNCTION MAY CRASH HILBISH IF OUTSIDE VARIABLES ARE ACCESSED.**
-// **This is a limitation of the Lua runtime.**
-// #param fn function
-func hlgoro(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
-	}
-	fn, err := c.ClosureArg(0)
-	if err != nil {
-		return nil, err
-	}
-
-	// call fn
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				// do something here?
-			}
-		}()
-
-		_, err := rt.Call1(l.MainThread(), rt.FunctionValue(fn), c.Etc()...)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error in goro function:\n\n", err)
-		}
-	}()
 
 	return c.Next(), nil
 }
