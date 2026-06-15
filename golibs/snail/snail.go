@@ -67,7 +67,9 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 	buf := new(bytes.Buffer)
 	//printer := syntax.NewPrinter()
 
-	replacer := strings.NewReplacer("[", "\\[", "]", "\\]")
+	aliasesMod := util.MustDoString(s.runtime, "return hilbish.aliases").AsTable()
+	aliasesListFn := aliasesMod.Get(rt.StringValue("list"))
+	aliasesResolveFn := aliasesMod.Get(rt.StringValue("resolve"))
 
 	var bg bool
 	for _, stmt := range file.Stmts {
@@ -86,7 +88,10 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 				_, argstring := splitInput(strings.Join(args, " "))
 				// i dont really like this but it works
 				aliases := make(map[string]string)
-				aliasesLua, _ := util.DoString(s.runtime, "return hilbish.aliases.list()")
+				aliasesLua, err := rt.Call1(s.runtime.MainThread(), aliasesListFn)
+				if err != nil {
+					return err
+				}
 				util.ForEach(aliasesLua.AsTable(), func(k, v rt.Value) {
 					aliases[k.AsString()] = v.AsString()
 				})
@@ -99,9 +104,12 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 					_, argstring = splitInput(strings.Join(args, " "))
 
 					// If alias was found, use command alias
-					argstring = util.MustDoString(s.runtime, fmt.Sprintf(`return hilbish.aliases.resolve [[%s]]`, replacer.Replace(argstring))).AsString()
+					resolved, err := rt.Call1(s.runtime.MainThread(), aliasesResolveFn, rt.StringValue(argstring))
+					if err != nil {
+						return err
+					}
+					argstring = resolved.AsString()
 
-					var err error
 					args, err = shell.Fields(argstring, nil)
 					if err != nil {
 						return err
