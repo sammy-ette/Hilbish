@@ -100,11 +100,10 @@ func MustDoString(rtm *rt.Runtime, code string) rt.Value {
 // DoFile runs the contents of the file in the Lua runtime.
 func DoFile(rtm *rt.Runtime, path string) error {
 	f, err := os.Open(path)
-	defer f.Close()
-
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	reader := bufio.NewReader(f)
 	c, err := reader.ReadByte()
@@ -244,7 +243,7 @@ func LookPath(file string) (string, error) { // custom lookpath function so we k
 
 func Contains(s []string, e string) bool {
 	for _, a := range s {
-		if strings.ToLower(a) == strings.ToLower(e) {
+		if strings.EqualFold(a, e) {
 			return true
 		}
 	}
