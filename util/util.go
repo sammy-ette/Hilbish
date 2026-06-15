@@ -212,7 +212,15 @@ func AbbrevHome(path string) string {
 func LookPath(file string) (string, error) { // custom lookpath function so we know if a command is found *and* is executable
 	var skip []string
 	if runtime.GOOS == "windows" {
-		skip = []string{"./", "../", "~/", "C:"}
+		skip = []string{"./", "../", "~/"}
+		// absolute paths with a drive letter (eg C:\foo, d:/foo) are
+		// already a full path and shouldn't be searched for in PATH
+		if len(file) >= 2 && file[1] == ':' {
+			c := file[0]
+			if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') {
+				return file, FindExecutable(file, false, false)
+			}
+		}
 	} else {
 		skip = []string{"./", "/", "../", "~/"}
 	}
