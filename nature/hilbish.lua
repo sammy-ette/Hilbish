@@ -74,6 +74,6 @@ function hilbish.runnerMode(mode)
 		})
 		hilbish.runner.setCurrent '_'
 	else
-		error('expected runner mode type to be either string or function, got', type(mode))
+		error('expected runner mode type to be either string or function, got ' .. type(mode))
 	end
 end

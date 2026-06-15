@@ -276,7 +276,7 @@ func freaddir(mlr *moonlight.Runtime) error {
 		return err
 	}
 	for i, entry := range dirEntries {
-		names.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(entry.Name()))
+		names.Set(rt.IntValue(int64(i+1)), rt.StringValue(entry.Name()))
 	}
 
 	mlr.PushNext1(moonlight.TableValue(names))

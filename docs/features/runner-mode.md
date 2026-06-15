@@ -27,27 +27,24 @@ first then going to shell script. If you want the reverse order, you can
 set it to `hybridRev` and for isolated modes there is `sh` and `lua`
 respectively.
 
-You can also set it to a function, which will be called everytime Hilbish
+You can also set it to a function, which will be called every time Hilbish
 needs to run interactive input. For more detail, see the [API documentation](../../api/hilbish/hilbish.runner)
 
 The `hilbish.runner` interface is an alternative to using `hilbish.runnerMode`
 and also provides the shell script and Lua runner functions that Hilbish itself uses.
 
 ## Functions
+
 These are the "low level" functions for the `hilbish.runner` interface.
 
-+ setMode(mode) > The same as `hilbish.runnerMode`
-+ sh(input) -> table > Runs `input` in Hilbish's sh interpreter
-+ lua(input) -> table > Evals `input` as Lua code
+- setMode(mode) > The same as `hilbish.runnerMode`
+- sh(input) -> table > Runs `input` in Hilbish's sh interpreter
+- lua(input) -> table > Evals `input` as Lua code
 
 These functions should be preferred over the previous ones.
-+ setCurrent(mode) > The same as `setMode`, but works with runners managed
-via the functions below.
-+ add(name, runner) > Adds a runner to a table of available runners. The `runner`
-argument is either a function or a table with a run callback.
-+ set(name, runner) > The same as `add` but requires passing a table and
-overwrites if the `name`d runner already exists.
-+ get(name) > runner > Gets a runner by name. It is a table with at least a
-run function, to run input.
-+ exec(cmd, runnerName) > Runs `cmd` with a runner. If `runnerName` isn't passed,
-the current runner mode is used.
+
+- setCurrent(mode) > The same as `setMode`, but works with runners managed via the functions below.
+- add(name, runner) > Adds a runner to a table of available runners. The `runner` argument is either a function or a table with a run callback.
+- set(name, runner) > The same as `add` but requires passing a table and overwrites if the `name`d runner already exists.
+- get(name) -> runner > Gets a runner by name. It is a table with at least a run function, to run input.
+- exec(cmd, runnerName) > Runs `cmd` with a runner. If `runnerName` isn't passed, the current runner mode is used.

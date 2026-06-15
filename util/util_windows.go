@@ -3,8 +3,8 @@
 package util
 
 import (
-	"path/filepath"
 	"os"
+	"path/filepath"
 )
 
 func FindExecutable(path string, inPath, dirs bool) error {
@@ -21,14 +21,18 @@ func FindExecutable(path string, inPath, dirs bool) error {
 		} else {
 			_, err := os.Stat(path)
 			if err == nil {
-				if Contains(pathExts, nameExt) { return nil }
+				if Contains(pathExts, nameExt) {
+					return nil
+				}
 				return ErrNotExec
 			}
 		}
 	} else {
 		_, err := os.Stat(path)
 		if err == nil {
-			if Contains(pathExts, nameExt) { return nil }
+			if Contains(pathExts, nameExt) {
+				return nil
+			}
 			return ErrNotExec
 		}
 	}

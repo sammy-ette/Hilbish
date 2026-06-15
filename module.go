@@ -81,7 +81,7 @@ func moduleLoad(mlr *moonlight.Runtime, c *moonlight.GoCont) (moonlight.Cont, er
 
 	loader, ok := value.(func(*moonlight.Runtime) moonlight.Value)
 	if !ok {
-		return nil, nil
+		return nil, fmt.Errorf("module has wrong function signature: should be func(*rt.Runtime) rt.Value")
 	}
 
 	val := loader(mlr)

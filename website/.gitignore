@@ -1,0 +1,7 @@
+*.beam
+*.ez
+/build
+erl_crash.dump
+tailwind.css
+public/
+node_modules/

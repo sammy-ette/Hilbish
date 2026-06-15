@@ -51,7 +51,7 @@ func splitForFile(str string) []string {
 		if r == '"' {
 			quoted = !quoted
 			sb.WriteRune(r)
-		} else if r == ' ' && str[i-1] == '\\' {
+		} else if r == ' ' && i > 0 && str[i-1] == '\\' {
 			sb.WriteRune(r)
 		} else if !quoted && r == ' ' {
 			split = append(split, sb.String())
@@ -71,7 +71,7 @@ func splitForFile(str string) []string {
 	return split
 }
 
-func fileComplete(query, ctx string, fields []string) ([]string, string) {
+func fileComplete(ctx string) ([]string, string) {
 	q := splitForFile(ctx)
 	path := ""
 	if len(q) != 0 {
@@ -81,7 +81,32 @@ func fileComplete(query, ctx string, fields []string) ([]string, string) {
 	return matchPath(path)
 }
 
-func binaryComplete(query, ctx string, fields []string) ([]string, string) {
+func dirComplete(query, ctx string) ([]string, string) {
+	q := splitForFile(ctx)
+	path := ""
+	if len(q) != 0 {
+		path = q[len(q)-1]
+	}
+
+	var completions []string
+
+	fileCompletions, filePref := matchPath(path)
+	for _, f := range fileCompletions {
+		fullPath, _ := filepath.Abs(util.ExpandHome(query + strings.TrimPrefix(f, filePref)))
+		fi, err := os.Stat(fullPath)
+		if err != nil {
+			continue
+		}
+
+		if fi.IsDir() {
+			completions = append(completions, f)
+		}
+	}
+
+	return completions, query
+}
+
+func binaryComplete(query, ctx string) ([]string, string) {
 	q := splitForFile(ctx)
 	query = ""
 	if len(q) != 0 {
@@ -162,9 +187,12 @@ func matchPath(query string) ([]string, string) {
 		}
 
 		if file.Mode()&os.ModeSymlink != 0 {
-			path, err := filepath.EvalSymlinks(filepath.Join(path, file.Name()))
-			if err == nil {
-				file, err = os.Lstat(path)
+			// If the symlink is broken (or otherwise can't be resolved),
+			// just keep treating it as the symlink entry itself
+			if resolved, err := filepath.EvalSymlinks(filepath.Join(path, file.Name())); err == nil {
+				if info, err := os.Lstat(resolved); err == nil {
+					file = info
+				}
 			}
 		}
 
@@ -190,7 +218,7 @@ func escapeFilename(fname string) string {
 	return escapeReplaer.Replace(fname)
 }
 
-// #interface completion
+// #interface completions
 // tab completions
 // The completions interface deals with tab completions.
 func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
@@ -199,6 +227,9 @@ func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
 		//"call":    {hcmpCall, 4, false},
 		//		"files":   {hcmpFiles, 3, false},
 		//		"handler": {hcmpHandler, 2, false},
+		// "dirs":    {Function: hcmpDirs, ArgNum: 3, Variadic: false},
+		// "add":     {Function: hcmpAdd, ArgNum: 2, Variadic: false},
+		// "handler": {Function: hcmpHandler, ArgNum: 2, Variadic: false},
 	}
 
 	mod := moonlight.NewTable()
@@ -207,7 +238,57 @@ func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
 	return mod
 }
 
-// #interface completion
+// #interface completions
+// add(scope, cb)
+// Registers a completion handler for the specified scope.
+// A `scope` is expected to be `command.<cmd>`,
+// replacing <cmd> with the name of the command (for example `command.git`).
+// The documentation for completions, under Features/Completions or `doc completions`
+// provides more details.
+// #param scope string
+// #param cb function
+/*
+#example
+-- This is a very simple example. Read the full doc for completions for details.
+hilbish.completions.add('command.sudo', function(query, ctx, fields)
+	if #fields == 0 then
+		-- complete for commands
+		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
+		local compGroup = {
+			items = comps, -- our list of items to complete
+			type = 'grid' -- what our completions will look like.
+		}
+
+		return {compGroup}, pfx
+	end
+
+	-- otherwise just be boring and return files
+
+	local comps, pfx = hilbish.completions.files(query, ctx, fields)
+	local compGroup = {
+		items = comps,
+		type = 'grid'
+	}
+
+	return {compGroup}, pfx
+end)
+#example
+*/
+/*
+func hcmpAdd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	scope, cb, err := util.HandleStrCallback(t, c)
+	if err != nil {
+		return nil, err
+	}
+	luaCompletionsMu.Lock()
+	luaCompletions[scope] = cb
+	luaCompletionsMu.Unlock()
+
+	return c.Next(), nil
+}
+*/
+
+// #interface completions
 // bins(query, ctx, fields) -> entries (table), prefix (string)
 // Return binaries/executables based on the provided parameters.
 // This function is meant to be used as a helper in a command completion handler.
@@ -217,12 +298,12 @@ func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
 /*
 #example
 -- an extremely simple completer for sudo.
-hilbish.complete('command.sudo', function(query, ctx, fields)
+hilbish.completions.add('command.sudo', function(query, ctx, fields)
 	table.remove(fields, 1)
 	if #fields[1] then
 		-- return commands because sudo runs a command as root..!
 
-		local entries, pfx = hilbish.completion.bins(query, ctx, fields)
+		local entries, pfx = hilbish.completions.bins(query, ctx, fields)
 		return {
 			type = 'grid',
 			items = entries
@@ -239,7 +320,8 @@ func hcmpBins(mlr *moonlight.Runtime) error {
 		return err
 	}
 
-	completions, _ := binaryComplete(query, ctx, fds)
+	var _ []string = fds
+	completions, _ := binaryComplete(query, ctx)
 	luaComps := moonlight.NewTable()
 
 	for i, comp := range completions {
@@ -251,7 +333,7 @@ func hcmpBins(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface completion
+// #interface completions
 // call(name, query, ctx, fields) -> completionGroups (table), prefix (string)
 // Calls a completer function. This is mainly used to call a command completer, which will have a `name`
 // in the form of `command.name`, example: `command.git`.
@@ -282,9 +364,10 @@ func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	var completecb *rt.Closure
-	var ok bool
-	if completecb, ok = luaCompletions[completer]; !ok {
+	luaCompletionsMu.RLock()
+	completecb, ok := luaCompletions[completer]
+	luaCompletionsMu.RUnlock()
+	if !ok {
 		return nil, errors.New("completer " + completer + " does not exist")
 	}
 
@@ -306,7 +389,7 @@ func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 }
 */
 
-// #interface completion
+// #interface completions
 // files(query, ctx, fields) -> entries (table), prefix (string)
 // Returns file matches based on the provided parameters.
 // This function is meant to be used as a helper in a command completion handler.
@@ -315,33 +398,61 @@ func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #param fields table
 /*
 func hcmpFiles(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(t, c)
+	query, ctx, fds, err := getCompleteParams(c)
 	if err != nil {
 		return nil, err
 	}
 
-	completions, pfx := fileComplete(query, ctx, fds)
+	var _ []string = fds
+	var _ string = query
+	completions, pfx := fileComplete(ctx)
 	luaComps := rt.NewTable()
 
 	for i, comp := range completions {
-		luaComps.Set(rt.IntValue(int64(i + 1)), rt.StringValue(comp))
+		luaComps.Set(rt.IntValue(int64(i+1)), rt.StringValue(comp))
 	}
 
 	return c.PushingNext(t.Runtime, rt.TableValue(luaComps), rt.StringValue(pfx)), nil
 }
 */
 
-// #interface completion
+// #interface completions
+// dirs(query, ctx, fields) -> entries (table), prefix (string)
+// Returns directory matches based on the provided parameters.
+// This function is meant to be used as a helper in a command completion handler.
+// #param query string
+// #param ctx string
+// #param fields table
+/*
+func hcmpDirs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	query, ctx, fds, err := getCompleteParams(c)
+	if err != nil {
+		return nil, err
+	}
+
+	var _ []string = fds
+	completions, pfx := dirComplete(query, ctx)
+	luaComps := rt.NewTable()
+
+	for i, comp := range completions {
+		luaComps.Set(rt.IntValue(int64(i+1)), rt.StringValue(comp))
+	}
+
+	return c.PushingNext(t.Runtime, rt.TableValue(luaComps), rt.StringValue(pfx)), nil
+}
+*/
+
+// #interface completions
 // handler(line, pos)
 // This function contains the general completion handler for Hilbish. This function handles
 // completion of everything, which includes calling other command handlers, binaries, and files.
-// This function can be overriden to supply a custom handler. Note that alias resolution is required to be done in this function.
+// This function can be overridden to supply a custom handler. Note that alias resolution is required to be done in this function.
 // #param line string The current Hilbish command line
 // #param pos number Numerical position of the cursor
 /*
 #example
 -- stripped down version of the default implementation
-function hilbish.completion.handler(line, pos)
+function hilbish.completions.handler(line, pos)
 	local query = fields[#fields]
 
 	if #fields == 1 then

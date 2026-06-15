@@ -23,7 +23,7 @@ shell script and Lua code!
 [[
 Add Lua-written commands with the commander module!
 Check the command {blue}doc api commander{reset} or the web docs:
-https://rosettea.github.io/Hilbish/docs/api/commander/
+https://hilbish.sammyette.party/docs/api/commander/
 ]]
 }
 

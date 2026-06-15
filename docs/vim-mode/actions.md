@@ -9,7 +9,7 @@ menu:
 
 Vim actions are essentially just when a user uses a Vim keybind.
 Things like yanking and pasting are Vim actions.
-This is not an "offical Vim thing," just a Hilbish thing.
+This is not an "official Vim thing," just a Hilbish thing.
 
 The `hilbish.vimAction` hook is thrown whenever a Vim action occurs.
 It passes 2 arguments: the action name, and an array (table) of args

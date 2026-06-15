@@ -7,7 +7,7 @@ commander.register('disown', function(args, sinks)
 	end
 
 	local id
-	if #args < 0 then
+	if #args > 0 then
 		id = tonumber(args[1])
 		if not id then
 			sinks.out:writeln 'disown: invalid id for job'

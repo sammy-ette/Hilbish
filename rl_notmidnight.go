@@ -9,7 +9,7 @@ import (
 	"github.com/maxlandon/readline"
 )
 
-func setupTabCompleter(rl *readline.Instance) {
+func setupTabCompleter(rl *readline.Readline) {
 	rl.TabCompleter = func(line []rune, pos int, _ readline.DelayedTabContext) (string, []*readline.CompletionGroup) {
 		term := rt.NewTerminationWith(l.UnderlyingRuntime().MainThread().CurrentCont(), 2, false)
 		compHandle := hshMod.Get(rt.StringValue("completion")).AsTable().Get(rt.StringValue("handler"))

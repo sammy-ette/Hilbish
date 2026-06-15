@@ -19,18 +19,6 @@ A runner is passed the input and has to return a table with these values.
 All are not required, only the useful ones the runner needs to return.
 (So if there isn't an error, just omit `err`.)
 
-<<<<<<< HEAD
-- `exitCode` (number): A numerical code to indicate the exit result.
-- `input` (string): The user input. This will be used to add
-to the history.
-- `err` (string): A string to indicate an interal error for the runner.
-It can be set to a few special values for Hilbish to throw the right hooks and have a better looking message:
-
-`[command]: not-found` will throw a command.not-found hook based on what `[command]` is.
-
-`[command]: not-executable` will throw a command.not-executable hook.
-- `continue` (boolean): Whether to prompt the user for more input.
-=======
 - `exitCode` (number): Exit code of the command
 - `input` (string): The text input of the user. This is used by Hilbish to append extra input, in case
 more is requested.
@@ -43,7 +31,6 @@ hooks and have a better looking message.
 	- `<command>: not-executable` will throw a `command.not-executable` hook.
 - `continue` (boolean): Whether Hilbish should prompt the user for no input
 - `newline` (boolean): Whether a newline should be added at the end of `input`.
->>>>>>> master
 
 Here is a simple example of a fennel runner. It falls back to
 shell script if fennel eval has an error.

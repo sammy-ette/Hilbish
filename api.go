@@ -13,7 +13,6 @@
 package main
 
 import (
-	//"bytes"
 	"errors"
 
 	"os"
@@ -23,7 +22,7 @@ import (
 	"strings"
 
 	//"syscall
-	//"time"
+	"time"
 
 	"hilbish/moonlight"
 	"hilbish/util"
@@ -32,7 +31,6 @@ import (
 	//"github.com/arnodel/golua/lib/packagelib"
 	//"github.com/arnodel/golua/lib/iolib"
 	"github.com/maxlandon/readline"
-	//"mvdan.cc/sh/v3/interp"
 )
 
 var hshMod *moonlight.Table
@@ -71,7 +69,11 @@ func hilbishLoader(mlr *moonlight.Runtime) moonlight.Value {
 	username := curuser.Username
 
 	if runtime.GOOS == "windows" {
-		username = strings.Split(username, "\\")[1] // for some reason Username includes the hostname on windows
+		// Username is usually in the form DOMAIN\username
+		// but just in case it isnt
+		if parts := strings.Split(username, "\\"); len(parts) > 1 {
+			username = parts[1]
+		}
 	}
 
 	hshMod.SetField("ver", moonlight.StringValue(getVersion()))
@@ -103,11 +105,9 @@ func hilbishLoader(mlr *moonlight.Runtime) moonlight.Value {
 	//historyModule := lr.Loader(rtm)
 	//mod.Set(rt.StringValue("history"), rt.TableValue(historyModule))
 
-	// hilbish.completion table
+	// hilbish.completions table
 	hshcomp := completionLoader(mlr)
-	// TODO: REMOVE "completion" AND ONLY USE "completions" WITH AN S
-	hshMod.SetField("completion", moonlight.TableValue(hshcomp))
-	hshMod.SetField("completions", moonlight.TableValue(hshcomp))
+	hshMod.Set(rt.StringValue("completions"), moonlight.TableValue(hshcomp))
 
 	// hilbish.runner table
 	runnerModule := runnerModeLoader(mlr)
@@ -135,8 +135,8 @@ func hilbishLoader(mlr *moonlight.Runtime) moonlight.Value {
 
 	// very meta
 	if !moonlight.IsMidnight() {
-		moduleModule := moduleLoader(mlr)
-		hshMod.SetField("module", moonlight.TableValue(moduleModule))
+		// moduleModule := moduleLoader(mlr)
+		// hshMod.SetField("module", moonlight.TableValue(moduleModule))
 	}
 
 	sinkModule := util.SinkLoader(mlr)
@@ -154,44 +154,13 @@ func getenv(key, fallback string) string {
 }
 
 func setVimMode(mode string) {
-	hshMod.SetField("vimMode", moonlight.StringValue(mode))
+	util.SetField(hshMod, "vimMode", moonlight.StringValue(mode))
 	hooks.Emit("hilbish.vimMode", mode)
 }
 
 func unsetVimMode() {
-	hshMod.SetField("vimMode", moonlight.NilValue)
+	util.SetField(hshMod, "vimMode", moonlight.NilValue)
 }
-
-/*
-func handleStream(v rt.Value, strms *streams, errStream bool) error {
-	ud, ok := v.TryUserData()
-	if !ok {
-		return errors.New("expected metatable argument")
-	}
-
-	val := ud.Value()
-	var varstrm io.Writer
-	if f, ok := val.(*iolib.File); ok {
-		varstrm = f.Handle()
-	}
-
-	if f, ok := val.(*sink); ok {
-		varstrm = f.writer
-	}
-
-	if varstrm == nil {
-		return errors.New("expected either a sink or file")
-	}
-
-	if errStream {
-		strms.stderr = varstrm
-	} else {
-		strms.stdout = varstrm
-	}
-
-	return nil
-}
-*/
 
 // cwd() -> string
 // Returns the current directory of the shell.
@@ -418,6 +387,9 @@ func hlexec(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 	cmdArgs, _ := splitInput(cmd)
+	if len(cmdArgs) == 0 {
+		return nil, errors.New("expected a command to run")
+	}
 	if runtime.GOOS != "windows" {
 		cmdPath, err := util.LookPath(cmdArgs[0])
 		if err != nil {
@@ -441,39 +413,6 @@ func hlexec(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), nil
 }
 */
-
-/*
-// goro(fn)
-// Puts `fn` in a Goroutine.
-// This can be used to run any function in another thread at the same time as other Lua code.
-// **NOTE: THIS FUNCTION MAY CRASH HILBISH IF OUTSIDE VARIABLES ARE ACCESSED.**
-// **This is a limitation of the Lua runtime.**
-// #param fn function
-func hlgoro(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
-	}
-	fn, err := c.ClosureArg(0)
-	if err != nil {
-		return nil, err
-	}
-
-	// call fn
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				// do something here?
-			}
-		}()
-
-		_, err := rt.Call1(l.MainThread(), rt.FunctionValue(fn), c.Etc()...)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error in goro function:\n\n", err)
-		}
-	}()
-
-	return c.Next(), nil
-}
 
 // timeout(cb, time) -> @Timer
 // Executed the `cb` function after a period of `time`.
@@ -526,54 +465,7 @@ func hlinterval(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(timer.ud)), nil
 }
-*/
 
-// complete(scope, cb)
-// Registers a completion handler for the specified scope.
-// A `scope` is expected to be `command.<cmd>`,
-// replacing <cmd> with the name of the command (for example `command.git`).
-// The documentation for completions, under Features/Completions or `doc completions`
-// provides more details.
-// #param scope string
-// #param cb function
-/*
-#example
--- This is a very simple example. Read the full doc for completions for details.
-hilbish.complete('command.sudo', function(query, ctx, fields)
-	if #fields == 0 then
-		-- complete for commands
-		local comps, pfx = hilbish.completion.bins(query, ctx, fields)
-		local compGroup = {
-			items = comps, -- our list of items to complete
-			type = 'grid' -- what our completions will look like.
-		}
-
-		return {compGroup}, pfx
-	end
-
-	-- otherwise just be boring and return files
-
-	local comps, pfx = hilbish.completion.files(query, ctx, fields)
-	local compGroup = {
-		items = comps,
-		type = 'grid'
-	}
-
-	return {compGroup}, pfx
-end)
-#example
-func hlcomplete(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	scope, cb, err := util.HandleStrCallback(t, c)
-	if err != nil {
-		return nil, err
-	}
-	luaCompletions[scope] = cb
-
-	return c.Next(), nil
-}
-*/
-
-/*
 // prependPath(dir)
 // Prepends `dir` to $PATH.
 // #param dir string
@@ -590,7 +482,7 @@ func hlprependPath(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	// if dir isnt already in $PATH, add in
 	if !strings.Contains(pathenv, dir) {
-		os.Setenv("PATH", dir + string(os.PathListSeparator) + pathenv)
+		os.Setenv("PATH", dir+string(os.PathListSeparator)+pathenv)
 	}
 
 	return c.Next(), nil
@@ -644,19 +536,18 @@ func hlinputMode(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	switch mode {
-		case "emacs":
-			unsetVimMode()
-			lr.rl.InputMode = readline.Emacs
-		case "vim":
-			setVimMode("insert")
-			lr.rl.InputMode = readline.Vim
-		default:
-			return nil, errors.New("inputMode: expected vim or emacs, received " + mode)
+	case "emacs":
+		unsetVimMode()
+		lr.rl.InputMode = readline.Emacs
+	case "vim":
+		setVimMode("insert")
+		lr.rl.InputMode = readline.Vim
+	default:
+		return nil, errors.New("inputMode: expected vim or emacs, received " + mode)
 	}
 
 	return c.Next(), nil
 }
-*/
 
 // hinter(line, pos)
 // The command line hint handler. It gets called on every key insert to
@@ -688,7 +579,9 @@ func hlhinter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #example
 // --This code will highlight all double quoted strings in green.
 // function hilbish.highlighter(line)
-//    return line:gsub('"%w+"', function(c) return lunacolors.green(c) end)
+//
+//	return line:gsub('"%w+"', function(c) return lunacolors.green(c) end)
+//
 // end
 // #example
 // #param line string

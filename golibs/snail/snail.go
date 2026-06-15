@@ -63,12 +63,14 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 	}
 
 	interp.StdIO(strms.Stdin, strms.Stdout, strms.Stderr)(s.runner)
-	interp.Env(nil)(s.runner)
+	interp.Env(expand.ListEnviron(append(os.Environ(), "PATH="+os.Getenv("PATH"))...))(s.runner)
 
 	buf := new(bytes.Buffer)
 	//printer := syntax.NewPrinter()
 
-	replacer := strings.NewReplacer("[", "\\[", "]", "\\]")
+	aliasesMod := util.MustDoString(s.runtime.UnderlyingRuntime(), "return hilbish.aliases").AsTable()
+	aliasesListFn := aliasesMod.Get(rt.StringValue("list"))
+	aliasesResolveFn := aliasesMod.Get(rt.StringValue("resolve"))
 
 	var bg bool
 	for _, stmt := range file.Stmts {
@@ -82,188 +84,201 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 			//jobs.add(stmtStr, []string{}, "")
 		}
 
-		interp.ExecHandler(func(ctx context.Context, args []string) error {
-			_, argstring := splitInput(strings.Join(args, " "))
-			// i dont really like this but it works
-			aliases := make(map[string]string)
-			/*
-				aliasesLua, _ := s.runtime.DoString("return hilbish.aliases.list()")
-				util.ForEach(aliasesLua.AsTable(), func(k, v rt.Value) {
-					aliases[k.AsString()] = v.AsString()
-				})
-			*/
-			if aliases[args[0]] != "" {
-				for i, arg := range args {
-					if strings.Contains(arg, " ") {
-						args[i] = fmt.Sprintf("\"%s\"", arg)
-					}
-				}
-				_, argstring = splitInput(strings.Join(args, " "))
-
-				// If alias was found, use command alias
-				argstring = s.runtime.MustDoString(fmt.Sprintf(`return hilbish.aliases.resolve [[%s]]`, replacer.Replace(argstring))).AsString()
-
-				var err error
-				args, err = shell.Fields(argstring, nil)
+		execHandler := func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
+			return func(ctx context.Context, args []string) error {
+				_, argstring := splitInput(strings.Join(args, " "))
+				// i dont really like this but it works
+				aliases := make(map[string]string)
+				aliasesLua, err := rt.Call1(s.runtime.UnderlyingRuntime().MainThread(), aliasesListFn)
 				if err != nil {
 					return err
 				}
-			}
-
-			// If command is defined in Lua then run it
-			luacmdArgs := rt.NewTable()
-			for i, str := range args[1:] {
-				luacmdArgs.Set(rt.IntValue(int64(i+1)), rt.StringValue(str))
-			}
-
-			hc := interp.HandlerCtx(ctx)
-
-			cmds := make(map[string]*rt.Closure)
-			luaCmds := s.runtime.MustDoString("local commander = require 'commander'; return commander.registry()").AsTable()
-			util.ForEach(luaCmds, func(k, v rt.Value) {
-				cmds[k.AsString()] = v.AsTable().Get(rt.StringValue("exec")).AsClosure()
-			})
-			if cmd := cmds[args[0]]; cmd != nil {
-				stdin := util.NewSinkInput(s.runtime, hc.Stdin)
-				stdout := util.NewSinkOutput(s.runtime, hc.Stdout)
-				stderr := util.NewSinkOutput(s.runtime, hc.Stderr)
-
-				sinks := rt.NewTable()
-				sinks.Set(rt.StringValue("in"), rt.UserDataValue(stdin.UserData))
-				sinks.Set(rt.StringValue("input"), rt.UserDataValue(stdin.UserData))
-				sinks.Set(rt.StringValue("out"), rt.UserDataValue(stdout.UserData))
-				sinks.Set(rt.StringValue("err"), rt.UserDataValue(stderr.UserData))
-
-				//t := rt.NewThread(s.runtime)
-				sig := make(chan os.Signal)
-				exit := make(chan bool)
-
-				luaexitcode := rt.IntValue(63)
-				var err error
-				go func() {
-					defer func() {
-						if r := recover(); r != nil {
-							exit <- true
+				util.ForEach(aliasesLua.AsTable(), func(k, v rt.Value) {
+					aliases[k.AsString()] = v.AsString()
+				})
+				if aliases[args[0]] != "" {
+					for i, arg := range args {
+						if strings.Contains(arg, " ") {
+							args[i] = fmt.Sprintf("\"%s\"", arg)
 						}
-					}()
+					}
+					_, argstring = splitInput(strings.Join(args, " "))
+
+					// If alias was found, use command alias
+					resolved, err := rt.Call1(s.runtime.UnderlyingRuntime().MainThread(), aliasesResolveFn, rt.StringValue(argstring))
+					if err != nil {
+						return err
+					}
+					argstring = resolved.AsString()
+
+					args, err = shell.Fields(argstring, nil)
+					if err != nil {
+						return err
+					}
+				}
+
+				// If command is defined in Lua then run it
+				luacmdArgs := rt.NewTable()
+				for i, str := range args[1:] {
+					luacmdArgs.Set(rt.IntValue(int64(i+1)), rt.StringValue(str))
+				}
+
+				hc := interp.HandlerCtx(ctx)
+
+				cmds := make(map[string]*rt.Closure)
+				luaCmds := util.MustDoString(s.runtime.UnderlyingRuntime(), "local commander = require 'commander'; return commander.registry()").AsTable()
+				util.ForEach(luaCmds, func(k, v rt.Value) {
+					cmds[k.AsString()] = v.AsTable().Get(rt.StringValue("exec")).AsClosure()
+				})
+				if cmd := cmds[args[0]]; cmd != nil {
+					stdin := util.NewSinkInput(s.runtime, hc.Stdin)
+					stdout := util.NewSinkOutput(s.runtime, hc.Stdout)
+					stderr := util.NewSinkOutput(s.runtime, hc.Stderr)
+
+					sinks := rt.NewTable()
+					sinks.Set(rt.StringValue("in"), rt.UserDataValue(stdin.UserData))
+					sinks.Set(rt.StringValue("input"), rt.UserDataValue(stdin.UserData))
+					sinks.Set(rt.StringValue("out"), rt.UserDataValue(stdout.UserData))
+					sinks.Set(rt.StringValue("err"), rt.UserDataValue(stderr.UserData))
+
+					t := rt.NewThread(s.runtime.UnderlyingRuntime())
+					sig := make(chan os.Signal, 1)
+					exit := make(chan bool, 1)
+					done := make(chan struct{})
+
+					luaexitcode := rt.IntValue(63)
+					var err error
 
 					signal.Notify(sig, os.Interrupt)
-					select {
-					case <-sig:
-						//t.KillContext()
-						return
+					go func() {
+						// KillContext panics, so recover is required
+						defer func() {
+							recover()
+						}()
+
+						select {
+						case <-sig:
+							t.KillContext()
+						case <-done: // branch allows the goroutine to go away
+						}
+					}()
+
+					go func() {
+						luaexitcode, err = rt.Call1(t, rt.FunctionValue(cmd), rt.TableValue(luacmdArgs), rt.TableValue(sinks))
+						exit <- true
+					}()
+
+					<-exit
+					close(done)
+					signal.Stop(sig)
+					if err != nil {
+						fmt.Fprintln(os.Stderr, "Error in command:\n"+err.Error())
+						return interp.NewExitStatus(1)
 					}
 
-				}()
+					var exitcode uint8
 
-				go func() {
-					//luaexitcode, err = rt.Call1(t, rt.FunctionValue(cmd), rt.TableValue(luacmdArgs), rt.TableValue(sinks))
-					exit <- true
-				}()
+					if code, ok := luaexitcode.TryInt(); ok {
+						exitcode = uint8(code)
+					} else if luaexitcode != rt.NilValue {
+						commanderMod := util.MustDoString(s.runtime.UnderlyingRuntime(), "return require 'commander'").AsTable()
+						deregister := commanderMod.Get(rt.StringValue("deregister"))
+						rt.Call1(s.runtime.UnderlyingRuntime().MainThread(), deregister, rt.StringValue(args[0]))
+						fmt.Fprintf(os.Stderr, "Commander did not return number for exit code. %s, you're fired.\n", args[0])
+					}
 
-				<-exit
-				if err != nil {
-					fmt.Fprintln(os.Stderr, "Error in command:\n"+err.Error())
-					return interp.NewExitStatus(1)
+					return interp.NewExitStatus(exitcode)
 				}
 
-				var exitcode uint8
-
-				if code, ok := luaexitcode.TryInt(); ok {
-					exitcode = uint8(code)
-				} else if luaexitcode != rt.NilValue {
-					// deregister commander
-					delete(cmds, args[0])
-					fmt.Fprintf(os.Stderr, "Commander did not return number for exit code. %s, you're fired.\n", args[0])
+				path, err := util.LookPath(args[0])
+				if err == util.ErrNotExec {
+					return util.ExecError{
+						Typ:   "not-executable",
+						Cmd:   args[0],
+						Code:  126,
+						Colon: true,
+						Err:   util.ErrNotExec,
+					}
+				} else if err != nil {
+					return util.ExecError{
+						Typ:  "not-found",
+						Cmd:  args[0],
+						Code: 127,
+						Err:  util.ErrNotFound,
+					}
 				}
 
-				return interp.NewExitStatus(exitcode)
-			}
+				killTimeout := 2 * time.Second
+				// from here is basically copy-paste of the default exec handler from
+				// sh/interp but with our job handling
 
-			path, err := util.LookPath(args[0])
-			if err == util.ErrNotExec {
-				return util.ExecError{
-					Typ:   "not-executable",
-					Cmd:   args[0],
-					Code:  126,
-					Colon: true,
-					Err:   util.ErrNotExec,
+				env := hc.Env
+				envList := os.Environ()
+				env.Each(func(name string, vr expand.Variable) bool {
+					if name == "PATH" {
+						return true
+					}
+					if vr.Exported && vr.Kind == expand.String {
+						envList = append(envList, name+"="+vr.String())
+					}
+					return true
+				})
+
+				cmd := exec.Cmd{
+					Path:   path,
+					Args:   args,
+					Env:    envList,
+					Dir:    hc.Dir,
+					Stdin:  hc.Stdin,
+					Stdout: hc.Stdout,
+					Stderr: hc.Stderr,
 				}
-			} else if err != nil {
-				return util.ExecError{
-					Typ:  "not-found",
-					Cmd:  args[0],
-					Code: 127,
-					Err:  util.ErrNotFound,
+
+				//var j *job
+				if bg {
+					/*
+						j = jobs.getLatest()
+						j.setHandle(&cmd)
+						err = j.start()
+					*/
+				} else {
+					err = cmd.Start()
 				}
-			}
 
-			killTimeout := 2 * time.Second
-			// from here is basically copy-paste of the default exec handler from
-			// sh/interp but with our job handling
-
-			env := hc.Env
-			envList := os.Environ()
-			env.Each(func(name string, vr expand.Variable) bool {
-				if vr.Exported && vr.Kind == expand.String {
-					envList = append(envList, name+"="+vr.String())
-				}
-				return true
-			})
-
-			cmd := exec.Cmd{
-				Path:   path,
-				Args:   args,
-				Env:    envList,
-				Dir:    hc.Dir,
-				Stdin:  hc.Stdin,
-				Stdout: hc.Stdout,
-				Stderr: hc.Stderr,
-			}
-
-			//var j *job
-			if bg {
-				/*
-					j = jobs.getLatest()
-					j.setHandle(&cmd)
-					err = j.start()
-				*/
-			} else {
-				err = cmd.Start()
-			}
-
-			if err == nil {
-				if done := ctx.Done(); done != nil {
-					go func() {
-						<-done
-
-						if killTimeout <= 0 || runtime.GOOS == "windows" {
-							cmd.Process.Signal(os.Kill)
-							return
-						}
-
-						// TODO: don't temporarily leak this goroutine
-						// if the program stops itself with the
-						// interrupt.
+				if err == nil {
+					if done := ctx.Done(); done != nil {
 						go func() {
-							time.Sleep(killTimeout)
-							cmd.Process.Signal(os.Kill)
+							<-done
+
+							if killTimeout <= 0 || runtime.GOOS == "windows" {
+								cmd.Process.Signal(os.Kill)
+								return
+							}
+
+							// TODO: don't temporarily leak this goroutine
+							// if the program stops itself with the
+							// interrupt.
+							go func() {
+								time.Sleep(killTimeout)
+								cmd.Process.Signal(os.Kill)
+							}()
+							cmd.Process.Signal(os.Interrupt)
 						}()
-						cmd.Process.Signal(os.Interrupt)
-					}()
+					}
+
+					err = cmd.Wait()
 				}
 
-				err = cmd.Wait()
-			}
+				exit := util.HandleExecErr(err)
 
-			exit := util.HandleExecErr(err)
-
-			if bg {
-				//j.exitCode = int(exit)
-				//j.finish()
+				if bg {
+					//j.exitCode = int(exit)
+					//j.finish()
+				}
+				return interp.NewExitStatus(exit)
 			}
-			return interp.NewExitStatus(exit)
-		})(s.runner)
+		}
+		interp.ExecHandlers(execHandler)(s.runner)
 		err = s.runner.Run(context.TODO(), stmt)
 		if err != nil {
 			return bg, strms.Stdout, strms.Stderr, err

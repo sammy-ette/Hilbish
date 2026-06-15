@@ -23,7 +23,6 @@ hilbish.abbr = {
 -- @param expanded|function string
 -- @param opts table
 function hilbish.abbr.add(abbr, expanded, opts)
-	print(abbr, expanded, opts)
 	opts = opts or {}
 	opts.abbr = abbr
 	opts.expand = expanded

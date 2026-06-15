@@ -75,6 +75,10 @@ func SinkLoader(mlr *moonlight.Runtime) *moonlight.Table {
 	mod := moonlight.NewTable()
 	mlr.SetExports(mod, exports)
 
+	SetField(mod, "stderr", rt.UserDataValue(NewSink(mlr, os.Stderr).UserData))
+	SetField(mod, "stdout", rt.UserDataValue(NewSink(mlr, os.Stdout).UserData))
+	SetField(mod, "stdin", rt.UserDataValue(NewSink(mlr, os.Stdin).UserData))
+
 	return mod
 }
 
@@ -270,6 +274,10 @@ func NewSinkOutput(mlr *moonlight.Runtime, w io.Writer) *Sink {
 		autoFlush: true,
 	}
 	//s.UserData = sinkUserData(rtm, s)
+
+	if f, ok := w.(*os.File); ok {
+		s.file = f
+	}
 
 	return s
 }

@@ -3,15 +3,14 @@
 Bait is the event emitter for Hilbish. Much like Node.js and
 its `events` system, many actions in Hilbish emit events.
 Unlike Node.js, Hilbish events are global. So make sure to
-pick a unique name!
-
-Usage of the Bait module consists of userstanding
+pick a unique name!<nl>
+Usage of the Bait module consists of understanding
 event-driven architecture, but it's pretty simple:
 If you want to act on a certain event, you can `catch` it.
-You can act on events via callback functions.
-
+You can act on events via callback functions.<nl>
 Examples of this are in the Hilbish default config!
 Consider this part of it:
+
 ```lua
 bait.catch('command.exit', function(code)
 	running = false
@@ -76,55 +75,66 @@ func (b *Bait) Emit(event string, args ...interface{}) []rt.Value {
 		return nil
 	}
 
-	for idx, handle := range handles {
-		defer func() {
-			if err := recover(); err != nil {
-				b.callRecoverer(event, handle, err)
-			}
-		}()
+	// Snapshot the listeners so that removals during iteration (eg "once"
+	// listeners, or a handler removing itself) don't skip or duplicate
+	// entries in b.handlers[event].
+	snapshot := make([]*Listener, len(handles))
+	copy(snapshot, handles)
 
-		if handle.typ == luaListener {
-			//funcVal := moonlight.FunctionValue(handle.luaCaller)
-			var luaArgs []moonlight.Value
-			for _, arg := range args {
-				var luarg moonlight.Value
-				switch arg.(type) {
-				case moonlight.Value:
-					luarg = arg.(moonlight.Value)
-				default:
-					luarg = moonlight.AsValue(arg)
-				}
-				luaArgs = append(luaArgs, luarg)
-			}
-			/*
-				luaRet, err := rt.Call1(b.rtm.MainThread(), funcVal, luaArgs...)
-				if err != nil {
-					if event != "error" {
-						b.Emit("error", event, handle.luaCaller, err.Error())
-						return nil
-					}
-					// if there is an error in an error event handler, panic instead
-					// (calls the go recoverer function)
-					panic(err)
-				}
-
-				if luaRet != rt.NilValue {
-					returns = append(returns, luaRet)
-				}
-			*/
-		} else {
-			ret := handle.caller(args...)
-			if ret != rt.NilValue {
-				returns = append(returns, ret)
-			}
+	for _, handle := range snapshot {
+		ret, called := b.callListener(event, handle, args...)
+		if called && ret != rt.NilValue {
+			returns = append(returns, ret)
 		}
 
 		if handle.once {
-			b.removeListener(event, idx)
+			b.removeListener(event, handle)
 		}
 	}
 
 	return returns
+}
+
+// callListener invokes a single listener, recovering from any panic so that
+// one bad listener doesn't prevent the rest of the listeners for this event
+// from running.
+func (b *Bait) callListener(event string, handle *Listener, args ...interface{}) (ret rt.Value, called bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			b.callRecoverer(event, handle, err)
+		}
+	}()
+
+	/*
+		if handle.typ == luaListener {
+			funcVal := rt.FunctionValue(handle.luaCaller)
+			var luaArgs []rt.Value
+			for _, arg := range args {
+				var luarg rt.Value
+				switch arg := arg.(type) {
+				case rt.Value:
+					luarg = arg
+				default:
+					luarg = rt.AsValue(arg)
+				}
+				luaArgs = append(luaArgs, luarg)
+			}
+			luaRet, err := rt.Call1(b.rtm.MainThread(), funcVal, luaArgs...)
+			if err != nil {
+				if event != "error" {
+					b.Emit("error", event, handle.luaCaller, err.Error())
+					return rt.NilValue, false
+				}
+				// if there is an error in an error event handler, panic instead
+				// (calls the go recoverer function)
+				panic(err)
+			}
+
+			return luaRet, true
+		}
+	*/
+
+	return handle.caller(args...), true
 }
 
 // On adds a Go function handler for an event.
@@ -151,22 +161,17 @@ func (b *Bait) OnLua(event string, handler *moonlight.Closure) *Listener {
 
 // Off removes a Go function handler for an event.
 func (b *Bait) Off(event string, listener *Listener) {
-	handles := b.handlers[event]
-
-	for i, handle := range handles {
-		if handle == listener {
-			b.removeListener(event, i)
-		}
-	}
+	b.removeListener(event, listener)
 }
 
 // OffLua removes a Lua function handler for an event.
 func (b *Bait) OffLua(event string, handler *moonlight.Closure) {
 	handles := b.handlers[event]
 
-	for i, handle := range handles {
+	for _, handle := range handles {
 		if handle.luaCaller == handler {
-			b.removeListener(event, i)
+			b.removeListener(event, handle)
+			return
 		}
 	}
 }
@@ -208,10 +213,16 @@ func (b *Bait) addListener(event string, listener *Listener) {
 	b.handlers[event] = append(b.handlers[event], listener)
 }
 
-func (b *Bait) removeListener(event string, idx int) {
-	b.handlers[event][idx] = b.handlers[event][len(b.handlers[event])-1]
+func (b *Bait) removeListener(event string, listener *Listener) {
+	handles := b.handlers[event]
 
-	b.handlers[event] = b.handlers[event][:len(b.handlers[event])-1]
+	for i, handle := range handles {
+		if handle == listener {
+			handles[i] = handles[len(handles)-1]
+			b.handlers[event] = handles[:len(handles)-1]
+			return
+		}
+	}
 }
 
 func (b *Bait) callRecoverer(event string, handler *Listener, err interface{}) {
@@ -296,8 +307,10 @@ func (b *Bait) bhooks(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	luaHandlers := rt.NewTable()
 	for _, handler := range handlers {
-		if handler.typ != luaListener { continue }
-		luaHandlers.Set(rt.IntValue(luaHandlers.Len() + 1), rt.FunctionValue(handler.luaCaller))
+		if handler.typ != luaListener {
+			continue
+		}
+		luaHandlers.Set(rt.IntValue(luaHandlers.Len()+1), rt.FunctionValue(handler.luaCaller))
 	}
 
 	if luaHandlers.Len() == 0 {

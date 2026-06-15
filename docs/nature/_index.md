@@ -14,6 +14,6 @@ Hilbish's Lua core module is called `nature`.
 It runs after Hilbish's Go core does.
 
 # Nature Modules
-Currently, `nature` provides 1 intended public module: `nature.dirs`.
-It is a simple API for managing recent directories and old
-current working directory.
+
+There are several modules that make up `nature`, each documented
+in the sidebar.
