@@ -267,6 +267,10 @@ func NewSinkOutput(rtm *rt.Runtime, w io.Writer) *Sink {
 	}
 	s.UserData = sinkUserData(rtm, s)
 
+	if f, ok := w.(*os.File); ok {
+		s.file = f
+	}
+
 	return s
 }
 
