@@ -66,8 +66,7 @@ func IsExecError(err error) (ExecError, bool) {
 
 // SetField sets a field in a table, adding docs for it.
 // It is accessible via the __docProp metatable. It is a table of the names of the fields.
-func SetField(rtm *rt.Runtime, module *rt.Table, field string, value rt.Value) {
-	// TODO:    ^ rtm isnt needed, i should remove it
+func SetField(module *rt.Table, field string, value rt.Value) {
 	module.Set(rt.StringValue(field), value)
 }
 
@@ -225,10 +224,9 @@ func LookPath(file string) (string, error) { // custom lookpath function so we k
 	err := os.ErrNotExist
 	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {
 		path := filepath.Join(dir, file)
-		err := FindExecutable(path, true, false)
-		switch err {
+		switch ferr := FindExecutable(path, true, false); ferr {
 		case ErrNotExec:
-			err = os.ErrNotExist
+			err = ErrNotExec
 		case nil:
 			return path, nil
 		}
