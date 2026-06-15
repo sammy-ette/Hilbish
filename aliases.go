@@ -15,14 +15,14 @@ var aliases *aliasModule
 
 type aliasModule struct {
 	aliases map[string]string
-	mu *sync.RWMutex
+	mu      *sync.RWMutex
 }
 
 // initialize aliases map
 func newAliases() *aliasModule {
 	return &aliasModule{
 		aliases: make(map[string]string),
-		mu: &sync.RWMutex{},
+		mu:      &sync.RWMutex{},
 	}
 }
 
@@ -64,7 +64,7 @@ func (a *aliasModule) Resolve(cmdstr string) string {
 				return strings.TrimPrefix(a, "\\")
 			}
 
-			if idx + 1 > len(args) {
+			if idx+1 > len(args) {
 				return a
 			}
 			val := args[idx]
@@ -73,7 +73,7 @@ func (a *aliasModule) Resolve(cmdstr string) string {
 
 			return val
 		})
-		
+
 		cmdstr = alias + strings.TrimPrefix(cmdstr, args[0])
 		cmdArgs, _ := splitInput(cmdstr)
 		args = cmdArgs
@@ -97,10 +97,10 @@ func (a *aliasModule) Resolve(cmdstr string) string {
 func (a *aliasModule) Loader(rtm *rt.Runtime) *rt.Table {
 	// create a lua module with our functions
 	hshaliasesLua := map[string]util.LuaExport{
-		"add": util.LuaExport{hlalias, 2, false},
-		"list": util.LuaExport{a.luaList, 0, false},
-		"del": util.LuaExport{a.luaDelete, 1, false},
-		"resolve": util.LuaExport{a.luaResolve, 1, false},
+		"add":     {Function: hlalias, ArgNum: 2, Variadic: false},
+		"list":    {Function: a.luaList, ArgNum: 0, Variadic: false},
+		"del":     {Function: a.luaDelete, ArgNum: 1, Variadic: false},
+		"resolve": {Function: a.luaResolve, ArgNum: 1, Variadic: false},
 	}
 
 	mod := rt.NewTable()

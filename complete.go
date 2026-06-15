@@ -72,7 +72,7 @@ func splitForFile(str string) []string {
 	return split
 }
 
-func fileComplete(query, ctx string, fields []string) ([]string, string) {
+func fileComplete(ctx string) ([]string, string) {
 	q := splitForFile(ctx)
 	path := ""
 	if len(q) != 0 {
@@ -82,7 +82,7 @@ func fileComplete(query, ctx string, fields []string) ([]string, string) {
 	return matchPath(path)
 }
 
-func dirComplete(query, ctx string, fields []string) ([]string, string) {
+func dirComplete(query, ctx string) ([]string, string) {
 	q := splitForFile(ctx)
 	path := ""
 	if len(q) != 0 {
@@ -107,7 +107,7 @@ func dirComplete(query, ctx string, fields []string) ([]string, string) {
 	return completions, query
 }
 
-func binaryComplete(query, ctx string, fields []string) ([]string, string) {
+func binaryComplete(query, ctx string) ([]string, string) {
 	q := splitForFile(ctx)
 	query = ""
 	if len(q) != 0 {
@@ -221,12 +221,12 @@ func escapeFilename(fname string) string {
 // The completions interface deals with tab completions.
 func completionLoader(rtm *rt.Runtime) *rt.Table {
 	exports := map[string]util.LuaExport{
-		"bins":    {hcmpBins, 3, false},
-		"call":    {hcmpCall, 4, false},
-		"files":   {hcmpFiles, 3, false},
-		"dirs":    {hcmpDirs, 3, false},
-		"add":     {hcmpAdd, 2, false},
-		"handler": {hcmpHandler, 2, false},
+		"bins":    {Function: hcmpBins, ArgNum: 3, Variadic: false},
+		"call":    {Function: hcmpCall, ArgNum: 4, Variadic: false},
+		"files":   {Function: hcmpFiles, ArgNum: 3, Variadic: false},
+		"dirs":    {Function: hcmpDirs, ArgNum: 3, Variadic: false},
+		"add":     {Function: hcmpAdd, ArgNum: 2, Variadic: false},
+		"handler": {Function: hcmpHandler, ArgNum: 2, Variadic: false},
 	}
 
 	mod := rt.NewTable()
@@ -308,12 +308,13 @@ end)
 #example
 */
 func hcmpBins(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(t, c)
+	query, ctx, fds, err := getCompleteParams(c)
 	if err != nil {
 		return nil, err
 	}
 
-	completions, pfx := binaryComplete(query, ctx, fds)
+	var _ []string = fds
+	completions, pfx := binaryComplete(query, ctx)
 	luaComps := rt.NewTable()
 
 	for i, comp := range completions {
@@ -380,12 +381,14 @@ func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #param ctx string
 // #param fields table
 func hcmpFiles(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(t, c)
+	query, ctx, fds, err := getCompleteParams(c)
 	if err != nil {
 		return nil, err
 	}
 
-	completions, pfx := fileComplete(query, ctx, fds)
+	var _ []string = fds
+	var _ string = query
+	completions, pfx := fileComplete(ctx)
 	luaComps := rt.NewTable()
 
 	for i, comp := range completions {
@@ -403,12 +406,13 @@ func hcmpFiles(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #param ctx string
 // #param fields table
 func hcmpDirs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(t, c)
+	query, ctx, fds, err := getCompleteParams(c)
 	if err != nil {
 		return nil, err
 	}
 
-	completions, pfx := dirComplete(query, ctx, fds)
+	var _ []string = fds
+	completions, pfx := dirComplete(query, ctx)
 	luaComps := rt.NewTable()
 
 	for i, comp := range completions {
@@ -443,7 +447,7 @@ func hcmpHandler(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), nil
 }
 
-func getCompleteParams(t *rt.Thread, c *rt.GoCont) (string, string, []string, error) {
+func getCompleteParams(c *rt.GoCont) (string, string, []string, error) {
 	if err := c.CheckNArgs(3); err != nil {
 		return "", "", []string{}, err
 	}

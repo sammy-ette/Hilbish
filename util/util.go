@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
-	"strings"
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 
 	rt "github.com/arnodel/golua/runtime"
@@ -20,12 +20,12 @@ import (
 var ErrNotExec = errors.New("not executable")
 var ErrNotFound = errors.New("not found")
 
-type ExecError struct{
-	Typ string
-	Cmd string
-	Code int
+type ExecError struct {
+	Typ   string
+	Cmd   string
+	Code  int
 	Colon bool
-	Err error
+	Err   error
 }
 
 func (e ExecError) Error() string {
@@ -56,18 +56,18 @@ func IsExecError(err error) (ExecError, bool) {
 		var colon bool
 		var e error
 		switch fields[1] {
-			case "not-found":
-				e = ErrNotFound
-			case "not-executable":
-				colon = true
-				e = ErrNotExec
+		case "not-found":
+			e = ErrNotFound
+		case "not-executable":
+			colon = true
+			e = ErrNotExec
 		}
 
 		return ExecError{
-			Cmd: fields[0],
-			Typ: fields[1],
+			Cmd:   fields[0],
+			Typ:   fields[1],
 			Colon: colon,
-			Err: e,
+			Err:   e,
 		}, true
 	}
 
@@ -117,7 +117,7 @@ func DoFile(rtm *rt.Runtime, path string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	reader := bufio.NewReader(f)
 	c, err := reader.ReadByte()
 	if err != nil && err != io.EOF {
@@ -148,7 +148,7 @@ func DoFile(rtm *rt.Runtime, path string) error {
 			}
 			return err
 		}
-		
+
 		buf = append(buf, line...)
 	}
 
@@ -273,7 +273,8 @@ func HandleExecErr(err error) (exit uint8) {
 		// did not start
 		//fmt.Fprintf(hc.Stderr, "%v\n", err)
 		exit = 127
-	default: return
+	default:
+		return
 	}
 
 	return

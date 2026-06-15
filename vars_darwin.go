@@ -14,6 +14,6 @@ var (
 	.. hilbish.userDir.config	.. '/hilbish/?/init.lua;'
 	.. hilbish.userDir.config	.. '/hilbish/?/?.lua;'
 	.. hilbish.userDir.config	.. '/hilbish/?.lua'`
-	dataDir = "/usr/local/share/hilbish"
+	dataDir        = "/usr/local/share/hilbish"
 	defaultConfDir = getenv("XDG_CONFIG_HOME", "~/.config")
 )

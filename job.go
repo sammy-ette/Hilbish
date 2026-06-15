@@ -29,22 +29,22 @@ var jobMetaKey = rt.StringValue("hshjob")
 // #property stderr The standard error stream of the process. This (usually) includes error messages of the job.
 // The Job type describes a Hilbish job.
 type job struct {
-	cmd string
-	running bool
-	id int
-	pid int
+	cmd      string
+	running  bool
+	id       int
+	pid      int
 	exitCode int
-	once bool
-	args []string
+	once     bool
+	args     []string
 	// save path for a few reasons, one being security (lmao) while the other
 	// would just be so itll be the same binary command always (path changes)
-	path string
+	path   string
 	handle *exec.Cmd
 	cmdout io.Writer
 	cmderr io.Writer
 	stdout *bytes.Buffer
 	stderr *bytes.Buffer
-	ud *rt.UserData
+	ud     *rt.UserData
 }
 
 func (j *job) start() error {
@@ -230,17 +230,17 @@ func luaBackgroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 }
 
 type jobHandler struct {
-	jobs map[int]*job
-	latestID int
+	jobs       map[int]*job
+	latestID   int
 	foreground bool // if job currently in the foreground
-	mu *sync.RWMutex
+	mu         *sync.RWMutex
 }
 
 func newJobHandler() *jobHandler {
 	return &jobHandler{
-		jobs: make(map[int]*job),
+		jobs:     make(map[int]*job),
 		latestID: 0,
-		mu: &sync.RWMutex{},
+		mu:       &sync.RWMutex{},
 	}
 }
 
@@ -250,15 +250,15 @@ func (j *jobHandler) add(cmd string, args []string, path string) *job {
 
 	j.latestID++
 	jb := &job{
-		cmd: cmd,
+		cmd:     cmd,
 		running: false,
-		id: j.latestID,
-		args: args,
-		path: path,
-		cmdout: os.Stdout,
-		cmderr: os.Stderr,
-		stdout: &bytes.Buffer{},
-		stderr: &bytes.Buffer{},
+		id:      j.latestID,
+		args:    args,
+		path:    path,
+		cmdout:  os.Stdout,
+		cmderr:  os.Stderr,
+		stdout:  &bytes.Buffer{},
+		stderr:  &bytes.Buffer{},
 	}
 	jb.ud = jobUserData(jb)
 
@@ -313,10 +313,10 @@ interactive usage or with the functions defined below for use in external runner
 func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 	jobMethods := rt.NewTable()
 	jFuncs := map[string]util.LuaExport{
-		"stop": {luaStopJob, 1, false},
-		"start": {luaStartJob, 1, false},
-		"foreground": {luaForegroundJob, 1, false},
-		"background": {luaBackgroundJob, 1, false},
+		"stop":       {Function: luaStopJob, ArgNum: 1, Variadic: false},
+		"start":      {Function: luaStartJob, ArgNum: 1, Variadic: false},
+		"foreground": {Function: luaForegroundJob, ArgNum: 1, Variadic: false},
+		"background": {Function: luaBackgroundJob, ArgNum: 1, Variadic: false},
 	}
 	util.SetExports(l, jobMethods, jFuncs)
 
@@ -334,13 +334,20 @@ func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 		keyStr, _ := arg.TryString()
 
 		switch keyStr {
-			case "cmd": val = rt.StringValue(j.cmd)
-			case "running": val = rt.BoolValue(j.running)
-			case "id": val = rt.IntValue(int64(j.id))
-			case "pid": val = rt.IntValue(int64(j.pid))
-			case "exitCode": val = rt.IntValue(int64(j.exitCode))
-			case "stdout": val = rt.StringValue(string(j.stdout.Bytes()))
-			case "stderr": val = rt.StringValue(string(j.stderr.Bytes()))
+		case "cmd":
+			val = rt.StringValue(j.cmd)
+		case "running":
+			val = rt.BoolValue(j.running)
+		case "id":
+			val = rt.IntValue(int64(j.id))
+		case "pid":
+			val = rt.IntValue(int64(j.pid))
+		case "exitCode":
+			val = rt.IntValue(int64(j.exitCode))
+		case "stdout":
+			val = rt.StringValue(j.stdout.String())
+		case "stderr":
+			val = rt.StringValue(j.stderr.String())
 		}
 
 		return c.PushingNext1(t.Runtime, val), nil
@@ -350,11 +357,11 @@ func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 	l.SetRegistry(jobMetaKey, rt.TableValue(jobMeta))
 
 	jobFuncs := map[string]util.LuaExport{
-		"all": {j.luaAllJobs, 0, false},
-		"last": {j.luaLastJob, 0, false},
-		"get": {j.luaGetJob, 1, false},
-		"add": {j.luaAddJob, 3, false},
-		"disown": {j.luaDisownJob, 1, false},
+		"all":    {Function: j.luaAllJobs, ArgNum: 0, Variadic: false},
+		"last":   {Function: j.luaLastJob, ArgNum: 0, Variadic: false},
+		"get":    {Function: j.luaGetJob, ArgNum: 1, Variadic: false},
+		"add":    {Function: j.luaAddJob, ArgNum: 3, Variadic: false},
+		"disown": {Function: j.luaDisownJob, ArgNum: 1, Variadic: false},
 	}
 
 	luaJob := rt.NewTable()
@@ -366,7 +373,7 @@ func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 func jobArg(c *rt.GoCont, arg int) (*job, error) {
 	j, ok := valueToJob(c.Arg(arg))
 	if !ok {
-		return nil, fmt.Errorf("#%d must be a job", arg + 1)
+		return nil, fmt.Errorf("#%d must be a job", arg+1)
 	}
 
 	return j, nil

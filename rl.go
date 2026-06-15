@@ -20,7 +20,7 @@ type lineReader struct {
 var hinter *rt.Closure
 var highlighter *rt.Closure
 
-func newLineReader(prompt string, noHist bool) *lineReader {
+func newLineReader(noHist bool) *lineReader {
 	rl := readline.NewInstance()
 	lr := &lineReader{
 		rl: rl,
@@ -259,14 +259,6 @@ func (lr *lineReader) AddHistory(cmd string) {
 	lr.fileHist.Write(cmd)
 }
 
-func (lr *lineReader) ClearInput() {
-	return
-}
-
-func (lr *lineReader) Resize() {
-	return
-}
-
 // #interface history
 // command history
 // The history interface deals with command history.
@@ -274,11 +266,11 @@ func (lr *lineReader) Resize() {
 // method of saving history.
 func (lr *lineReader) Loader(rtm *rt.Runtime) *rt.Table {
 	lrLua := map[string]util.LuaExport{
-		"add":   {lr.luaAddHistory, 1, false},
-		"all":   {lr.luaAllHistory, 0, false},
-		"clear": {lr.luaClearHistory, 0, false},
-		"get":   {lr.luaGetHistory, 1, false},
-		"size":  {lr.luaSize, 0, false},
+		"add":   {Function: lr.luaAddHistory, ArgNum: 1, Variadic: false},
+		"all":   {Function: lr.luaAllHistory, ArgNum: 0, Variadic: false},
+		"clear": {Function: lr.luaClearHistory, ArgNum: 0, Variadic: false},
+		"get":   {Function: lr.luaGetHistory, ArgNum: 1, Variadic: false},
+		"size":  {Function: lr.luaSize, ArgNum: 0, Variadic: false},
 	}
 
 	mod := rt.NewTable()

@@ -10,7 +10,7 @@ import (
 	rt "github.com/arnodel/golua/runtime"
 )
 
-type luaHistory struct {}
+type luaHistory struct{}
 
 func (h *luaHistory) Write(line string) (int, error) {
 	histWrite := hshMod.Get(rt.StringValue("history")).AsTable().Get(rt.StringValue("add"))
@@ -55,7 +55,7 @@ func (h *luaHistory) Dump() interface{} {
 
 type fileHistory struct {
 	items []string
-	f *os.File
+	f     *os.File
 }
 
 func newFileHistory(path string) *fileHistory {
@@ -74,21 +74,21 @@ func newFileHistory(path string) *fileHistory {
 	}
 
 	lines := strings.Split(string(data), "\n")
-	itms := make([]string, len(lines) - 1)
+	itms := make([]string, len(lines)-1)
 	for i, l := range lines {
-		if i == len(lines) - 1 {
+		if i == len(lines)-1 {
 			continue
 		}
 		itms[i] = l
 	}
-	f, err := os.OpenFile(path, os.O_APPEND | os.O_WRONLY | os.O_CREATE, 0755)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0755)
 	if err != nil {
 		panic(err)
 	}
 
 	fh := &fileHistory{
 		items: itms,
-		f: f,
+		f:     f,
 	}
 
 	return fh

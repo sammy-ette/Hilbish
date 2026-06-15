@@ -14,9 +14,9 @@ import (
 
 	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
-	"github.com/arnodel/golua/lib/packagelib"
 	"github.com/arnodel/golua/lib/iolib"
+	"github.com/arnodel/golua/lib/packagelib"
+	rt "github.com/arnodel/golua/runtime"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 )
@@ -31,8 +31,8 @@ func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	snailMeta := rt.NewTable()
 	snailMethods := rt.NewTable()
 	snailFuncs := map[string]util.LuaExport{
-		"run": {snailrun, 3, false},
-		"dir": {snaildir, 2, false},
+		"run": {Function: snailrun, ArgNum: 3, Variadic: false},
+		"dir": {Function: snaildir, ArgNum: 2, Variadic: false},
 	}
 	util.SetExports(rtm, snailMethods, snailFuncs)
 
@@ -46,7 +46,7 @@ func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	rtm.SetRegistry(snailMetaKey, rt.TableValue(snailMeta))
 
 	exports := map[string]util.LuaExport{
-		"new": util.LuaExport{snailnew, 0, false},
+		"new": util.LuaExport{Function: snailnew, ArgNum: 0, Variadic: false},
 	}
 
 	mod := rt.NewTable()
@@ -85,17 +85,17 @@ func snailrun(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	streams := &util.Streams{}
 	thirdArg := c.Arg(2)
 	switch thirdArg.Type() {
-		case rt.TableType:
-			args := thirdArg.AsTable()
+	case rt.TableType:
+		args := thirdArg.AsTable()
 
-			if luastreams, ok := args.Get(rt.StringValue("sinks")).TryTable(); ok {
-				handleStream(luastreams.Get(rt.StringValue("out")), streams, false, false)
-				handleStream(luastreams.Get(rt.StringValue("err")), streams, true, false)
-				handleStream(luastreams.Get(rt.StringValue("input")), streams, false, true)
-			}
-		case rt.NilType: // noop
-		default:
-			return nil, errors.New("expected 3rd arg to be a table")
+		if luastreams, ok := args.Get(rt.StringValue("sinks")).TryTable(); ok {
+			handleStream(luastreams.Get(rt.StringValue("out")), streams, false, false)
+			handleStream(luastreams.Get(rt.StringValue("err")), streams, true, false)
+			handleStream(luastreams.Get(rt.StringValue("input")), streams, false, true)
+		}
+	case rt.NilType: // noop
+	default:
+		return nil, errors.New("expected 3rd arg to be a table")
 	}
 
 	var newline bool
@@ -106,9 +106,9 @@ func snailrun(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err != nil {
 		if syntax.IsIncomplete(err) {
 			/*
-			if !interactive {
-				return cmdString, 126, false, false, err
-			}
+				if !interactive {
+					return cmdString, 126, false, false, err
+				}
 			*/
 			if strings.Contains(err.Error(), "unclosed here-document") {
 				newline = true
@@ -199,7 +199,7 @@ func handleStream(v rt.Value, strms *util.Streams, errStream, inStream bool) err
 func snailArg(c *rt.GoCont, arg int) (*Snail, error) {
 	s, ok := valueToSnail(c.Arg(arg))
 	if !ok {
-		return nil, fmt.Errorf("#%d must be a snail", arg + 1)
+		return nil, fmt.Errorf("#%d must be a snail", arg+1)
 	}
 
 	return s, nil

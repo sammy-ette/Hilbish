@@ -133,7 +133,7 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 					sinks.Set(rt.StringValue("err"), rt.UserDataValue(stderr.UserData))
 
 					t := rt.NewThread(s.runtime)
-					sig := make(chan os.Signal)
+					sig := make(chan os.Signal, 1)
 					exit := make(chan bool)
 
 					luaexitcode := rt.IntValue(63)

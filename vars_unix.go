@@ -14,6 +14,6 @@ var (
 	.. hilbish.userDir.config	.. '/hilbish/?/init.lua;'
 	.. hilbish.userDir.config	.. '/hilbish/?/?.lua;'
 	.. hilbish.userDir.config	.. '/hilbish/?.lua'`
-	dataDir = ""
+	dataDir        = ""
 	defaultConfDir = ""
 )

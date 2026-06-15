@@ -34,21 +34,21 @@ import (
 )
 
 var exports = map[string]util.LuaExport{
-	"alias":       {hlalias, 2, false},
-	"appendPath":  {hlappendPath, 1, false},
-	"cwd":         {hlcwd, 0, false},
-	"exec":        {hlexec, 1, false},
-	"goro":        {hlgoro, 1, true},
-	"highlighter": {hlhighlighter, 1, false},
-	"hinter":      {hlhinter, 1, false},
-	"multiprompt": {hlmultiprompt, 1, false},
-	"prependPath": {hlprependPath, 1, false},
-	"prompt":      {hlprompt, 1, true},
-	"inputMode":   {hlinputMode, 1, false},
-	"interval":    {hlinterval, 2, false},
-	"read":        {hlread, 1, false},
-	"timeout":     {hltimeout, 2, false},
-	"which":       {hlwhich, 1, false},
+	"alias":       {Function: hlalias, ArgNum: 2, Variadic: false},
+	"appendPath":  {Function: hlappendPath, ArgNum: 1, Variadic: false},
+	"cwd":         {Function: hlcwd, ArgNum: 0, Variadic: false},
+	"exec":        {Function: hlexec, ArgNum: 1, Variadic: false},
+	"goro":        {Function: hlgoro, ArgNum: 1, Variadic: true},
+	"highlighter": {Function: hlhighlighter, ArgNum: 1, Variadic: false},
+	"hinter":      {Function: hlhinter, ArgNum: 1, Variadic: false},
+	"multiprompt": {Function: hlmultiprompt, ArgNum: 1, Variadic: false},
+	"prependPath": {Function: hlprependPath, ArgNum: 1, Variadic: false},
+	"prompt":      {Function: hlprompt, ArgNum: 1, Variadic: true},
+	"inputMode":   {Function: hlinputMode, ArgNum: 1, Variadic: false},
+	"interval":    {Function: hlinterval, ArgNum: 2, Variadic: false},
+	"read":        {Function: hlread, ArgNum: 1, Variadic: false},
+	"timeout":     {Function: hltimeout, ArgNum: 2, Variadic: false},
+	"which":       {Function: hlwhich, ArgNum: 1, Variadic: false},
 }
 
 var hshMod *rt.Table

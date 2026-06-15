@@ -225,11 +225,11 @@ func (b *Bait) callRecoverer(event string, handler *Listener, err interface{}) {
 
 func (b *Bait) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"catch":     util.LuaExport{b.bcatch, 2, false},
-		"catchOnce": util.LuaExport{b.bcatchOnce, 2, false},
-		"throw":     util.LuaExport{b.bthrow, 1, true},
-		"release":   util.LuaExport{b.brelease, 2, false},
-		"hooks":     util.LuaExport{b.bhooks, 1, false},
+		"catch":     util.LuaExport{Function: b.bcatch, ArgNum: 2, Variadic: false},
+		"catchOnce": util.LuaExport{Function: b.bcatchOnce, ArgNum: 2, Variadic: false},
+		"throw":     util.LuaExport{Function: b.bthrow, ArgNum: 1, Variadic: true},
+		"release":   util.LuaExport{Function: b.brelease, ArgNum: 2, Variadic: false},
+		"hooks":     util.LuaExport{Function: b.bhooks, ArgNum: 1, Variadic: false},
 	}
 	mod := rt.NewTable()
 	util.SetExports(rtm, mod, exports)

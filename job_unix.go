@@ -6,7 +6,7 @@ import (
 	"errors"
 	"os"
 	"syscall"
-	
+
 	"golang.org/x/sys/unix"
 )
 
@@ -24,7 +24,7 @@ func (j *job) foreground() error {
 	unix.IoctlSetPointerInt(0, unix.TIOCSPGRP, pgid)
 	proc, _ := os.FindProcess(j.pid)
 	proc.Wait()
-	
+
 	hshPgid, _ := syscall.Getpgid(os.Getpid())
 	unix.IoctlSetPointerInt(0, unix.TIOCSPGRP, hshPgid)
 
