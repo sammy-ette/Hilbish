@@ -134,24 +134,24 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 
 					t := rt.NewThread(s.runtime)
 					sig := make(chan os.Signal, 1)
-					exit := make(chan bool)
+					exit := make(chan bool, 1)
+					done := make(chan struct{})
 
 					luaexitcode := rt.IntValue(63)
 					var err error
+
+					signal.Notify(sig, os.Interrupt)
 					go func() {
+						// KillContext panics, so recover is required
 						defer func() {
-							if r := recover(); r != nil {
-								exit <- true
-							}
+							recover()
 						}()
 
-						signal.Notify(sig, os.Interrupt)
 						select {
 						case <-sig:
 							t.KillContext()
-							return
+						case <-done:
 						}
-
 					}()
 
 					go func() {
@@ -160,6 +160,8 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 					}()
 
 					<-exit
+					close(done)
+					signal.Stop(sig)
 					if err != nil {
 						fmt.Fprintln(os.Stderr, "Error in command:\n"+err.Error())
 						return interp.NewExitStatus(1)
