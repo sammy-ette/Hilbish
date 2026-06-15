@@ -65,7 +65,11 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	username := curuser.Username
 
 	if runtime.GOOS == "windows" {
-		username = strings.Split(username, "\\")[1] // for some reason Username includes the hostname on windows
+		// Username is usually in the form DOMAIN\username
+		// but just in case it isnt
+		if parts := strings.Split(username, "\\"); len(parts) > 1 {
+			username = parts[1]
+		}
 	}
 
 	util.SetField(rtm, mod, "ver", rt.StringValue(getVersion()))
