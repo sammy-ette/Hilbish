@@ -10,10 +10,10 @@ import (
 // a working completion group either immediately, or later on. Generally defered.
 func (g *CompletionGroup) initGrid(rl *Readline) {
 
-	// Compute size of each completion item box (display width, not byte length)
+	// Compute size of each completion item box (visible width, ignoring styling)
 	tcMaxLength := 1
 	for i := range g.Items {
-		w := displayWidth([]rune(g.Items[i].display()))
+		w := printWidth(g.Items[i].display())
 		if w > tcMaxLength {
 			tcMaxLength = w
 		}
@@ -126,18 +126,16 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 		}
 
 		sugg := g.Items[i].display()
-		suggRunes := []rune(sugg)
-		if displayWidth(suggRunes) > GetTermWidth() {
-			suggRunes = truncateToWidth(suggRunes, GetTermWidth()-4)
-			sugg = string(suggRunes) + "..."
+		if printWidth(sugg) > GetTermWidth() {
+			sugg = truncateDisplay(sugg, GetTermWidth()-1)
 		}
 
-		// Pad to cellWidth with spaces, accounting for display width
+		// Pad to cellWidth with spaces, accounting for visible width
 		if g.tcMaxX == 1 {
 			comp += fmt.Sprintf("%s%s", fmtEscape(sugg), seqReset)
 		} else {
 			// Manual width-based padding
-			suggWidth := displayWidth([]rune(sugg))
+			suggWidth := printWidth(sugg)
 			targetWidth, _ := strconv.Atoi(cellWidth)
 			padding := targetWidth - suggWidth
 			if padding < 0 {

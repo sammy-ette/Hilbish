@@ -105,7 +105,8 @@ func (rl *Readline) updateVirtualComp() {
 	if cur != nil {
 
 		completion := cur.getCurrentCell(rl)
-		prefix := len(rl.tcPrefix)
+		compRunes := []rune(completion)
+		prefix := len([]rune(rl.tcPrefix))
 
 		// If the total number of completions is one, automatically insert it.
 		if rl.hasOneCandidate() {
@@ -120,13 +121,31 @@ func (rl *Readline) updateVirtualComp() {
 			// Special case for the only special escape, which
 			// if not handled, will make us insert the first
 			// character of our actual rl.tcPrefix in the candidate.
-			if strings.HasPrefix(string(rl.tcPrefix), "%") {
+			pctEscape := strings.HasPrefix(string(rl.tcPrefix), "%")
+			if pctEscape {
 				prefix++
 			}
 
-			// Or insert it virtually.
-			if len(completion) >= prefix {
-				rl.insertCandidateVirtual([]rune(completion[prefix:]))
+			// Or insert it virtually. The candidate's tail (everything past the
+			// typed prefix) is shown after the cursor. Slice by runes, not bytes,
+			// so a multibyte prefix doesn't cut the candidate mid-rune.
+			if len(compRunes) >= prefix {
+				rl.insertCandidateVirtual(compRunes[prefix:])
+
+				// insertCandidateVirtual keeps the user's typed prefix verbatim
+				// in the preview, so a real-case candidate (e.g. "README.md" for
+				// typed "read", #104) would otherwise display as "readME.md".
+				// Overwrite the typed-prefix region of the virtual line with the
+				// candidate's own prefix so the inline preview matches the text
+				// committed on accept. Clone first: lineComp may share its backing
+				// array with rl.line, and we must not mutate the real typed line.
+				if !pctEscape {
+					start := rl.pos - len(rl.currentComp) - prefix
+					if start >= 0 && start+prefix <= len(rl.lineComp) {
+						rl.lineComp = append([]rune(nil), rl.lineComp...)
+						copy(rl.lineComp[start:start+prefix], compRunes[:prefix])
+					}
+				}
 			}
 		}
 	}

@@ -379,12 +379,15 @@ func wordEnd(line []rune, pos int, classify func(rune) runeClass) int {
 		return n - 1
 	}
 
+	start := pos
 	pos++
 	for pos < n && classify(line[pos]) == classBlank {
 		pos++
 	}
 	if pos >= n {
-		return n - 1
+		// No word ahead, only trailing blanks: stay put rather than landing
+		// on a blank rune (including '\n'), per this function's contract.
+		return start
 	}
 
 	cls := classify(line[pos])

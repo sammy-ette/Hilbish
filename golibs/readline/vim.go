@@ -112,7 +112,7 @@ func (rl *Readline) vi(r rune) {
 	case 'B':
 		if rl.viIsYanking {
 			vii := rl.getViIterations()
-			rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpB, vii)
+			rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpBWORD, vii)
 			rl.viIsYanking = false
 			return
 		}
@@ -154,7 +154,7 @@ func (rl *Readline) vi(r rune) {
 	case 'E':
 		if rl.viIsYanking {
 			vii := rl.getViIterations()
-			rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpE, vii)
+			rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpEWORD, vii)
 			rl.viIsYanking = false
 			return
 		}
@@ -296,7 +296,7 @@ func (rl *Readline) vi(r rune) {
 
 		if rl.viIsYanking {
 			vii := rl.getViIterations()
-			rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpW, vii)
+			rl.saveToRegisterTokenize(tokeniseSplitSpaces, rl.viJumpWWORD, vii)
 			rl.viIsYanking = false
 			return
 		}

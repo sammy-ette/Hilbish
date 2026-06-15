@@ -8,7 +8,6 @@ import (
 	"syscall"
 )
 
-
 // Readline displays the readline prompt.
 // It will return a string (user entered data) or an error.
 func (rl *Readline) Readline() (string, error) {
@@ -49,7 +48,6 @@ func (rl *Readline) Readline() (string, error) {
 	// We need this set to the last command, so that we can access it quickly
 	rl.histOffset = 0
 	rl.viUndoHistory = []undoItem{{line: "", pos: 0}}
-
 
 	// Finally, print any info or completions
 	// if the TabCompletion engines so desires
@@ -111,6 +109,23 @@ func (rl *Readline) Readline() (string, error) {
 		// is a problem (at least, the user has escaped the confirm hint some way).
 		if (rl.modeTabCompletion && rl.searchMode != HistoryFind) && rl.compConfirmWait {
 			rl.compConfirmWait = false
+		}
+
+		// A single read holding more than one rune (and not beginning with ESC)
+		// is a paste burst, not a keystroke. Detect it by rune count so a lone
+		// multi-byte character (CJK, emoji, accented letter) is NOT mistaken for
+		// a paste, and handle it before the per-key `switch b[0]` so a paste
+		// whose first byte is a control char (Tab, newline, …) isn't misrouted to
+		// that key's handler and its remaining bytes dropped. Search/completion
+		// modes keep their own input handling in the switch below.
+		inputRunes := []rune(string(b[:i]))
+		if len(inputRunes) > 1 && b[0] != charEscape &&
+			!rl.modeTabCompletion && !rl.modeAutoFind && !rl.modeTabFind && !rl.compConfirmWait {
+			rl.resetVirtualComp(false)
+			rl.insertPaste(b[:i])
+			rl.clearHelpers()
+			rl.undoAppendHistory()
+			continue
 		}
 
 		switch b[0] {
@@ -479,13 +494,12 @@ func (rl *Readline) Readline() (string, error) {
 				continue
 			} else {
 				rl.resetVirtualComp(false)
-				// Distinguish paste vs Enter: multi-byte read (i > 1) is a paste burst
-				if i > 1 {
-					// Paste: insert all bytes as literal content, treating embedded \r/\n as real newlines
-					pasteBytes := bytes.ReplaceAll(b[:i], []byte{'\r', '\n'}, []byte{'\n'})
-					pasteBytes = bytes.ReplaceAll(pasteBytes, []byte{'\r'}, []byte{'\n'})
-					rl.insert([]rune(string(pasteBytes)))
-					rl.writeHintText()
+				// Distinguish a paste burst (more than one rune) from a single
+				// keystroke by rune count, so a lone multi-byte character isn't
+				// treated as a paste. (Most pastes are caught before the switch;
+				// this handles the in-completion-mode case that reaches here.)
+				if len(inputRunes) > 1 {
+					rl.insertPaste(b[:i])
 				} else {
 					// Single character: process normally
 					rl.editorInput(r[:i])
@@ -497,6 +511,15 @@ func (rl *Readline) Readline() (string, error) {
 
 		rl.undoAppendHistory()
 	}
+}
+
+// insertPaste inserts a paste burst as literal content, normalizing embedded
+// \r\n and \r to \n so multi-line pastes land as real newlines in the buffer.
+func (rl *Readline) insertPaste(b []byte) {
+	pasteBytes := bytes.ReplaceAll(b, []byte{'\r', '\n'}, []byte{'\n'})
+	pasteBytes = bytes.ReplaceAll(pasteBytes, []byte{'\r'}, []byte{'\n'})
+	rl.insert([]rune(string(pasteBytes)))
+	rl.writeHintText()
 }
 
 // editorInput is an unexported function used to determine what mode of text
@@ -868,4 +891,3 @@ func (rl *Readline) carridgeReturn() {
 		}
 	}
 }
-

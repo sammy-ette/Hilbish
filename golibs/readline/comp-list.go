@@ -19,7 +19,7 @@ func (g *CompletionGroup) initList(rl *Readline) {
 	// Same for suggestions alt
 	g.tcMaxLengthAlt = 0
 	for i := range g.Items {
-		w := displayWidth([]rune(g.Items[i].display()))
+		w := printWidth(g.Items[i].display())
 		if w > g.tcMaxLength {
 			g.tcMaxLength = w
 		}
@@ -189,27 +189,20 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 			break
 		}
 
-		// Main suggestion (use display width, not byte length). display()
+		// Main suggestion (use visible width, ignoring styling). display()
 		// already returns the styled Display string if one was set.
-		item := g.Items[i].display()
-		itemRunes := []rune(item)
-		if displayWidth(itemRunes) > maxLength {
-			itemRunes = truncateToWidth(itemRunes, maxLength-3)
-			item = string(itemRunes) + "..."
-		}
+		item := truncateDisplay(g.Items[i].display(), maxLength)
 		// Manual width-based padding
-		itemWidth := displayWidth([]rune(item))
-		padding := maxLength - itemWidth
+		padding := maxLength - printWidth(item)
 		if padding < 0 {
 			padding = 0
 		}
 		sugg := fmt.Sprintf("\r%s%s%s", highlight(y, 0), fmtEscape(item), strings.Repeat(" ", padding))
 
-		// Alt suggestion (with display-width padding)
+		// Alt suggestion (with visible-width padding)
 		alt := g.Items[i].Alias
 		if alt != "" {
-			altWidth := displayWidth([]rune(alt))
-			altPadding := maxLengthAlt - altWidth
+			altPadding := maxLengthAlt - printWidth(alt)
 			if altPadding < 0 {
 				altPadding = 0
 			}
@@ -219,12 +212,10 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 			alt = strings.Repeat(" ", maxLengthAlt+1) // + 2 to keep account of spaces
 		}
 
-		// Description (use display width, not byte length)
+		// Description (use visible width, ignoring styling)
 		description := g.Items[i].Description
-		descRunes := []rune(description)
-		if displayWidth(descRunes) > maxDescWidth {
-			descRunes = truncateToWidth(descRunes, maxDescWidth-3)
-			description = string(descRunes) + "..." + RESET + "\n"
+		if printWidth(description) > maxDescWidth {
+			description = truncateDisplay(description, maxDescWidth) + RESET + "\n"
 		} else {
 			description += "\n"
 		}
@@ -252,7 +243,7 @@ func (rl *Readline) getListPad() (pad int) {
 	for _, group := range rl.tcGroups {
 		if group.DisplayType == TabDisplayList {
 			for i := range group.Items {
-				w := displayWidth([]rune(group.Items[i].display()))
+				w := printWidth(group.Items[i].display())
 				if w > pad {
 					pad = w
 				}

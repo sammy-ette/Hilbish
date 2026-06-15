@@ -49,12 +49,20 @@ func (rl *Readline) updateReferences() {
 	end := &Buffer{line: curLine, pos: len(curLine)}
 	rl.fullX, rl.fullY = end.ScreenPos(termWidth, rl.promptLen, 0)
 
-	// If the line's display width exactly fills to the terminal's last
-	// column, the cursor is in a "pending wrap" state: the terminal
-	// hasn't actually moved to the next row yet. Force the wrap so that
-	// posX/posY/fullX/fullY (which assume row 0/col 0 of a new row) match
-	// the terminal's real cursor position.
-	if rl.fullX == 0 && rl.fullY > 0 {
+	// If the final row's content fills exactly to the terminal's last column,
+	// the cursor is in a "pending wrap" state: the terminal hasn't actually
+	// moved to the next row yet. Force the wrap so that posX/posY/fullX/fullY
+	// (which assume row 0/col 0 of a new row) match the terminal's real cursor
+	// position. We must check the final row's own width rather than just
+	// fullX == 0: a buffer ending in a literal '\n' (or with a blank last row)
+	// also lands the cursor at column 0, but there the newline already moved
+	// the terminal down, so an extra '\n' would push the display down a row.
+	lines := end.Lines()
+	lastRowWidth := end.Width(lines[len(lines)-1])
+	if len(lines) == 1 {
+		lastRowWidth += rl.promptLen
+	}
+	if lastRowWidth > 0 && lastRowWidth%termWidth == 0 {
 		print("\n")
 	}
 }

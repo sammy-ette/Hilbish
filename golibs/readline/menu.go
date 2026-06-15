@@ -1,5 +1,29 @@
 package readline
 
+import ansi "github.com/acarl005/stripansi"
+
+// printWidth returns the visible column width of s, ignoring any ANSI styling
+// escape sequences it contains. Completion display strings (and descriptions)
+// may be colored; measuring their raw runes with displayWidth would count the
+// escape bytes as visible columns and misalign every menu column.
+func printWidth(s string) int {
+	return displayWidth([]rune(ansi.Strip(s)))
+}
+
+// truncateDisplay shortens s to at most maxWidth visible columns, appending an
+// ellipsis when it must cut. If s is styled and actually needs truncating, the
+// styling is dropped so the cut can't land in the middle of an escape sequence.
+func truncateDisplay(s string, maxWidth int) string {
+	if printWidth(s) <= maxWidth {
+		return s
+	}
+	if maxWidth < 3 {
+		maxWidth = 3
+	}
+	plain := ansi.Strip(s)
+	return string(truncateToWidth([]rune(plain), maxWidth-3)) + "..."
+}
+
 // MenuItem is a single selectable entry in a completion/history/register menu.
 // It replaces the old parallel maps (Suggestions + Aliases/Descriptions/ItemDisplays)
 // that CompletionGroup used to key off the suggestion string.

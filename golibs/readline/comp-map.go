@@ -12,7 +12,7 @@ func (g *CompletionGroup) initMap(rl *Readline) {
 	// Compute size of each completion item box. Group independent (display width, not byte length)
 	g.tcMaxLength = 1
 	for i := range g.Items {
-		w := displayWidth([]rune(g.Items[i].Description))
+		w := printWidth(g.Items[i].Description)
 		if w > g.tcMaxLength {
 			g.tcMaxLength = w
 		}
@@ -107,29 +107,16 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 			break
 		}
 
-		item = g.Items[i].display()
-		itemRunes := []rune(item)
-		if displayWidth(itemRunes) > maxDescWidth {
-			itemRunes = truncateToWidth(itemRunes, maxDescWidth-3)
-			item = string(itemRunes) + "..."
-		}
+		item = truncateDisplay(g.Items[i].display(), maxDescWidth)
+		description = truncateDisplay(g.Items[i].Description, maxLength)
 
-		description = g.Items[i].Description
-		descRunes := []rune(description)
-		if displayWidth(descRunes) > maxLength {
-			descRunes = truncateToWidth(descRunes, maxLength-3)
-			description = string(descRunes) + "..."
-		}
-
-		// Format with width-based padding
-		itemWidth := displayWidth([]rune(item))
-		itemPadding := maxDescWidth - itemWidth
+		// Format with visible-width padding
+		itemPadding := maxDescWidth - printWidth(item)
 		if itemPadding < 0 {
 			itemPadding = 0
 		}
 
-		descWidth := displayWidth([]rune(description))
-		descPadding := maxLength - descWidth
+		descPadding := maxLength - printWidth(description)
 		if descPadding < 0 {
 			descPadding = 0
 		}
