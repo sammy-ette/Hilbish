@@ -39,6 +39,10 @@ func (t *timer) start() error {
 		return errors.New("timer is already running")
 	}
 
+	if t.dur <= 0 {
+		return errors.New("timer duration must be positive")
+	}
+
 	t.running = true
 	t.th.running++
 	t.th.wg.Add(1)
