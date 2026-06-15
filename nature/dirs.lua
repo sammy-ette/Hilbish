@@ -17,7 +17,7 @@ dirs.recentSize = 10
 --- Get (and remove) a `num` of entries from recent directories.
 -- @param num number
 -- @param remove boolean Whether to remove items
-function dirRecents(num, remove)
+local function dirRecents(num, remove)
 	num = num or 1
 	local entries = {}
 
@@ -48,7 +48,7 @@ end
 --- @param dir string
 function dirs.push(dir)
 	local ok, absDir = pcall(fs.abs, dir)
-		assert(ok, 'could not turn "' .. dir .. '"into an absolute path')
+	assert(ok, 'could not turn "' .. dir .. '"into an absolute path')
 
 	if dirs.recentDirs[1] ~= absDir then
 		table.insert(dirs.recentDirs, 1, absDir)
@@ -73,11 +73,11 @@ end
 --- Sets the old directory string.
 -- @param d string
 function dirs.setOld(d)
-	ok, d = pcall(fs.abs, d)
-	assert(ok, 'could not turn "' .. d .. '"into an absolute path')
+	local ok, absDir = pcall(fs.abs, d)
+	assert(ok, 'could not turn "' .. absDir .. '"into an absolute path')
 
-	os.setenv('OLDPWD', d)
-	dirs.old = d
+	os.setenv('OLDPWD', absDir)
+	dirs.old = absDir
 end
 
 bait.catch('hilbish.cd', function(path, oldPath)

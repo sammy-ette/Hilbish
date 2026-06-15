@@ -35,7 +35,7 @@ hilbish.messages = {}
 --- @field summary string A short summary of the message.
 --- @field read boolean Whether the full message has been read or not.
 
-function expect(tbl, field)
+local function expect(tbl, field)
 	if not tbl[field] or tbl[field] == '' then
 		error(string.format('expected field %s in message'))
 	end
