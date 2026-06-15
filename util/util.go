@@ -222,17 +222,19 @@ func LookPath(file string) (string, error) { // custom lookpath function so we k
 			return file, FindExecutable(file, false, false)
 		}
 	}
+	err := os.ErrNotExist
 	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {
 		path := filepath.Join(dir, file)
 		err := FindExecutable(path, true, false)
-		if err == ErrNotExec {
-			return "", err
-		} else if err == nil {
+		switch err {
+		case ErrNotExec:
+			err = os.ErrNotExist
+		case nil:
 			return path, nil
 		}
 	}
 
-	return "", os.ErrNotExist
+	return "", err
 }
 
 func Contains(s []string, e string) bool {
