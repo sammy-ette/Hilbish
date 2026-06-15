@@ -188,9 +188,12 @@ func matchPath(query string) ([]string, string) {
 		}
 
 		if file.Mode()&os.ModeSymlink != 0 {
-			path, err := filepath.EvalSymlinks(filepath.Join(path, file.Name()))
-			if err == nil {
-				file, err = os.Lstat(path)
+			// If the symlink is broken (or otherwise can't be resolved),
+			// just keep treating it as the symlink entry itself
+			if resolved, err := filepath.EvalSymlinks(filepath.Join(path, file.Name())); err == nil {
+				if info, err := os.Lstat(resolved); err == nil {
+					file = info
+				}
 			}
 		}
 
