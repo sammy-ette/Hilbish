@@ -179,8 +179,8 @@ func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
 	luaTh := rt.NewTable()
 	util.SetExports(rtm, luaTh, thExports)
 
-	util.SetField(rtm, luaTh, "INTERVAL", rt.IntValue(0))
-	util.SetField(rtm, luaTh, "TIMEOUT", rt.IntValue(1))
+	util.SetField(luaTh, "INTERVAL", rt.IntValue(0))
+	util.SetField(luaTh, "TIMEOUT", rt.IntValue(1))
 
 	return luaTh
 }

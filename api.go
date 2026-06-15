@@ -72,16 +72,16 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 		}
 	}
 
-	util.SetField(rtm, mod, "ver", rt.StringValue(getVersion()))
-	util.SetField(rtm, mod, "goVersion", rt.StringValue(runtime.Version()))
-	util.SetField(rtm, mod, "user", rt.StringValue(username))
-	util.SetField(rtm, mod, "host", rt.StringValue(host))
-	util.SetField(rtm, mod, "home", rt.StringValue(curuser.HomeDir))
-	util.SetField(rtm, mod, "dataDir", rt.StringValue(dataDir))
-	util.SetField(rtm, mod, "interactive", rt.BoolValue(interactive))
-	util.SetField(rtm, mod, "login", rt.BoolValue(login))
-	util.SetField(rtm, mod, "vimMode", rt.NilValue)
-	util.SetField(rtm, mod, "exitCode", rt.IntValue(0))
+	util.SetField(mod, "ver", rt.StringValue(getVersion()))
+	util.SetField(mod, "goVersion", rt.StringValue(runtime.Version()))
+	util.SetField(mod, "user", rt.StringValue(username))
+	util.SetField(mod, "host", rt.StringValue(host))
+	util.SetField(mod, "home", rt.StringValue(curuser.HomeDir))
+	util.SetField(mod, "dataDir", rt.StringValue(dataDir))
+	util.SetField(mod, "interactive", rt.BoolValue(interactive))
+	util.SetField(mod, "login", rt.BoolValue(login))
+	util.SetField(mod, "vimMode", rt.NilValue)
+	util.SetField(mod, "exitCode", rt.IntValue(0))
 
 	// hilbish.userDir table
 	hshuser := userDirLoader(rtm)
@@ -119,10 +119,10 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	mod.Set(rt.StringValue("timers"), rt.TableValue(timersModule))
 
 	versionModule := rt.NewTable()
-	util.SetField(rtm, versionModule, "branch", rt.StringValue(gitBranch))
-	util.SetField(rtm, versionModule, "full", rt.StringValue(getVersion()))
-	util.SetField(rtm, versionModule, "commit", rt.StringValue(gitCommit))
-	util.SetField(rtm, versionModule, "release", rt.StringValue(releaseName))
+	util.SetField(versionModule, "branch", rt.StringValue(gitBranch))
+	util.SetField(versionModule, "full", rt.StringValue(getVersion()))
+	util.SetField(versionModule, "commit", rt.StringValue(gitCommit))
+	util.SetField(versionModule, "release", rt.StringValue(releaseName))
 	mod.Set(rt.StringValue("version"), rt.TableValue(versionModule))
 
 	pluginModule := moduleLoader(rtm)
@@ -143,12 +143,12 @@ func getenv(key, fallback string) string {
 }
 
 func setVimMode(mode string) {
-	util.SetField(l, hshMod, "vimMode", rt.StringValue(mode))
+	util.SetField(hshMod, "vimMode", rt.StringValue(mode))
 	hooks.Emit("hilbish.vimMode", mode)
 }
 
 func unsetVimMode() {
-	util.SetField(l, hshMod, "vimMode", rt.NilValue)
+	util.SetField(hshMod, "vimMode", rt.NilValue)
 }
 
 // cwd() -> string

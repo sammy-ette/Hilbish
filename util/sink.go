@@ -70,9 +70,9 @@ func SinkLoader(rtm *rt.Runtime) *rt.Table {
 	mod := rt.NewTable()
 	SetExports(rtm, mod, exports)
 
-	SetField(rtm, mod, "stderr", rt.UserDataValue(NewSink(rtm, os.Stderr).UserData))
-	SetField(rtm, mod, "stdout", rt.UserDataValue(NewSink(rtm, os.Stdout).UserData))
-	SetField(rtm, mod, "stdin", rt.UserDataValue(NewSink(rtm, os.Stdin).UserData))
+	SetField(mod, "stderr", rt.UserDataValue(NewSink(rtm, os.Stderr).UserData))
+	SetField(mod, "stdout", rt.UserDataValue(NewSink(rtm, os.Stdout).UserData))
+	SetField(mod, "stdin", rt.UserDataValue(NewSink(rtm, os.Stdin).UserData))
 
 	return mod
 }
