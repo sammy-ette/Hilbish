@@ -29,6 +29,7 @@ var jobMetaKey = rt.StringValue("hshjob")
 // #property stderr The standard error stream of the process. This (usually) includes error messages of the job.
 // The Job type describes a Hilbish job.
 type job struct {
+	mu       sync.RWMutex
 	cmd      string
 	running  bool
 	id       int
@@ -48,6 +49,8 @@ type job struct {
 }
 
 func (j *job) start() error {
+	j.mu.Lock()
+
 	if j.handle == nil || j.once {
 		// cmd cant be reused so make a new one
 		cmd := exec.Cmd{
@@ -72,10 +75,12 @@ func (j *job) start() error {
 	}
 
 	err := j.handle.Start()
-	proc := j.getProc()
-
-	j.pid = proc.Pid
+	if proc := j.handle.Process; proc != nil {
+		j.pid = proc.Pid
+	}
 	j.running = true
+
+	j.mu.Unlock()
 
 	hooks.Emit("job.start", rt.UserDataValue(j.ud))
 
@@ -91,14 +96,24 @@ func (j *job) stop() {
 }
 
 func (j *job) finish() {
+	j.mu.Lock()
 	j.running = false
+	j.mu.Unlock()
+
 	hooks.Emit("job.done", rt.UserDataValue(j.ud))
 }
 
 func (j *job) wait() {
-	j.handle.Wait()
+	j.mu.RLock()
+	handle := j.handle
+	j.mu.RUnlock()
+
+	if handle != nil {
+		handle.Wait()
+	}
 }
 
+// setHandle sets the exec.Cmd for the job. Callers must hold j.mu.
 func (j *job) setHandle(handle *exec.Cmd) {
 	j.handle = handle
 	j.args = handle.Args
@@ -112,9 +127,11 @@ func (j *job) setHandle(handle *exec.Cmd) {
 }
 
 func (j *job) getProc() *os.Process {
-	handle := j.handle
-	if handle != nil {
-		return handle.Process
+	j.mu.RLock()
+	defer j.mu.RUnlock()
+
+	if j.handle != nil {
+		return j.handle.Process
 	}
 
 	return nil
@@ -134,10 +151,18 @@ func luaStartJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	if !j.running {
+	j.mu.RLock()
+	running := j.running
+	j.mu.RUnlock()
+
+	if !running {
 		err := j.start()
 		exit := util.HandleExecErr(err)
+
+		j.mu.Lock()
 		j.exitCode = int(exit)
+		j.mu.Unlock()
+
 		j.finish()
 	}
 
@@ -158,7 +183,11 @@ func luaStopJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	if j.running {
+	j.mu.RLock()
+	running := j.running
+	j.mu.RUnlock()
+
+	if running {
 		j.stop()
 		j.finish()
 	}
@@ -181,12 +210,24 @@ func luaForegroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	if !j.running {
+	j.mu.RLock()
+	running := j.running
+	j.mu.RUnlock()
+
+	if !running {
 		return nil, errors.New("job not running")
 	}
 
 	// lua code can run in other threads and goroutines, so this exists
+	if jobs.foreground {
+		return nil, errors.New("(another) job already foregrounded")
+	}
+
 	jobs.foreground = true
+	defer func() {
+		jobs.foreground = false
+	}()
+
 	// this is kinda funny
 	// background continues the process incase it got suspended
 	err = j.background()
@@ -198,7 +239,6 @@ func luaForegroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err != nil {
 		return nil, err
 	}
-	jobs.foreground = false
 
 	return c.Next(), nil
 }
@@ -217,7 +257,11 @@ func luaBackgroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	if !j.running {
+	j.mu.RLock()
+	running := j.running
+	j.mu.RUnlock()
+
+	if !running {
 		return nil, errors.New("job not running")
 	}
 
@@ -333,6 +377,7 @@ func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 
 		keyStr, _ := arg.TryString()
 
+		j.mu.RLock()
 		switch keyStr {
 		case "cmd":
 			val = rt.StringValue(j.cmd)
@@ -349,6 +394,7 @@ func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 		case "stderr":
 			val = rt.StringValue(j.stderr.String())
 		}
+		j.mu.RUnlock()
 
 		return c.PushingNext1(t.Runtime, val), nil
 	}

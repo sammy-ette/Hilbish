@@ -158,7 +158,9 @@ func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
 		case "type":
 			val = rt.IntValue(int64(ti.typ))
 		case "running":
+			ti.mu.Lock()
 			val = rt.BoolValue(ti.running)
+			ti.mu.Unlock()
 		case "duration":
 			val = rt.IntValue(int64(ti.dur / time.Millisecond))
 		}

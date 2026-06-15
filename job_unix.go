@@ -3,7 +3,6 @@
 package main
 
 import (
-	"errors"
 	"os"
 	"syscall"
 
@@ -15,10 +14,6 @@ var bgProcAttr *syscall.SysProcAttr = &syscall.SysProcAttr{
 }
 
 func (j *job) foreground() error {
-	if jobs.foreground {
-		return errors.New("(another) job already foregrounded")
-	}
-
 	pgid, _ := syscall.Getpgid(j.pid)
 	// tcsetpgrp
 	unix.IoctlSetPointerInt(0, unix.TIOCSPGRP, pgid)

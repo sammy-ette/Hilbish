@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 
 	"hilbish/golibs/bait"
@@ -27,7 +28,8 @@ var (
 	l  *rt.Runtime
 	lr *lineReader
 
-	luaCompletions = map[string]*rt.Closure{}
+	luaCompletions   = map[string]*rt.Closure{}
+	luaCompletionsMu sync.RWMutex
 
 	confDir     string
 	userDataDir string

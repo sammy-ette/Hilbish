@@ -279,7 +279,9 @@ func hcmpAdd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err != nil {
 		return nil, err
 	}
+	luaCompletionsMu.Lock()
 	luaCompletions[scope] = cb
+	luaCompletionsMu.Unlock()
 
 	return c.Next(), nil
 }
@@ -357,9 +359,10 @@ func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	var completecb *rt.Closure
-	var ok bool
-	if completecb, ok = luaCompletions[completer]; !ok {
+	luaCompletionsMu.RLock()
+	completecb, ok := luaCompletions[completer]
+	luaCompletionsMu.RUnlock()
+	if !ok {
 		return nil, errors.New("completer " + completer + " does not exist")
 	}
 

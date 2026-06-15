@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	rt "github.com/arnodel/golua/runtime"
@@ -23,6 +24,7 @@ const (
 // #property duration The duration in milliseconds that the timer will run
 // The Job type describes a Hilbish timer.
 type timer struct {
+	mu      sync.Mutex
 	id      int
 	typ     timerType
 	running bool
@@ -35,6 +37,9 @@ type timer struct {
 }
 
 func (t *timer) start() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	if t.running {
 		return errors.New("timer is already running")
 	}
@@ -44,7 +49,9 @@ func (t *timer) start() error {
 	}
 
 	t.running = true
+	t.th.mu.Lock()
 	t.th.running++
+	t.th.mu.Unlock()
 	t.th.wg.Add(1)
 	t.ticker = time.NewTicker(t.dur)
 
@@ -72,13 +79,18 @@ func (t *timer) start() error {
 }
 
 func (t *timer) stop() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	if !t.running {
 		return errors.New("timer not running")
 	}
 
 	t.channel <- struct{}{}
 	t.running = false
+	t.th.mu.Lock()
 	t.th.running--
+	t.th.mu.Unlock()
 	t.th.wg.Done()
 
 	return nil
