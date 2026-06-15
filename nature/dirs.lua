@@ -47,12 +47,14 @@ end
 --- Add `dir` to the recent directories list.
 --- @param dir string
 function dirs.push(dir)
-	dirs.recentDirs[dirs.recentSize + 1] = nil
-	if dirs.recentDirs[#dirs.recentDirs - 1] ~= dir then
-		local ok, dir = pcall(fs.abs, dir)
+	local ok, absDir = pcall(fs.abs, dir)
 		assert(ok, 'could not turn "' .. dir .. '"into an absolute path')
 
-		table.insert(dirs.recentDirs, 1, dir)
+	if dirs.recentDirs[1] ~= absDir then
+		table.insert(dirs.recentDirs, 1, absDir)
+		if #dirs.recentDirs > dirs.recentSize then
+			table.remove(dirs.recentDirs)
+		end
 	end
 end
 
