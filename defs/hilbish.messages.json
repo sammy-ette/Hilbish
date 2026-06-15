@@ -7,18 +7,38 @@
 	"fields": null,
 	"docs": [
 		{
-			"name": "send",
+			"name": "all",
 			"description": [
-				"Sends a message."
+				"Returns all messages."
 			],
-			"signature": "send(message)",
+			"signature": "all()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "clear",
+			"description": [
+				"Deletes all messages."
+			],
+			"signature": "clear()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "delete",
+			"description": [
+				"Deletes the message at `idx`."
+			],
+			"signature": "delete(idx)",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
 			"params": [
 				{
-					"Name": "message",
-					"Type": "hilbish.message",
+					"Name": "idx",
+					"Type": "number",
 					"Doc": null
 				}
 			]
@@ -51,48 +71,28 @@
 			"isType": false
 		},
 		{
-			"name": "unreadCount",
+			"name": "send",
 			"description": [
-				"Returns the amount of unread messages."
+				"Sends a message."
 			],
-			"signature": "unreadCount()",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false
-		},
-		{
-			"name": "delete",
-			"description": [
-				"Deletes the message at `idx`."
-			],
-			"signature": "delete(idx)",
+			"signature": "send(message)",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
 			"params": [
 				{
-					"Name": "idx",
-					"Type": "number",
+					"Name": "message",
+					"Type": "hilbish.message",
 					"Doc": null
 				}
 			]
 		},
 		{
-			"name": "clear",
+			"name": "unreadCount",
 			"description": [
-				"Deletes all messages."
+				"Returns the amount of unread messages."
 			],
-			"signature": "clear()",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false
-		},
-		{
-			"name": "all",
-			"description": [
-				"Returns all messages."
-			],
-			"signature": "all()",
+			"signature": "unreadCount()",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false

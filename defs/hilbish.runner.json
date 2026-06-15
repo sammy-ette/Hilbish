@@ -8,6 +8,107 @@
 	"fields": [],
 	"docs": [
 		{
+			"name": "add",
+			"description": [
+				"Adds a runner to the table of available runners.",
+				"If runner is a table, it must have the run function in it."
+			],
+			"signature": "add(name, runner)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"Name of the runner"
+					]
+				},
+				{
+					"Name": "runner",
+					"Type": "function|table",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "exec",
+			"description": [
+				"Executes `cmd` with a runner.",
+				"If `runnerName` is not specified, it uses the default Hilbish runner."
+			],
+			"signature": "exec(cmd, runnerName) -\u003e table",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cmd",
+					"Type": "string",
+					"Doc": null
+				},
+				{
+					"Name": "runnerName",
+					"Type": "string?",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "get",
+			"description": [
+				"Get a runner by name."
+			],
+			"signature": "get(name) -\u003e table",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"Name of the runner to retrieve."
+					]
+				}
+			]
+		},
+		{
+			"name": "getCurrent",
+			"description": [
+				"Returns the current runner by name."
+			],
+			"signature": "getCurrent() -\u003e string",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "run",
+			"description": [
+				"Runs `input` with the currently set Hilbish runner.",
+				"This method is how Hilbish executes commands.",
+				"`priv` is an optional boolean used to state if the input should be saved to history."
+			],
+			"signature": "run(input, priv)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "input",
+					"Type": "string",
+					"Doc": null
+				},
+				{
+					"Name": "priv",
+					"Type": "bool",
+					"Doc": null
+				}
+			]
+		},
+		{
 			"name": "runner.lua",
 			"description": [
 				"Evaluates `cmd` as Lua input. This is the same as using `dofile`",
@@ -47,50 +148,6 @@
 			}
 		},
 		{
-			"name": "get",
-			"description": [
-				"Get a runner by name."
-			],
-			"signature": "get(name) -\u003e table",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "name",
-					"Type": "string",
-					"Doc": [
-						"Name of the runner to retrieve."
-					]
-				}
-			]
-		},
-		{
-			"name": "add",
-			"description": [
-				"Adds a runner to the table of available runners.",
-				"If runner is a table, it must have the run function in it."
-			],
-			"signature": "add(name, runner)",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "name",
-					"Type": "string",
-					"Doc": [
-						"Name of the runner"
-					]
-				},
-				{
-					"Name": "runner",
-					"Type": "function|table",
-					"Doc": null
-				}
-			]
-		},
-		{
 			"name": "set",
 			"description": [
 				"*Sets* a runner by name. The difference between this function and",
@@ -115,29 +172,6 @@
 			]
 		},
 		{
-			"name": "exec",
-			"description": [
-				"Executes `cmd` with a runner.",
-				"If `runnerName` is not specified, it uses the default Hilbish runner."
-			],
-			"signature": "exec(cmd, runnerName) -\u003e table",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "cmd",
-					"Type": "string",
-					"Doc": null
-				},
-				{
-					"Name": "runnerName",
-					"Type": "string?",
-					"Doc": null
-				}
-			]
-		},
-		{
 			"name": "setCurrent",
 			"description": [
 				"Sets Hilbish's runner mode by name."
@@ -153,16 +187,6 @@
 					"Doc": null
 				}
 			]
-		},
-		{
-			"name": "getCurrent",
-			"description": [
-				"Returns the current runner by name."
-			],
-			"signature": "getCurrent() -\u003e string",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false
 		},
 		{
 			"name": "setMode",
@@ -181,30 +205,6 @@
 				{
 					"Name": "mode",
 					"Type": "string|function",
-					"Doc": null
-				}
-			]
-		},
-		{
-			"name": "run",
-			"description": [
-				"Runs `input` with the currently set Hilbish runner.",
-				"This method is how Hilbish executes commands.",
-				"`priv` is an optional boolean used to state if the input should be saved to history."
-			],
-			"signature": "run(input, priv)",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "input",
-					"Type": "string",
-					"Doc": null
-				},
-				{
-					"Name": "priv",
-					"Type": "bool",
 					"Doc": null
 				}
 			]

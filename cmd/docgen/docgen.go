@@ -491,6 +491,16 @@ func collectDefs() {
 	}
 
 	for name, v := range all {
+		// The Docs/Types slices are merged across packages whose iteration
+		// order (via the pkgs map) is randomized between runs, so sort them
+		// here to keep defs/*.json output stable across docgen runs.
+		sort.SliceStable(v.Docs, func(i, j int) bool {
+			return v.Docs[i].FuncName < v.Docs[j].FuncName
+		})
+		sort.SliceStable(v.Types, func(i, j int) bool {
+			return v.Types[i].FuncName < v.Types[j].FuncName
+		})
+
 		u, err := json.MarshalIndent(v, "", "	")
 		if err != nil {
 			panic(err)

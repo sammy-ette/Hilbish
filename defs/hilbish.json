@@ -583,6 +583,127 @@
 			}
 		},
 		{
+			"name": "luaSinkAutoFlush",
+			"description": [
+				"Sets/toggles the option of automatically flushing output.",
+				"A call with no argument will toggle the value."
+			],
+			"signature": "autoFlush(auto)",
+			"goFuncName": "luasinkautoflush",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkFlush",
+			"description": [
+				"Flush writes all buffered input to the sink."
+			],
+			"signature": "flush()",
+			"goFuncName": "luasinkflush",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkRead",
+			"description": [
+				"Reads a liine of input from the sink."
+			],
+			"signature": "read() -\u003e string",
+			"goFuncName": "luasinkread",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkReadAll",
+			"description": [
+				"Reads all input from the sink."
+			],
+			"signature": "readAll() -\u003e string",
+			"goFuncName": "luasinkreadall",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkWrite",
+			"description": [
+				"Writes data to a sink."
+			],
+			"signature": "write(str)",
+			"goFuncName": "luasinkwrite",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkWriteln",
+			"description": [
+				"Writes data to a sink with a newline at the end."
+			],
+			"signature": "writeln(str)",
+			"goFuncName": "luasinkwriteln",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
 			"name": "multiprompt",
 			"description": [
 				"Changes the text prompt when Hilbish asks for more input.",
@@ -803,6 +924,79 @@
 			}
 		},
 		{
+			"name": "run",
+			"description": [
+				"Runs `cmd` in Hilbish's shell script interpreter.",
+				"The `streams` parameter specifies the output and input streams the command should use.",
+				"For example, to write command output to a sink.",
+				"As a table, the caller can directly specify the standard output, error, and input",
+				"streams of the command with the table keys `out`, `err`, and `input` respectively.",
+				"As a boolean, it specifies whether the command should use standard output or return its output streams."
+			],
+			"signature": "run(cmd, streams) -\u003e number, string, string",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cmd",
+					"Type": "string",
+					"Doc": null
+				},
+				{
+					"Name": "streams",
+					"Type": "table|boolean",
+					"Doc": null
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- This code is the same as `ls -l | wc -l`",
+							"local fs = require 'fs'",
+							"local pr, pw = fs.pipe()",
+							"hilbish.run('ls -l', {",
+							"\tstdout = pw,",
+							"\tstderr = pw,",
+							"})",
+							"pw:close()",
+							"hilbish.run('wc -l', {",
+							"\tstdin = pr",
+							"})"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "runnerMode",
+			"description": [
+				"Sets the execution/runner mode for interactive Hilbish.",
+				"**NOTE: This function is deprecated and will be removed in 3.0**",
+				"Use `hilbish.runner.setCurrent` instead.",
+				"This determines whether Hilbish wll try to run input as Lua",
+				"and/or sh or only do one of either.",
+				"Accepted values for mode are hybrid (the default), hybridRev (sh first then Lua),",
+				"sh, and lua. It also accepts a function, to which if it is passed one",
+				"will call it to execute user input instead.",
+				"Read [about runner mode](../features/runner-mode) for more information."
+			],
+			"signature": "runnerMode(mode)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "mode",
+					"Type": "string|function",
+					"Doc": null
+				}
+			]
+		},
+		{
 			"name": "timeout",
 			"description": [
 				"Executed the `cb` function after a period of `time`.",
@@ -898,200 +1092,6 @@
 					}
 				]
 			}
-		},
-		{
-			"name": "luaSinkAutoFlush",
-			"description": [
-				"Sets/toggles the option of automatically flushing output.",
-				"A call with no argument will toggle the value."
-			],
-			"signature": "autoFlush(auto)",
-			"goFuncName": "luasinkautoflush",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkFlush",
-			"description": [
-				"Flush writes all buffered input to the sink."
-			],
-			"signature": "flush()",
-			"goFuncName": "luasinkflush",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkRead",
-			"description": [
-				"Reads a liine of input from the sink."
-			],
-			"signature": "read() -\u003e string",
-			"goFuncName": "luasinkread",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkReadAll",
-			"description": [
-				"Reads all input from the sink."
-			],
-			"signature": "readAll() -\u003e string",
-			"goFuncName": "luasinkreadall",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkWrite",
-			"description": [
-				"Writes data to a sink."
-			],
-			"signature": "write(str)",
-			"goFuncName": "luasinkwrite",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkWriteln",
-			"description": [
-				"Writes data to a sink with a newline at the end."
-			],
-			"signature": "writeln(str)",
-			"goFuncName": "luasinkwriteln",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "run",
-			"description": [
-				"Runs `cmd` in Hilbish's shell script interpreter.",
-				"The `streams` parameter specifies the output and input streams the command should use.",
-				"For example, to write command output to a sink.",
-				"As a table, the caller can directly specify the standard output, error, and input",
-				"streams of the command with the table keys `out`, `err`, and `input` respectively.",
-				"As a boolean, it specifies whether the command should use standard output or return its output streams."
-			],
-			"signature": "run(cmd, streams) -\u003e number, string, string",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "cmd",
-					"Type": "string",
-					"Doc": null
-				},
-				{
-					"Name": "streams",
-					"Type": "table|boolean",
-					"Doc": null
-				}
-			],
-			"tags": {
-				"example": [
-					{
-						"id": "",
-						"fields": [
-							"-- This code is the same as `ls -l | wc -l`",
-							"local fs = require 'fs'",
-							"local pr, pw = fs.pipe()",
-							"hilbish.run('ls -l', {",
-							"\tstdout = pw,",
-							"\tstderr = pw,",
-							"})",
-							"pw:close()",
-							"hilbish.run('wc -l', {",
-							"\tstdin = pr",
-							"})"
-						],
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "runnerMode",
-			"description": [
-				"Sets the execution/runner mode for interactive Hilbish.",
-				"**NOTE: This function is deprecated and will be removed in 3.0**",
-				"Use `hilbish.runner.setCurrent` instead.",
-				"This determines whether Hilbish wll try to run input as Lua",
-				"and/or sh or only do one of either.",
-				"Accepted values for mode are hybrid (the default), hybridRev (sh first then Lua),",
-				"sh, and lua. It also accepts a function, to which if it is passed one",
-				"will call it to execute user input instead.",
-				"Read [about runner mode](../features/runner-mode) for more information."
-			],
-			"signature": "runnerMode(mode)",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "mode",
-					"Type": "string|function",
-					"Doc": null
-				}
-			]
 		}
 	]
 }
