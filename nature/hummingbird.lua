@@ -37,7 +37,7 @@ hilbish.messages = {}
 
 local function expect(tbl, field)
 	if not tbl[field] or tbl[field] == '' then
-		error(string.format('expected field %s in message'))
+		error(string.format('expected field %s in message', field))
 	end
 end
 
