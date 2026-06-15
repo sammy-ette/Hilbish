@@ -2,7 +2,6 @@ package util
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -253,17 +252,12 @@ func Contains(s []string, e string) bool {
 }
 
 func HandleExecErr(err error) (exit uint8) {
-	ctx := context.TODO()
-
 	switch x := err.(type) {
 	case *exec.ExitError:
 		// started, but errored - default to 1 if OS
 		// doesn't have exit statuses
 		if status, ok := x.Sys().(syscall.WaitStatus); ok {
 			if status.Signaled() {
-				if ctx.Err() != nil {
-					return
-				}
 				exit = uint8(128 + status.Signal())
 				return
 			}
