@@ -166,127 +166,6 @@
 	],
 	"docs": [
 		{
-			"name": "luaSinkAutoFlush",
-			"description": [
-				"Sets/toggles the option of automatically flushing output.",
-				"A call with no argument will toggle the value."
-			],
-			"signature": "autoFlush(auto)",
-			"goFuncName": "luasinkautoflush",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkFlush",
-			"description": [
-				"Flush writes all buffered input to the sink."
-			],
-			"signature": "flush()",
-			"goFuncName": "luasinkflush",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkRead",
-			"description": [
-				"Reads a liine of input from the sink."
-			],
-			"signature": "read() -\u003e string",
-			"goFuncName": "luasinkread",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkReadAll",
-			"description": [
-				"Reads all input from the sink."
-			],
-			"signature": "readAll() -\u003e string",
-			"goFuncName": "luasinkreadall",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkWrite",
-			"description": [
-				"Writes data to a sink."
-			],
-			"signature": "write(str)",
-			"goFuncName": "luasinkwrite",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkWriteln",
-			"description": [
-				"Writes data to a sink with a newline at the end."
-			],
-			"signature": "writeln(str)",
-			"goFuncName": "luasinkwriteln",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
 			"name": "alias",
 			"description": [
 				"Sets an alias, with a name of `cmd` to another command.",
@@ -1048,6 +927,127 @@
 						"id": "string",
 						"fields": [],
 						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkAutoFlush",
+			"description": [
+				"Sets/toggles the option of automatically flushing output.",
+				"A call with no argument will toggle the value."
+			],
+			"signature": "autoFlush(auto)",
+			"goFuncName": "luasinkautoflush",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkFlush",
+			"description": [
+				"Flush writes all buffered input to the sink."
+			],
+			"signature": "flush()",
+			"goFuncName": "luasinkflush",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkRead",
+			"description": [
+				"Reads a liine of input from the sink."
+			],
+			"signature": "read() -\u003e string",
+			"goFuncName": "luasinkread",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkReadAll",
+			"description": [
+				"Reads all input from the sink."
+			],
+			"signature": "readAll() -\u003e string",
+			"goFuncName": "luasinkreadall",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkWrite",
+			"description": [
+				"Writes data to a sink."
+			],
+			"signature": "write(str)",
+			"goFuncName": "luasinkwrite",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "luaSinkWriteln",
+			"description": [
+				"Writes data to a sink with a newline at the end."
+			],
+			"signature": "writeln(str)",
+			"goFuncName": "luasinkwriteln",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
 					}
 				]
 			}
