@@ -151,9 +151,9 @@ func newLineReader(noHist bool) *lineReader {
 					// ['--flag'] = {'description', '--flag-alias'}
 					// OR
 					// ['--flag'] = {description = '', alias = '', display = ''}
-					itemName, ok := lkey.TryString()
+					itemName, _ := lkey.TryString()
 					vlTbl, okk := lval.TryTable()
-					if !ok && !okk {
+					if !okk {
 						// TODO: error
 						return
 					}
@@ -327,9 +327,9 @@ func (lr *lineReader) luaAllHistory(t *rt.Thread, c *rt.GoCont) (rt.Cont, error)
 	tbl := rt.NewTable()
 	size := lr.fileHist.Len()
 
-	for i := 1; i < size; i++ {
+	for i := 0; i < size; i++ {
 		cmd, _ := lr.fileHist.GetLine(i)
-		tbl.Set(rt.IntValue(int64(i)), rt.StringValue(cmd))
+		tbl.Set(rt.IntValue(int64(i+1)), rt.StringValue(cmd))
 	}
 
 	return c.PushingNext1(t.Runtime, rt.TableValue(tbl)), nil
