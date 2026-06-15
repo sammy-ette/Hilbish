@@ -108,10 +108,9 @@ func fcd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	util.DoString(t.Runtime, fmt.Sprintf(`
-	local bait = require 'bait'
-	bait.throw('hilbish.cd', '%s', '%s')
-	`, abspath, oldWd))
+	baitMod := util.MustDoString(t.Runtime, "return require 'bait'").AsTable()
+	throw := baitMod.Get(rt.StringValue("throw"))
+	rt.Call1(t, throw, rt.StringValue("hilbish.cd"), rt.StringValue(abspath), rt.StringValue(oldWd))
 
 	return c.Next(), err
 }
