@@ -52,7 +52,7 @@ func splitForFile(str string) []string {
 		if r == '"' {
 			quoted = !quoted
 			sb.WriteRune(r)
-		} else if r == ' ' && str[i-1] == '\\' {
+		} else if r == ' ' && i > 0 && str[i-1] == '\\' {
 			sb.WriteRune(r)
 		} else if !quoted && r == ' ' {
 			split = append(split, sb.String())
