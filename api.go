@@ -370,6 +370,9 @@ func hlexec(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 	cmdArgs, _ := splitInput(cmd)
+	if len(cmdArgs) == 0 {
+		return nil, errors.New("expected a command to run")
+	}
 	if runtime.GOOS != "windows" {
 		cmdPath, err := util.LookPath(cmdArgs[0])
 		if err != nil {
