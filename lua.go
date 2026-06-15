@@ -95,7 +95,7 @@ func yarnloadLibs(r *rt.Runtime) {
 	lib.LoadLibs(r, terminal.Loader)
 	lib.LoadLibs(r, snail.Loader)
 	lib.LoadLibs(r, cmds.Loader)
-	lib.LoadLibs(l, lr.rl.Loader)
+	lib.LoadLibs(r, lr.rl.Loader)
 
 }
 
