@@ -56,7 +56,14 @@ func (a *aliasModule) Resolve(cmdstr string) string {
 		return cmdstr
 	}
 
+	visited := make(map[string]bool)
 	for a.aliases[args[0]] != "" {
+		if visited[args[0]] {
+			// cyclic alias definition (eg foo -> bar -> foo), stop resolving
+			break
+		}
+		visited[args[0]] = true
+
 		alias := a.aliases[args[0]]
 		alias = arg.ReplaceAllStringFunc(alias, func(a string) string {
 			idx, _ := strconv.Atoi(a[1:])
@@ -77,13 +84,6 @@ func (a *aliasModule) Resolve(cmdstr string) string {
 		cmdstr = alias + strings.TrimPrefix(cmdstr, args[0])
 		cmdArgs, _ := splitInput(cmdstr)
 		args = cmdArgs
-
-		if a.aliases[args[0]] == alias {
-			break
-		}
-		if a.aliases[args[0]] != "" {
-			continue
-		}
 	}
 
 	return cmdstr
