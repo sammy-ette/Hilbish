@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -187,8 +186,10 @@ func ForEach(tbl *rt.Table, cb func(key rt.Value, val rt.Value)) {
 // directory.
 func ExpandHome(path string) string {
 	if strings.HasPrefix(path, "~") {
-		curuser, _ := user.Current()
-		homedir := curuser.HomeDir
+		homedir, err := os.UserHomeDir()
+		if err != nil {
+			return path
+		}
 
 		return strings.Replace(path, "~", homedir, 1)
 	}
@@ -198,9 +199,12 @@ func ExpandHome(path string) string {
 
 // AbbrevHome changes the user's home directory in the path string to ~ (tilde)
 func AbbrevHome(path string) string {
-	curuser, _ := user.Current()
-	if strings.HasPrefix(path, curuser.HomeDir) {
-		return "~" + strings.TrimPrefix(path, curuser.HomeDir)
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+	if rest, ok := strings.CutPrefix(path, homedir); ok {
+		return "~" + rest
 	}
 
 	return path
