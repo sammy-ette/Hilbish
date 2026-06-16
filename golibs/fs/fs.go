@@ -214,7 +214,7 @@ func fjoin(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	for i, v := range c.Etc() {
 		if v.Type() != rt.StringType {
 			// +2; go indexes of 0 and first arg from above
-			return nil, fmt.Errorf("bad argument #%d to run (expected string, got %s)", i+1, v.TypeName())
+			return nil, fmt.Errorf("bad argument #%d to join (expected string, got %s)", i+1, v.TypeName())
 		}
 		strs[i] = v.AsString()
 	}
