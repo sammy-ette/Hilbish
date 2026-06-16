@@ -133,7 +133,7 @@ function hilbish.runner.run(input, priv)
 	end
 
 	local runner = hilbish.runner.get(currentRunner)
-
+	
 	::rerun::
 	local command = hilbish.aliases.resolve(processed.co2mmand)
 	local valid = runner.validate(processed.command)
@@ -191,6 +191,17 @@ hilbish.runner.add('hybrid', {
 	validate = snail.validate
 })
 
+local function luaValidate(input)
+	local f, err = load(input)
+	if f then
+		return true
+	elseif err and err:find('<eof>') then
+		return false
+	else
+		return true
+	end
+end
+
 hilbish.runner.add('hybridRev', {
 	run = function(input)
 		local res = hilbish.runner.sh(input)
@@ -201,15 +212,18 @@ hilbish.runner.add('hybridRev', {
 		local cmdStr = hilbish.aliases.resolve(input)
 		return hilbish.runner.lua(cmdStr)
 	end,
-	validate = function (input)
-		return true
-	end
+	validate = luaValidate
 })
 
--- hilbish.runner.add('lua', function(input)
--- 	local cmdStr = hilbish.aliases.resolve(input)
--- 	return hilbish.runner.lua(cmdStr)
--- end)
+hilbish.runner.add('lua', {
+	run = function(input)
+		local cmdStr = hilbish.aliases.resolve(input)
+		return hilbish.runner.lua(cmdStr)
+	end,
+	validate = luaValidate
+})
+
+
 
 hilbish.runner.add('sh', {
 	run = hilbish.runner.sh,
