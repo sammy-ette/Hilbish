@@ -94,11 +94,11 @@ function hilbish.runner.set(name, runner)
 	end
 
 	if not runner.run or type(runner.run) ~= 'function' then
-		error 'run function in runner missing'
+		error('runner function in runner ' .. name .. ' missing')
 	end
 
 	if not runner.validate or type(runner.validate) ~= 'function' then
-		error 'validate function in runner missing'
+		error('validate function in runner ' .. name .. ' missing')
 	end
 
 	runners[name] = runner

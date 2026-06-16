@@ -76,7 +76,7 @@ local function runConfig(path)
 	local _, err = pcall(dofile, path)
 	if err then
 		print(err)
-		print 'An error has occured while loading your config!\n'
+		print 'An error has occurred while loading your config!\n'
 		hilbish.prompt '& '
 	else
 		bait.throw 'hilbish.init'
