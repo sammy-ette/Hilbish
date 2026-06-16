@@ -13,13 +13,16 @@ menu:
 how Hilbish interprets interactive input.
 Users can add and change the default runner for interactive input to any
 language or script of their choosing. A good example is using it to
-write command in Fennel.
+write commands in Fennel.
 
-Runners are functions that evaluate user input. The default runners in
-Hilbish can run shell script and Lua code.
+A runner is a table with two required functions:
+- `run(input) -> table`: Evaluates the input and returns a result table.
+- `validate(input) -> boolean`: Checks whether the input is complete and
+ready to run. Return `false` to prompt the user for more input (continuation),
+or `true` to proceed.
 
-A runner is passed the input and has to return a table with these values.
-All are not required, only the useful ones the runner needs to return.
+The table returned by `run` can have these fields.
+All are optional; only set the ones relevant to the runner.
 (So if there isn't an error, just omit `err`.)
 
 - `exitCode` (number): Exit code of the command
@@ -32,7 +35,7 @@ hooks and have a better looking message.
 	- `<command>: not-found` will throw a `command.not-found` hook
 	based on what `<command>` is.
 	- `<command>: not-executable` will throw a `command.not-executable` hook.
-- `continue` (boolean): Whether Hilbish should prompt the user for no input
+- `continue` (boolean): Whether Hilbish should prompt the user for more input
 - `newline` (boolean): Whether a newline should be added at the end of `input`.
 
 Here is a simple example of a fennel runner. It falls back to
@@ -40,16 +43,19 @@ shell script if fennel eval has an error.
 ```lua
 local fennel = require 'fennel'
 
-hilbish.runnerMode(function(input)
-	local ok = pcall(fennel.eval, input)
-	if ok then
-		return {
-			input = input
-		}
-	end
-
-	return hilbish.runner.sh(input)
-end)
+hilbish.runner.add('fennel', {
+	run = function(input)
+		local ok = pcall(fennel.eval, input)
+		if ok then
+			return { input = input }
+		end
+		return hilbish.runner.sh(input)
+	end,
+	validate = function(input)
+		return someMethodUsedToCheckIfFennelInputIsFinished(input)
+	end,
+})
+hilbish.runner.setCurrent('fennel')
 ```
 
 ## Functions
@@ -62,7 +68,6 @@ end)
 - [`hilbish.runner.lua(cmd)`](#runner.lua): Evaluates `cmd` as Lua input. This is the same as using `dofile`
 - [`hilbish.runner.set(name, runner)`](#set): *Sets* a runner by name. The difference between this function and
 - [`hilbish.runner.setCurrent(name)`](#setCurrent): Sets Hilbish's runner mode by name.
-- [`hilbish.runner.setMode(mode)`](#setMode): **NOTE: This function is deprecated and will be removed in 3.0**
 
 ---
 
@@ -71,14 +76,14 @@ end)
 hilbish.runner.add(name, runner)
 
 Adds a runner to the table of available runners.  
-If runner is a table, it must have the run function in it.  
+`runner` must be a table with both a `run` and a `validate` function.  
 
 #### Parameters
 
 `string` _name_  
 Name of the runner
 
-`function|table` _runner_  
+`table` _runner_  
 
 
 
@@ -174,7 +179,7 @@ hilbish.runner.set(name, runner)
 
 *Sets* a runner by name. The difference between this function and  
 add, is set will *not* check if the named runner exists.  
-The runner table must have the run function in it.  
+The runner table must have both a `run` and a `validate` function.  
 
 #### Parameters
 
@@ -197,25 +202,6 @@ Sets Hilbish's runner mode by name.
 #### Parameters
 
 `string` _name_  
-
-
-
-
----
-
-#### setMode
-
-hilbish.runner.setMode(mode)
-
-**NOTE: This function is deprecated and will be removed in 3.0**  
-Use `hilbish.runner.setCurrent` instead.  
-This is the same as the `hilbish.runnerMode` function.  
-It takes a callback, which will be used to execute all interactive input.  
-Or a string which names the runner mode to use.  
-
-#### Parameters
-
-`string|function` _mode_  
 
 
 
