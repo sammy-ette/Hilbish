@@ -35,15 +35,14 @@ import (
 )
 
 var exports = map[string]util.LuaExport{
-	"alias":       {Function: hlalias, ArgNum: 2, Variadic: false},
 	"cwd":         {Function: hlcwd, ArgNum: 0, Variadic: false},
 	"exec":        {Function: hlexec, ArgNum: 1, Variadic: false},
 	"highlighter": {Function: hlhighlighter, ArgNum: 1, Variadic: false},
 	"hinter":      {Function: hlhinter, ArgNum: 1, Variadic: false},
 	"inputMode":   {Function: hlinputMode, ArgNum: 1, Variadic: false},
 	"interval":    {Function: hlinterval, ArgNum: 2, Variadic: false},
+	"lookpath":    {Function: hllookpath, ArgNum: 1, Variadic: false},
 	"timeout":     {Function: hltimeout, ArgNum: 2, Variadic: false},
-	"which":       {Function: hlwhich, ArgNum: 1, Variadic: false},
 }
 
 var hshMod *rt.Table
@@ -91,11 +90,6 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	// hilbish.os table
 	hshos := hshosLoader(rtm)
 	mod.Set(rt.StringValue("os"), rt.TableValue(hshos))
-
-	// hilbish.aliases table
-	aliases = newAliases()
-	aliasesModule := aliases.Loader(rtm)
-	mod.Set(rt.StringValue("aliases"), rt.TableValue(aliasesModule))
 
 	// hilbish.history table
 	historyModule := lr.Loader(rtm)
@@ -157,36 +151,26 @@ func hlcwd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.PushingNext1(t.Runtime, rt.StringValue(cwd)), nil
 }
 
-// alias(cmd, orig)
-// Sets an alias, with a name of `cmd` to another command.
-// #param cmd string Name of the alias
-// #param orig string Command that will be aliased
-/*
-#example
--- With this, "ga file" will turn into "git add file"
-hilbish.alias('ga', 'git add')
-
--- Numbered substitutions are supported here!
-hilbish.alias('dircount', 'ls %1 | wc -l')
--- "dircount ~" would count how many files are in ~ (home directory).
-#example
-*/
-func hlalias(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
+// lookpath(file) -> string
+// Searches for `file` in $PATH and returns its full path.
+// Throws an error if it is not found.
+// #param file string
+// #returns string
+func hllookpath(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
 		return nil, err
 	}
-	cmd, err := c.StringArg(0)
-	if err != nil {
-		return nil, err
-	}
-	orig, err := c.StringArg(1)
+	file, err := c.StringArg(0)
 	if err != nil {
 		return nil, err
 	}
 
-	aliases.Add(cmd, orig)
+	path, err := util.LookPath(file)
+	if err != nil {
+		return nil, err
+	}
 
-	return c.Next(), nil
+	return c.PushingNext1(t.Runtime, rt.StringValue(path)), nil
 }
 
 // exec(cmd)
@@ -281,39 +265,6 @@ func hlinterval(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	timer.start()
 
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(timer.ud)), nil
-}
-
-// which(name) -> string
-// Checks if `name` is a valid command.
-// Will return the path of the binary, or a basename if it's a commander.
-// #param name string
-// #returns string
-func hlwhich(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
-	}
-	name, err := c.StringArg(0)
-	if err != nil {
-		return nil, err
-	}
-
-	// itll return either the original command or what was passed
-	// if name isnt empty its not an issue
-	alias := aliases.Resolve(name)
-	cmd := strings.Split(alias, " ")[0]
-
-	// check for commander
-	if cmds.Commands[cmd] != nil {
-		// they dont resolve to a path, so just send the cmd
-		return c.PushingNext1(t.Runtime, rt.StringValue(cmd)), nil
-	}
-
-	path, err := util.LookPath(cmd)
-	if err != nil {
-		return c.Next(), nil
-	}
-
-	return c.PushingNext1(t.Runtime, rt.StringValue(path)), nil
 }
 
 // inputMode(mode)

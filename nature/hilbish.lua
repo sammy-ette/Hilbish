@@ -1,5 +1,6 @@
 -- @module hilbish
 local bait = require 'bait'
+local commander = require 'commander'
 local fs = require 'fs'
 local readline = require 'readline'
 local snail = require 'snail'
@@ -38,6 +39,26 @@ local function fmtPrompt(p)
 			return hilbish.host
 		end
 	end)
+end
+
+-- alias(cmd, orig)
+-- Sets an alias, with a name of `cmd` to another command.
+-- #param cmd string Name of the alias
+-- #param orig string Command that will be aliased
+--[[
+#example
+-- With this, "ga file" will turn into "git add file"
+hilbish.alias('ga', 'git add')
+
+-- Numbered substitutions are supported here!
+hilbish.alias('dircount', 'ls %1 | wc -l')
+-- "dircount ~" would count how many files are in ~ (home directory).
+#example
+--]]
+--- @param alias string
+--- @param cmd string
+function hilbish.alias(alias, cmd)
+	hilbish.aliases.add(alias, cmd)
 end
 
 --- prompt(str, typ)
@@ -274,4 +295,25 @@ function hilbish.multiprompt(str)
 
 	assert(type(str) == 'string', 'expected multiprompt to be a string, found ' .. type(str))
 	multilinePrompt = str
+end
+
+-- Checks if `name` is a valid command.
+-- Will return the path of the binary, or a basename if it's a commander.
+--- @param name string
+--- @returns string
+function hilbish.which(name)
+	local alias = hilbish.aliases.resolve(name)
+	local cmd = string.split(alias, ' ')[1]
+
+	local commanders = commander.registry()
+	if commanders[cmd] then
+		return cmd
+	end
+
+	local ok, res = pcall(hilbish.lookpath, cmd)
+	if not ok then
+		return
+	end
+
+	return res
 end

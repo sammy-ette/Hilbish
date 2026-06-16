@@ -52,6 +52,8 @@ local snail = require 'snail'
 local currentRunner = 'hybrid'
 local runners = {}
 
+hilbish.runner = {}
+
 --- Get a runner by name.
 --- @param name string Name of the runner to retrieve.
 --- @return table

@@ -20,6 +20,7 @@ table.insert(package.searchers, function(module)
 end)
 
 require 'nature.editor'
+require 'nature.aliases'
 require 'nature.hilbish'
 
 require 'nature.processors'
