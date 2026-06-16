@@ -73,8 +73,8 @@ end)
 local function runConfig(path)
 	if not hilbish.interactive then return end
 
-	local _, err = pcall(dofile, path)
-	if err then
+	local ok, err = pcall(dofile, path)
+	if not ok then
 		print(err)
 		print 'An error has occurred while loading your config!\n'
 		hilbish.prompt '& '
