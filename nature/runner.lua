@@ -1,4 +1,5 @@
 -- @module hilbish.runner
+local bait = require 'bait'
 local snail = require 'snail'
 local currentRunner = 'hybrid'
 local runners = {}
@@ -20,22 +21,10 @@ function hilbish.runner.get(name)
 end
 
 --- Adds a runner to the table of available runners.
---- If runner is a table, it must have the run function in it.
+--- `runner` must be a table with both a `run` and a `validate` function.
 --- @param name string Name of the runner
---- @param runner function|table 
+--- @param runner table
 function hilbish.runner.add(name, runner)
-	if type(name) ~= 'string' then
-		error 'expected runner name to be a table'
-	end
-
-	if type(runner) == 'function' then
-		runner = {run = runner} -- this probably looks confusing
-	end
-
-	if type(runner) ~= 'table' then
-		error 'expected runner to be a table or function'
-	end
-
 	if runners[name] then
 		error(string.format('runner %s already exists', name))
 	end
@@ -45,12 +34,24 @@ end
 
 --- *Sets* a runner by name. The difference between this function and
 --- add, is set will *not* check if the named runner exists.
---- The runner table must have the run function in it.
+--- The runner table must have both a `run` and a `validate` function.
 --- @param name string
 --- @param runner table
 function hilbish.runner.set(name, runner)
+	if type(name) ~= 'string' then
+		error 'expected runner name to be a string'
+	end
+
+	if type(runner) ~= 'table' then
+		error 'expected runner to be a table'
+	end
+
 	if not runner.run or type(runner.run) ~= 'function' then
 		error 'run function in runner missing'
+	end
+
+	if not runner.validate or type(runner.validate) ~= 'function' then
+		error 'validate function in runner missing'
 	end
 
 	runners[name] = runner
@@ -80,16 +81,6 @@ end
 --- @returns string
 function hilbish.runner.getCurrent()
 	return currentRunner
-end
-
---- **NOTE: This function is deprecated and will be removed in 3.0**
---- Use `hilbish.runner.setCurrent` instead.
---- This is the same as the `hilbish.runnerMode` function.
---- It takes a callback, which will be used to execute all interactive input.
---- Or a string which names the runner mode to use.
--- @param mode string|function
-function hilbish.runner.setMode(mode)
-	hilbish.runnerMode(mode)
 end
 
 local function finishExec(exitCode, input, priv)
@@ -132,11 +123,24 @@ function hilbish.runner.run(input, priv)
 		return
 	end
 
+	local runner = hilbish.runner.get(currentRunner)
+	
+	::rerun::
 	local command = hilbish.aliases.resolve(processed.command)
+	local valid = runner.validate(processed.command)
+	if not valid then
+		local contInput = continuePrompt(processed.command, false)
+		if contInput then
+			processed.command = contInput
+			goto rerun
+		else
+			finishExec(0, '', true)
+			return
+		end
+	end
+
 	bait.throw('command.preexec', processed.command, command)
 
-	::rerun::
-	local runner = hilbish.runner.get(currentRunner)
 	local ok, out = pcall(runner.run, processed.command)
 	if not ok then
 		io.stderr:write(out .. '\n')
@@ -144,6 +148,8 @@ function hilbish.runner.run(input, priv)
 		return
 	end
 
+	-- TODO: maybe remove this, because validate should check if
+	-- input should be continued
 	if out.continue then
 		local contInput = continuePrompt(processed.command, out.newline)
 		if contInput then
@@ -167,31 +173,56 @@ function hilbish.runner.sh(input)
 	return hilbish.snail:run(input)
 end
 
-hilbish.runner.add('hybrid', function(input)
-	local cmdStr = hilbish.aliases.resolve(input)
+hilbish.runner.add('hybrid', {
+	run = function(input)
+		local cmdStr = hilbish.aliases.resolve(input)
 
-	local res = hilbish.runner.lua(cmdStr)
-	if not res.err then
-		return res
+		local res = hilbish.runner.lua(cmdStr)
+		if not res.err then
+			return res
+		end
+
+		return hilbish.runner.sh(input)
+	end,
+	validate = snail.validate
+})
+
+local function luaValidate(input)
+	local f, err = load(input)
+	if f then
+		return true
+	elseif err and err:find('<eof>') then
+		return false
+	else
+		return true
 	end
+end
 
-	return hilbish.runner.sh(input)
-end)
+hilbish.runner.add('hybridRev', {
+	run = function(input)
+		local res = hilbish.runner.sh(input)
+		if not res.err then
+			return res
+		end
 
-hilbish.runner.add('hybridRev', function(input)
-	local res = hilbish.runner.sh(input)
-	if not res.err then
-		return res
-	end
+		local cmdStr = hilbish.aliases.resolve(input)
+		return hilbish.runner.lua(cmdStr)
+	end,
+	validate = luaValidate
+})
 
-	local cmdStr = hilbish.aliases.resolve(input)
-	return hilbish.runner.lua(cmdStr)
-end)
+hilbish.runner.add('lua', {
+	run = function(input)
+		local cmdStr = hilbish.aliases.resolve(input)
+		return hilbish.runner.lua(cmdStr)
+	end,
+	validate = luaValidate
+})
 
-hilbish.runner.add('lua', function(input)
-	local cmdStr = hilbish.aliases.resolve(input)
-	return hilbish.runner.lua(cmdStr)
-end)
 
-hilbish.runner.add('sh', hilbish.runner.sh)
+
+hilbish.runner.add('sh', {
+	run = hilbish.runner.sh,
+	validate = snail.validate
+})
 hilbish.runner.setCurrent 'hybrid'

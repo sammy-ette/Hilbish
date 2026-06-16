@@ -12,13 +12,16 @@ import (
 how Hilbish interprets interactive input.
 Users can add and change the default runner for interactive input to any
 language or script of their choosing. A good example is using it to
-write command in Fennel.
+write commands in Fennel.
 
-Runners are functions that evaluate user input. The default runners in
-Hilbish can run shell script and Lua code.
+A runner is a table with two required functions:
+- `run(input) -> table`: Evaluates the input and returns a result table.
+- `validate(input) -> boolean`: Checks whether the input is complete and
+ready to run. Return `false` to prompt the user for more input (continuation),
+or `true` to proceed.
 
-A runner is passed the input and has to return a table with these values.
-All are not required, only the useful ones the runner needs to return.
+The table returned by `run` can have these fields.
+All are optional; only set the ones relevant to the runner.
 (So if there isn't an error, just omit `err`.)
 
 - `exitCode` (number): Exit code of the command
@@ -31,7 +34,7 @@ hooks and have a better looking message.
 	- `<command>: not-found` will throw a `command.not-found` hook
 	based on what `<command>` is.
 	- `<command>: not-executable` will throw a `command.not-executable` hook.
-- `continue` (boolean): Whether Hilbish should prompt the user for no input
+- `continue` (boolean): Whether Hilbish should prompt the user for more input
 - `newline` (boolean): Whether a newline should be added at the end of `input`.
 
 Here is a simple example of a fennel runner. It falls back to
@@ -39,16 +42,19 @@ shell script if fennel eval has an error.
 ```lua
 local fennel = require 'fennel'
 
-hilbish.runnerMode(function(input)
-	local ok = pcall(fennel.eval, input)
-	if ok then
-		return {
-			input = input
-		}
-	end
-
-	return hilbish.runner.sh(input)
-end)
+hilbish.runner.add('fennel', {
+	run = function(input)
+		local ok = pcall(fennel.eval, input)
+		if ok then
+			return { input = input }
+		end
+		return hilbish.runner.sh(input)
+	end,
+	validate = function(input)
+		return someMethodUsedToCheckIfFennelInputIsFinished(input)
+	end,
+})
+hilbish.runner.setCurrent('fennel')
 ```
 */
 func runnerModeLoader(rtm *rt.Runtime) *rt.Table {

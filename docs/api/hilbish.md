@@ -27,7 +27,6 @@ interfaces and functions which directly relate to shell functionality.
 - [`hilbish.prompt(str, typ)`](#prompt): Changes the shell prompt to the provided string.
 - [`hilbish.read(prompt) -> input (string)`](#read): Read input from the user, using Hilbish's line editor/input reader.
 - [`hilbish.run(cmd, streams) -> number, string, string`](#run): Runs `cmd` in Hilbish's shell script interpreter.
-- [`hilbish.runnerMode(mode)`](#runnerMode): Sets the execution/runner mode for interactive Hilbish.
 - [`hilbish.timeout(cb, time) -> @Timer`](#timeout): Executed the `cb` function after a period of `time`.
 - [`hilbish.which(name) -> string`](#which): Checks if `name` is a valid command.
 
@@ -357,29 +356,6 @@ hilbish.run('wc -l', {
 	stdin = pr
 })
 ```
-
-
----
-
-#### runnerMode
-
-hilbish.runnerMode(mode)
-
-Sets the execution/runner mode for interactive Hilbish.  
-**NOTE: This function is deprecated and will be removed in 3.0**  
-Use `hilbish.runner.setCurrent` instead.  
-This determines whether Hilbish wll try to run input as Lua  
-and/or sh or only do one of either.  
-Accepted values for mode are hybrid (the default), hybridRev (sh first then Lua),  
-sh, and lua. It also accepts a function, to which if it is passed one  
-will call it to execute user input instead.  
-Read [about runner mode](../features/runner-mode) for more information.  
-
-#### Parameters
-
-`string|function` _mode_  
-
-
 
 
 ---
