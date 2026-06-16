@@ -29,6 +29,7 @@ import (
 
 	"github.com/arnodel/golua/lib/packagelib"
 	rt "github.com/arnodel/golua/runtime"
+	"mvdan.cc/sh/v3/shell"
 
 	"github.com/maxlandon/readline"
 )
@@ -200,7 +201,10 @@ func hlexec(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmdArgs, _ := splitInput(cmd)
+	cmdArgs, err := shell.Fields(cmd, nil)
+	if err != nil {
+		return nil, err
+	}
 	if len(cmdArgs) == 0 {
 		return nil, errors.New("expected a command to run")
 	}
