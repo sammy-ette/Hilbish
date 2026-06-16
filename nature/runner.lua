@@ -132,16 +132,15 @@ function hilbish.runner.run(input, priv)
 		return
 	end
 
-	local command = hilbish.aliases.resolve(processed.command)
 	local runner = hilbish.runner.get(currentRunner)
 
 	::rerun::
+	local command = hilbish.aliases.resolve(processed.co2mmand)
 	local valid = runner.validate(processed.command)
 	if not valid then
 		local contInput = continuePrompt(processed.command, false)
 		if contInput then
 			processed.command = contInput
-			print(contInput)
 			goto rerun
 		end
 	end
