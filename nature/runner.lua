@@ -133,6 +133,9 @@ function hilbish.runner.run(input, priv)
 		if contInput then
 			processed.command = contInput
 			goto rerun
+		else
+			finishExec(0, '', true)
+			return
 		end
 	end
 
@@ -145,6 +148,8 @@ function hilbish.runner.run(input, priv)
 		return
 	end
 
+	-- TODO: maybe remove this, because validate should check if
+	-- input should be continued
 	if out.continue then
 		local contInput = continuePrompt(processed.command, out.newline)
 		if contInput then
