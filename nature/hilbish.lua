@@ -84,8 +84,34 @@ if hilbish.os.family == 'windows' then
 	pathSep = ';'
 end
 
+local function pathContains(pathEnv, path)
+	if not pathEnv or pathEnv == '' then
+		return false
+	end
+
+	for segment in pathEnv:gmatch('([^' .. pathSep .. ']+)') do
+		if segment == path then
+			return true
+		end
+	end
+
+	return false
+end
+
 local function appendPath(path)
-	os.setenv('PATH', os.getenv 'PATH' .. pathSep .. expandHome(path))
+	local expandedPath = expandHome(path)
+	local currentPath = os.getenv 'PATH'
+
+	if pathContains(currentPath, expandedPath) then
+		return
+	end
+
+	if not currentPath or currentPath == '' then
+		os.setenv('PATH', expandedPath)
+		return
+	end
+
+	os.setenv('PATH', currentPath .. pathSep .. expandedPath)
 end
 
 --- appendPath(path)
