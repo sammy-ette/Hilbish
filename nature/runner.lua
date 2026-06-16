@@ -234,7 +234,8 @@ function hilbish.runner.lua(input)
 		}
 	end
 
-	local ok = pcall(fun)
+	local ok
+	ok, err = pcall(fun)
 	if not ok then
 		return {
 			input = input,
