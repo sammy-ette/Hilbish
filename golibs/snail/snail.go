@@ -39,6 +39,13 @@ func New(rtm *rt.Runtime) *Snail {
 	}
 }
 
+// Checks if input is incomplete. Does not error otherwise.
+func Validate(input string) bool {
+	r := strings.NewReader(input)
+	_, err := syntax.NewParser().Parse(r, "")
+	return !syntax.IsIncomplete(err)
+}
+
 func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer, error) {
 	file, err := syntax.NewParser().Parse(strings.NewReader(cmd), "")
 	if err != nil {

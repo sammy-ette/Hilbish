@@ -46,7 +46,8 @@ func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	rtm.SetRegistry(snailMetaKey, rt.TableValue(snailMeta))
 
 	exports := map[string]util.LuaExport{
-		"new": util.LuaExport{Function: snailnew, ArgNum: 0, Variadic: false},
+    "new":      util.LuaExport{Function: snailnew, ArgNum: 0, Variadic: false},
+    "validate": util.LuaExport{Function: snailvalidate, ArgNum: 1, Variadic: false},
 	}
 
 	mod := rt.NewTable()
@@ -60,6 +61,19 @@ func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 func snailnew(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	s := New(t.Runtime)
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(snailUserData(s))), nil
+}
+
+func snailvalidate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
+	}
+
+	input, err := c.StringArg(0)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.PushingNext1(t.Runtime, rt.BoolValue(Validate(input))), nil
 }
 
 // #member
