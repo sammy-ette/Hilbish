@@ -140,7 +140,19 @@ function hilbish.appendPath(path)
 end
 
 local function prependPath(path)
-	os.setenv('PATH', expandHome(path) .. pathSep .. os.getenv 'PATH')
+	local expandedPath = expandHome(path)
+	local currentPath = os.getenv 'PATH'
+
+	if pathContains(currentPath, expandedPath) then
+		return
+	end
+
+	if not currentPath or currentPath == '' then
+		os.setenv('PATH', expandedPath)
+		return
+	end
+
+	os.setenv('PATH', expandedPath .. pathSep .. currentPath)
 end
 
 --- prependPath(path)
