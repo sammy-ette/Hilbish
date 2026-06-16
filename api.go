@@ -12,7 +12,7 @@
 // #field login Is Hilbish the login shell?
 // #field vimMode Current Vim input mode of Hilbish (will be nil if not in Vim input mode)
 // #field exitCode Exit code of the last executed command
-// #field exitCode If Hilbish is currently running any interactive input
+// #field running If Hilbish is currently running any interactive input
 package main
 
 import (
