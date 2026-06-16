@@ -135,7 +135,7 @@ function hilbish.runner.run(input, priv)
 	local runner = hilbish.runner.get(currentRunner)
 	
 	::rerun::
-	local command = hilbish.aliases.resolve(processed.co2mmand)
+	local command = hilbish.aliases.resolve(processed.command)
 	local valid = runner.validate(processed.command)
 	if not valid then
 		local contInput = continuePrompt(processed.command, false)
