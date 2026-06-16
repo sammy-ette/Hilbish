@@ -21,8 +21,9 @@ function hilbish.runner.get(name)
 end
 
 --- Adds a runner to the table of available runners.
+--- `runner` must be a table with both a `run` and a `validate` function.
 --- @param name string Name of the runner
---- @param runner table 
+--- @param runner table
 function hilbish.runner.add(name, runner)
 	if runners[name] then
 		error(string.format('runner %s already exists', name))
@@ -33,7 +34,7 @@ end
 
 --- *Sets* a runner by name. The difference between this function and
 --- add, is set will *not* check if the named runner exists.
---- The runner table must have the run function in it.
+--- The runner table must have both a `run` and a `validate` function.
 --- @param name string
 --- @param runner table
 function hilbish.runner.set(name, runner)
@@ -80,16 +81,6 @@ end
 --- @returns string
 function hilbish.runner.getCurrent()
 	return currentRunner
-end
-
---- **NOTE: This function is deprecated and will be removed in 3.0**
---- Use `hilbish.runner.setCurrent` instead.
---- This is the same as the `hilbish.runnerMode` function.
---- It takes a callback, which will be used to execute all interactive input.
---- Or a string which names the runner mode to use.
--- @param mode string|function
-function hilbish.runner.setMode(mode)
-	hilbish.runnerMode(mode)
 end
 
 local function finishExec(exitCode, input, priv)
