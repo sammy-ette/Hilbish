@@ -142,8 +142,7 @@ func main() {
 	lr = newLineReader(false)
 	luaInit()
 
-	// This only executes when Hilbish isn't interactive
-	if fileInfo, _ := os.Stdin.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 {
+	if !interactive {
 		scanner := bufio.NewScanner(bufio.NewReader(os.Stdin))
 		for scanner.Scan() {
 			text := scanner.Text()
