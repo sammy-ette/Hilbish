@@ -159,9 +159,11 @@ while hilbish.interactive do
 	hilbish.running = true
 	hilbish.runner.run(input, priv)
 
-	local term = terminal.size()
-	io.write(string.char(0x001b) .. '[7m∆' .. string.char(0x001b) .. '[0m' .. string.rep(' ', term.width - 1) .. "\r")
-	io.flush()
+	local ok, term = pcall(function() return terminal.size() end)
+	if ok and term and term.width and term.width > 0 then
+		io.write(string.char(0x001b) .. '[7m∆' .. string.char(0x001b) .. '[0m' .. string.rep(' ', term.width - 1) .. "\r")
+		io.flush()
+	end
 
 	::continue::
 end
