@@ -50,7 +50,7 @@ func (a *aliasModule) Resolve(cmdstr string) string {
 
 	arg, _ := regexp.Compile(`[\\]?%\d+`)
 
-	args, _ := splitInput(cmdstr)
+	args := strings.Fields(cmdstr)
 	if len(args) == 0 {
 		// this shouldnt reach but...????
 		return cmdstr
@@ -82,8 +82,7 @@ func (a *aliasModule) Resolve(cmdstr string) string {
 		})
 
 		cmdstr = alias + strings.TrimPrefix(cmdstr, args[0])
-		cmdArgs, _ := splitInput(cmdstr)
-		args = cmdArgs
+		args = strings.Fields(cmdstr)
 	}
 
 	return cmdstr
