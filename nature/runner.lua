@@ -24,18 +24,6 @@ end
 --- @param name string Name of the runner
 --- @param runner table 
 function hilbish.runner.add(name, runner)
-	if type(name) ~= 'string' then
-		error 'expected runner name to be a table'
-	end
-
-	if type(runner) ~= 'table' then
-		error 'expected runner to be a table'
-	else
-		if not runner.run and not runner.validate then
-			error 'missing run or validate functions on runner table'
-		end
-	end
-
 	if runners[name] then
 		error(string.format('runner %s already exists', name))
 	end
@@ -49,8 +37,20 @@ end
 --- @param name string
 --- @param runner table
 function hilbish.runner.set(name, runner)
+	if type(name) ~= 'string' then
+		error 'expected runner name to be a string'
+	end
+
+	if type(runner) ~= 'table' then
+		error 'expected runner to be a table'
+	end
+
 	if not runner.run or type(runner.run) ~= 'function' then
 		error 'run function in runner missing'
+	end
+
+	if not runner.validate or type(runner.validate) ~= 'function' then
+		error 'validate function in runner missing'
 	end
 
 	runners[name] = runner
