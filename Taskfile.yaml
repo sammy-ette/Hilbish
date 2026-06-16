@@ -6,7 +6,7 @@ vars:
   PREFIX: '{{default "/usr/local" .PREFIX}}'
   bindir__: '{{.PREFIX}}/bin'
   BINDIR: '{{default .bindir__ .BINDIR}}'
-  libdir__: ''
+  libdir__: '{{.PREFIX}}/share/hilbish'
   LIBDIR: '{{default .libdir__ .LIBDIR}}'
   goflags__: '-ldflags "-s -w -X main.dataDir={{.LIBDIR}}"'
   GOFLAGS: '{{default .goflags__ .GOFLAGS}}'
@@ -36,7 +36,7 @@ tasks:
     cmds:
       - install -v -d "{{.DESTDIR}}{{.BINDIR}}/" && install -m 0755 -v hilbish "{{.DESTDIR}}{{.BINDIR}}/hilbish"
       - mkdir -p "{{.DESTDIR}}{{.LIBDIR}}"
-      - cp -r libs docs emmyLuaDocs nature .hilbishrc.lua {{.DESTDIR}}{{.LIBDIR}}
+      - cp -r libs docs nature .hilbishrc.lua {{.DESTDIR}}{{.LIBDIR}}
       - grep -qxF "{{.DESTDIR}}{{.BINDIR}}/hilbish" /etc/shells || echo "{{.DESTDIR}}{{.BINDIR}}/hilbish" >> /etc/shells
 
   uninstall:

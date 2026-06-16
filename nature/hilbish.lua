@@ -209,34 +209,10 @@ function hilbish.run(cmd, streams)
 	return table.unpack(returns)
 end
 
---- Sets the execution/runner mode for interactive Hilbish.
---- **NOTE: This function is deprecated and will be removed in 3.0**
---- Use `hilbish.runner.setCurrent` instead.
---- This determines whether Hilbish wll try to run input as Lua
---- and/or sh or only do one of either.
---- Accepted values for mode are hybrid (the default), hybridRev (sh first then Lua),
---- sh, and lua. It also accepts a function, to which if it is passed one
---- will call it to execute user input instead.
---- Read [about runner mode](../features/runner-mode) for more information.
--- @param mode string|function
-function hilbish.runnerMode(mode)
-	if type(mode) == 'string' then
-		hilbish.runner.setCurrent(mode)
-	elseif type(mode) == 'function' then
-		hilbish.runner.set('_', {
-			run = mode
-		})
-		hilbish.runner.setCurrent '_'
-	else
-		error('expected runner mode type to be either string or function, got', type(mode))
-	end
-end
-
 local multilinePrompt = '~> '
 
 --- Changes the text prompt when Hilbish asks for more input.
 --- This will show up when text is incomplete, like a missing quote
---- @param str string
 --- #example
 --- --[[
 --- imagine this is your text input:
@@ -253,6 +229,7 @@ local multilinePrompt = '~> '
 --- ]]--
 --- hilbish.multiprompt '-->'
 --- #example
+--- @param str string
 function hilbish.multiprompt(str)
 	if str == nil then
 		return multilinePrompt

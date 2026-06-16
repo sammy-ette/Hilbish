@@ -347,6 +347,9 @@ function Greenhouse:initUi()
 		self:keybind('Ctrl-D', function()
 			done = true
 		end)
+		self:keybind('Ctrl-C', function()
+			done = true
+		end)
 
 		if self.keybinds[c] then
 			self.keybinds[c](self)
@@ -361,6 +364,8 @@ function Greenhouse:initUi()
 	self = nil
 	bait.release('signal.sigint', sigint)
 	bait.release('signal.resize', resize)
+
+	ansikit.clear()
 end
 
 return Greenhouse

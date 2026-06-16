@@ -4,6 +4,15 @@ package main
 var (
 	defaultHistDir     = ""
 	commonRequirePaths = "';./libs/?/init.lua;./?/init.lua;./?/?.lua'"
+	unixRequirePaths   = commonRequirePaths + `.. ';'
+	.. hilbish.dataDir .. '/libs/?/init.lua;'
+	.. hilbish.dataDir .. '/libs/?/?.lua;'
+	.. hilbish.userDir.data     .. '/hilbish/libs/?/init.lua;'
+	.. hilbish.userDir.data	    .. '/hilbish/libs/?/?.lua;'
+	.. hilbish.userDir.data	    .. '/hilbish/libs/?.lua;'
+	.. hilbish.userDir.config	.. '/hilbish/?/init.lua;'
+	.. hilbish.userDir.config	.. '/hilbish/?/?.lua;'
+	.. hilbish.userDir.config	.. '/hilbish/?.lua'`
 
 	prompt string
 )

@@ -28,17 +28,17 @@ var Loader = packagelib.Loader{
 
 func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"cd":         util.LuaExport{fcd, 1, false},
-		"executable": util.LuaExport{fexecutable, 1, false},
-		"mkdir":      util.LuaExport{fmkdir, 2, false},
-		"stat":       util.LuaExport{fstat, 1, false},
-		"readdir":    util.LuaExport{freaddir, 1, false},
-		"abs":        util.LuaExport{fabs, 1, false},
-		"basename":   util.LuaExport{fbasename, 1, false},
-		"dir":        util.LuaExport{fdir, 1, false},
-		"glob":       util.LuaExport{fglob, 1, false},
-		"join":       util.LuaExport{fjoin, 0, true},
-		"pipe":       util.LuaExport{fpipe, 0, false},
+		"cd":         util.LuaExport{Function: fcd, ArgNum: 1, Variadic: false},
+		"executable": util.LuaExport{Function: fexecutable, ArgNum: 1, Variadic: false},
+		"mkdir":      util.LuaExport{Function: fmkdir, ArgNum: 2, Variadic: false},
+		"stat":       util.LuaExport{Function: fstat, ArgNum: 1, Variadic: false},
+		"readdir":    util.LuaExport{Function: freaddir, ArgNum: 1, Variadic: false},
+		"abs":        util.LuaExport{Function: fabs, ArgNum: 1, Variadic: false},
+		"basename":   util.LuaExport{Function: fbasename, ArgNum: 1, Variadic: false},
+		"dir":        util.LuaExport{Function: fdir, ArgNum: 1, Variadic: false},
+		"glob":       util.LuaExport{Function: fglob, ArgNum: 1, Variadic: false},
+		"join":       util.LuaExport{Function: fjoin, ArgNum: 0, Variadic: true},
+		"pipe":       util.LuaExport{Function: fpipe, ArgNum: 0, Variadic: false},
 	}
 	mod := rt.NewTable()
 	util.SetExports(rtm, mod, exports)
@@ -109,10 +109,9 @@ func fcd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	util.DoString(t.Runtime, fmt.Sprintf(`
-	local bait = require 'bait'
-	bait.throw('hilbish.cd', '%s', '%s')
-	`, abspath, oldWd))
+	baitMod := util.MustDoString(t.Runtime, "return require 'bait'").AsTable()
+	throw := baitMod.Get(rt.StringValue("throw"))
+	rt.Call1(t, throw, rt.StringValue("hilbish.cd"), rt.StringValue(abspath), rt.StringValue(oldWd))
 
 	return c.Next(), err
 }

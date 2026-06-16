@@ -1,7 +1,8 @@
 {
 	"name": "bait",
+	"section": "api",
 	"shortDescription": "the event emitter",
-	"description": "\nBait is the event emitter for Hilbish. Much like Node.js and\nits `events` system, many actions in Hilbish emit events.\nUnlike Node.js, Hilbish events are global. So make sure to\npick a unique name!\\\n \\\nUsage of the Bait module consists of userstanding\nevent-driven architecture, but it's pretty simple:\nIf you want to act on a certain event, you can `catch` it.\nYou can act on events via callback functions.\\\n \\\nExamples of this are in the Hilbish default config!\nConsider this part of it:\n\n```lua\nbait.catch('command.exit', function(code)\n\trunning = false\n\tdoPrompt(code ~= 0)\n\tdoNotifyPrompt()\nend)\n```\n\nWhat this does is, whenever the `command.exit` event is thrown,\nthis function will set the user prompt.",
+	"description": "\nBait is the event emitter for Hilbish. Much like Node.js and\nits `events` system, many actions in Hilbish emit events.\nUnlike Node.js, Hilbish events are global. So make sure to\npick a unique name!\n\nUsage of the Bait module consists of understanding\nevent-driven architecture, but it's pretty simple:\nIf you want to act on a certain event, you can `catch` it.\nYou can act on events via callback functions.\n\nExamples of this are in the Hilbish default config!\nConsider this part of it:\n\n```lua\nbait.catch('command.exit', function(code)\n\trunning = false\n\tdoPrompt(code ~= 0)\n\tdoNotifyPrompt()\nend)\n```\n\nWhat this does is, whenever the `command.exit` event is thrown,\nthis function will set the user prompt.",
 	"properties": [],
 	"fields": [],
 	"docs": [

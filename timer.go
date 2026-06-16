@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	rt "github.com/arnodel/golua/runtime"
 )
 
 type timerType int64
+
 const (
 	timerInterval timerType = iota
 	timerTimeout
@@ -21,25 +23,35 @@ const (
 // #property running If the timer is running
 // #property duration The duration in milliseconds that the timer will run
 // The Job type describes a Hilbish timer.
-type timer struct{
-	id int
-	typ timerType
+type timer struct {
+	mu      sync.Mutex
+	id      int
+	typ     timerType
 	running bool
-	dur time.Duration
-	fun *rt.Closure
-	th *timersModule
-	ticker *time.Ticker
-	ud *rt.UserData
+	dur     time.Duration
+	fun     *rt.Closure
+	th      *timersModule
+	ticker  *time.Ticker
+	ud      *rt.UserData
 	channel chan struct{}
 }
 
 func (t *timer) start() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	if t.running {
 		return errors.New("timer is already running")
 	}
 
+	if t.dur <= 0 {
+		return errors.New("timer duration must be positive")
+	}
+
 	t.running = true
+	t.th.mu.Lock()
 	t.th.running++
+	t.th.mu.Unlock()
 	t.th.wg.Add(1)
 	t.ticker = time.NewTicker(t.dur)
 
@@ -62,20 +74,25 @@ func (t *timer) start() error {
 			}
 		}
 	}()
-	
+
 	return nil
 }
 
 func (t *timer) stop() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	if !t.running {
 		return errors.New("timer not running")
 	}
 
 	t.channel <- struct{}{}
 	t.running = false
+	t.th.mu.Lock()
 	t.th.running--
+	t.th.mu.Unlock()
 	t.th.wg.Done()
-	
+
 	return nil
 }
 
@@ -97,7 +114,7 @@ func timerStart(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return c.Next(), nil
 }
 

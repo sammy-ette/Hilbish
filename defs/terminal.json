@@ -1,5 +1,6 @@
 {
 	"name": "terminal",
+	"section": "api",
 	"shortDescription": "low level terminal library",
 	"description": "The terminal library is a simple and lower level library for certain terminal interactions.",
 	"properties": [],

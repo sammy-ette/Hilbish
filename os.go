@@ -18,9 +18,9 @@ func hshosLoader(rtm *rt.Runtime) *rt.Table {
 	info, _ := osinfo.GetOSInfo()
 	mod := rt.NewTable()
 
-	util.SetField(rtm, mod, "family", rt.StringValue(info.Family))
-	util.SetField(rtm, mod, "name", rt.StringValue(info.Name))
-	util.SetField(rtm, mod, "version", rt.StringValue(info.Version))
+	util.SetField(mod, "family", rt.StringValue(info.Family))
+	util.SetField(mod, "name", rt.StringValue(info.Name))
+	util.SetField(mod, "version", rt.StringValue(info.Version))
 
 	return mod
 }

@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-momo: "Momo Signature", cursive;
+}
+
+@supports (selector(:has(*))) {
+  html {
+    color-scheme: light dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    html {
+      color-scheme: dark;
+    }
+  }
+}
+
+/* Thin, pink-accented scrollbar, applied via `scrollbar-pink` on the
+   elements that actually scroll. */
+@utility scrollbar-pink {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(236 72 153 / 0.4) transparent;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: rgb(236 72 153 / 0.4);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(236 72 153 / 0.65);
+  }
+}

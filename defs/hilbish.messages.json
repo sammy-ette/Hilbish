@@ -1,0 +1,101 @@
+{
+	"name": "hilbish.messages",
+	"section": "api",
+	"shortDescription": "simplistic message passing",
+	"description": "The messages interface defines a way for Hilbish-integrated commands,\nuser config and other tasks to send notifications to alert the user.z\nThe `hilbish.message` type is a table with the following keys:\n`title` (string): A title for the message notification.\n`text` (string): The contents of the message.\n`channel` (string): States the origin of the message, `hilbish.*` is reserved for Hilbish tasks.\n`summary` (string): A short summary of the `text`.\n`icon` (string): Unicode (preferably standard emoji) icon for the message notification\n`read` (boolean): Whether the full message has been read or not.",
+	"properties": null,
+	"fields": null,
+	"docs": [
+		{
+			"name": "all",
+			"description": [
+				"Returns all messages."
+			],
+			"signature": "all()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "clear",
+			"description": [
+				"Deletes all messages."
+			],
+			"signature": "clear()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "delete",
+			"description": [
+				"Deletes the message at `idx`."
+			],
+			"signature": "delete(idx)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "idx",
+					"Type": "number",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "read",
+			"description": [
+				"Marks a message at `idx` as read."
+			],
+			"signature": "read(idx)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "idx",
+					"Type": "number",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "readAll",
+			"description": [
+				"Marks all messages as read."
+			],
+			"signature": "readAll()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "send",
+			"description": [
+				"Sends a message."
+			],
+			"signature": "send(message)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "message",
+					"Type": "hilbish.message",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "unreadCount",
+			"description": [
+				"Returns the amount of unread messages."
+			],
+			"signature": "unreadCount()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	]
+}

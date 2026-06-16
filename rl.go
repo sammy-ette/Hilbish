@@ -16,10 +16,7 @@ type lineReader struct {
 	fileHist *fileHistory
 }
 
-var hinter *rt.Closure
-var highlighter *rt.Closure
-
-func newLineReader(prompt string, noHist bool) *lineReader {
+func newLineReader(noHist bool) *lineReader {
 	rl := readline.NewInstance()
 	lr := &lineReader{
 		rl: rl,
@@ -109,7 +106,7 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 	}
 	rl.TabCompleter = func(line []rune, pos int, _ readline.DelayedTabContext) (string, []*readline.CompletionGroup) {
 		term := rt.NewTerminationWith(l.MainThread().CurrentCont(), 2, false)
-		compHandle := hshMod.Get(rt.StringValue("completion")).AsTable().Get(rt.StringValue("handler"))
+		compHandle := hshMod.Get(rt.StringValue("completions")).AsTable().Get(rt.StringValue("handler"))
 		err := rt.Call(l.MainThread(), compHandle, []rt.Value{rt.StringValue(string(line)),
 			rt.IntValue(int64(pos))}, term)
 
@@ -153,9 +150,9 @@ func newLineReader(prompt string, noHist bool) *lineReader {
 					// ['--flag'] = {'description', '--flag-alias'}
 					// OR
 					// ['--flag'] = {description = '', alias = '', display = ''}
-					itemName, ok := lkey.TryString()
+					itemName, _ := lkey.TryString()
 					vlTbl, okk := lval.TryTable()
-					if !ok && !okk {
+					if !okk {
 						// TODO: error
 						return
 					}
@@ -235,14 +232,6 @@ func (lr *lineReader) AddHistory(cmd string) {
 	lr.fileHist.Write(cmd)
 }
 
-func (lr *lineReader) ClearInput() {
-	return
-}
-
-func (lr *lineReader) Resize() {
-	return
-}
-
 // #interface history
 // command history
 // The history interface deals with command history.
@@ -250,11 +239,11 @@ func (lr *lineReader) Resize() {
 // method of saving history.
 func (lr *lineReader) Loader(rtm *rt.Runtime) *rt.Table {
 	lrLua := map[string]util.LuaExport{
-		"add":   {lr.luaAddHistory, 1, false},
-		"all":   {lr.luaAllHistory, 0, false},
-		"clear": {lr.luaClearHistory, 0, false},
-		"get":   {lr.luaGetHistory, 1, false},
-		"size":  {lr.luaSize, 0, false},
+		"add":   {Function: lr.luaAddHistory, ArgNum: 1, Variadic: false},
+		"all":   {Function: lr.luaAllHistory, ArgNum: 0, Variadic: false},
+		"clear": {Function: lr.luaClearHistory, ArgNum: 0, Variadic: false},
+		"get":   {Function: lr.luaGetHistory, ArgNum: 1, Variadic: false},
+		"size":  {Function: lr.luaSize, ArgNum: 0, Variadic: false},
 	}
 
 	mod := rt.NewTable()
@@ -314,9 +303,9 @@ func (lr *lineReader) luaAllHistory(t *rt.Thread, c *rt.GoCont) (rt.Cont, error)
 	tbl := rt.NewTable()
 	size := lr.fileHist.Len()
 
-	for i := 1; i < size; i++ {
+	for i := 0; i < size; i++ {
 		cmd, _ := lr.fileHist.GetLine(i)
-		tbl.Set(rt.IntValue(int64(i)), rt.StringValue(cmd))
+		tbl.Set(rt.IntValue(int64(i+1)), rt.StringValue(cmd))
 	}
 
 	return c.PushingNext1(t.Runtime, rt.TableValue(tbl)), nil

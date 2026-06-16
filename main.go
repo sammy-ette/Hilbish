@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 
 	"hilbish/golibs/bait"
 	"hilbish/golibs/commander"
@@ -23,7 +24,8 @@ var (
 	l  *rt.Runtime
 	lr *lineReader
 
-	luaCompletions = map[string]*rt.Closure{}
+	luaCompletions   = map[string]*rt.Closure{}
+	luaCompletionsMu sync.RWMutex
 
 	confDir     string
 	userDataDir string
@@ -32,6 +34,7 @@ var (
 	hooks           *bait.Bait
 	cmds            *commander.Commander
 	confPath        string
+	defaultConfPath string
 	defaultHistPath string
 )
 
@@ -132,11 +135,11 @@ func main() {
 		if err == nil {
 			os.Setenv("SHELL", path)
 		}
-
 	}
 
-	lr = newLineReader("", false)
 	go handleSignals()
+
+	lr = newLineReader(false)
 	luaInit()
 
 	// This only executes when Hilbish isn't interactive

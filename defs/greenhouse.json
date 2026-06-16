@@ -1,0 +1,21 @@
+{
+	"name": "greenhouse",
+	"section": "nature",
+	"shortDescription": "Greenhouse is a simple text scrolling handler (pager) for terminal programs.",
+	"description": "The idea is that it can be set a region to do its scrolling and paging\njob and then the user can draw whatever outside it.\nThis reduces code duplication for the message viewer\nand flowerbook.",
+	"properties": null,
+	"fields": null,
+	"docs": [
+		{
+			"name": "updateSpecial",
+			"description": [
+				"This function will be called when the special page",
+				"is on and needs to be updated."
+			],
+			"signature": "updateSpecial()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	]
+}

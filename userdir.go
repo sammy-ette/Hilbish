@@ -16,8 +16,8 @@ import (
 func userDirLoader(rtm *rt.Runtime) *rt.Table {
 	mod := rt.NewTable()
 
-	util.SetField(rtm, mod, "config", rt.StringValue(confDir))
-	util.SetField(rtm, mod, "data", rt.StringValue(userDataDir))
+	util.SetField(mod, "config", rt.StringValue(confDir))
+	util.SetField(mod, "data", rt.StringValue(userDataDir))
 
 	return mod
 }

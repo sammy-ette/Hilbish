@@ -84,7 +84,7 @@ See `doc vim-mode actions` for more info.
 #### Variables
 
 `string` _actionName_
-Absolute path of the directory that was changed to.
+The name of the Vim action that was done.
 
 `table` _args_
 Table of args relating to the Vim action.

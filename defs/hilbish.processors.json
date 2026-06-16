@@ -1,0 +1,22 @@
+{
+	"name": "hilbish.processors",
+	"section": "api",
+	"shortDescription": "",
+	"description": "",
+	"properties": null,
+	"fields": null,
+	"docs": [
+		{
+			"name": "execute",
+			"description": [
+				"Run all command processors, in order by priority.",
+				"It returns the processed command (which may be the same as the passed command)",
+				"and a boolean which states whether to proceed with command execution."
+			],
+			"signature": "execute(command, opts)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	]
+}

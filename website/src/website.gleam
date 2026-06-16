@@ -1,11 +1,8 @@
 import gleam/io
 import gleam/list
-import gleam/option
-import gleam/result
 import gleam/string
 import pages/blog
 import pages/donate
-import pages/page
 import util
 
 import glaml
@@ -20,11 +17,13 @@ import conf
 import pages/doc
 import pages/index
 import post
+import theme
 
 pub fn main() {
   let assert Ok(files) = simplifile.get_files("./content")
   let posts =
     list.map(files, fn(path: String) {
+      io.println("reading: " <> path)
       let assert Ok(ext) = path |> string.split(".") |> list.last
       let slug =
         path
@@ -55,18 +54,12 @@ pub fn main() {
         _ -> ""
       }
 
-      let assert Ok(filename) = path |> string.split("/") |> list.last
       let content = djot.content(content)
       #(slug, post.Post(name, description, title, slug, metadata, content))
     })
 
   let doc_pages =
-    list.filter(posts, fn(page) {
-      let isdoc = is_doc_page(page.0)
-      //io.debug(page.0)
-      //io.debug(isdoc)
-      isdoc
-    })
+    list.filter(posts, fn(page) { is_doc_page(page.0) })
     |> list.filter(fn(page) {
       case { page.1 }.metadata != glaml.NodeMap([]) {
         False -> {
@@ -98,9 +91,11 @@ pub fn main() {
       ),
     )
     |> list.fold(posts, _, fn(config, post) {
+      io.println("rendering: " <> post.0)
       let page = case is_doc_page(post.0) {
         True -> doc.page(post.1, post.0, doc_pages)
-        False -> page.page(post.1)
+        // False -> page.page(post.1)
+        False -> element.none()
       }
       ssg.add_static_route(
         config,
@@ -135,13 +130,10 @@ fn create_page(
     "Something Unique. Hilbish is the new interactive shell for Lua fans. Extensible, scriptable, configurable: All in Lua."
 
   html.html(
-    [
-      attribute.class(
-        "bg-stone-50 dark:bg-neutral-900 text-black dark:text-white",
-      ),
-    ],
+    [attribute.class(theme.page_bg), attribute.class(theme.text_default)],
     [
       html.head([], [
+        html.meta([attribute.attribute("charset", "utf-8")]),
         html.meta([
           attribute.name("viewport"),
           attribute.attribute(
@@ -152,6 +144,21 @@ fn create_page(
         html.link([
           attribute.rel("stylesheet"),
           attribute.href(conf.base_url_join("/tailwind.css")),
+        ]),
+        html.link([
+          attribute.rel("preconnect"),
+          attribute.href("https://fonts.googleapis.com"),
+        ]),
+        html.link([
+          attribute.rel("preconnect"),
+          attribute.href("https://fonts.gstatic.com"),
+          attribute.attribute("crossorigin", ""),
+        ]),
+        html.link([
+          attribute.rel("stylesheet"),
+          attribute.href(
+            "https://fonts.googleapis.com/css2?family=Momo+Signature&display=swap",
+          ),
         ]),
         html.title([], "Hilbish"),
         html.meta([attribute.name("theme-color"), attribute.content("#ff89dd")]),
@@ -191,14 +198,22 @@ fn create_page(
         // disable dark reader
         html.meta([attribute.name("darkreader-lock")]),
       ]),
-      html.body([attribute.class("flex flex-col min-h-screen")], [
-        util.nav(),
-        content,
-        // case doc_page {
-      //   True -> element.none()
-      //   False -> util.footer()
-      // },
-      ]),
+      html.body(
+        [
+          attribute.class(case doc_page {
+            True -> "h-screen overflow-hidden flex flex-col"
+            False -> "flex flex-col min-h-screen scrollbar-pink"
+          }),
+        ],
+        [
+          util.nav(doc_page),
+          content,
+          case doc_page {
+            True -> element.none()
+            False -> util.footer()
+          },
+        ],
+      ),
     ],
   )
 }

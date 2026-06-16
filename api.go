@@ -16,7 +16,6 @@
 package main
 
 import (
-	//"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -31,23 +30,21 @@ import (
 	"github.com/arnodel/golua/lib/packagelib"
 	rt "github.com/arnodel/golua/runtime"
 
-	//"github.com/arnodel/golua/lib/iolib"
 	"github.com/maxlandon/readline"
-	//"mvdan.cc/sh/v3/interp"
 )
 
 var exports = map[string]util.LuaExport{
-	"alias":       {hlalias, 2, false},
-	"complete":    {hlcomplete, 2, false},
-	"cwd":         {hlcwd, 0, false},
-	"exec":        {hlexec, 1, false},
-	"goro":        {hlgoro, 1, true},
-	"highlighter": {hlhighlighter, 1, false},
-	"hinter":      {hlhinter, 1, false},
-	"inputMode":   {hlinputMode, 1, false},
-	"interval":    {hlinterval, 2, false},
-	"timeout":     {hltimeout, 2, false},
-	"which":       {hlwhich, 1, false},
+	"alias":       {Function: hlalias, ArgNum: 2, Variadic: false},
+	"complete":    {Function: hlcomplete, ArgNum: 2, Variadic: false},
+	"cwd":         {Function: hlcwd, ArgNum: 0, Variadic: false},
+	"exec":        {Function: hlexec, ArgNum: 1, Variadic: false},
+	"goro":        {Function: hlgoro, ArgNum: 1, Variadic: true},
+	"highlighter": {Function: hlhighlighter, ArgNum: 1, Variadic: false},
+	"hinter":      {Function: hlhinter, ArgNum: 1, Variadic: false},
+	"inputMode":   {Function: hlinputMode, ArgNum: 1, Variadic: false},
+	"interval":    {Function: hlinterval, ArgNum: 2, Variadic: false},
+	"timeout":     {Function: hltimeout, ArgNum: 2, Variadic: false},
+	"which":       {Function: hlwhich, ArgNum: 1, Variadic: false},
 }
 
 var hshMod *rt.Table
@@ -68,21 +65,25 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	username := curuser.Username
 
 	if runtime.GOOS == "windows" {
-		username = strings.Split(username, "\\")[1] // for some reason Username includes the hostname on windows
+		// Username is usually in the form DOMAIN\username
+		// but just in case it isnt
+		if parts := strings.Split(username, "\\"); len(parts) > 1 {
+			username = parts[1]
+		}
 	}
 
-	util.SetField(rtm, mod, "ver", rt.StringValue(getVersion()))
-	util.SetField(rtm, mod, "goVersion", rt.StringValue(runtime.Version()))
-	util.SetField(rtm, mod, "user", rt.StringValue(username))
-	util.SetField(rtm, mod, "host", rt.StringValue(host))
-	util.SetField(rtm, mod, "home", rt.StringValue(curuser.HomeDir))
-	util.SetField(rtm, mod, "dataDir", rt.StringValue(dataDir))
-	util.SetField(rtm, mod, "defaultConfDir", rt.StringValue(defaultConfDir))
-	util.SetField(rtm, mod, "confFile", rt.StringValue(confPath))
-	util.SetField(rtm, mod, "interactive", rt.BoolValue(interactive))
-	util.SetField(rtm, mod, "login", rt.BoolValue(login))
-	util.SetField(rtm, mod, "vimMode", rt.NilValue)
-	util.SetField(rtm, mod, "exitCode", rt.IntValue(0))
+	util.SetField(mod, "ver", rt.StringValue(getVersion()))
+	util.SetField(mod, "goVersion", rt.StringValue(runtime.Version()))
+	util.SetField(mod, "user", rt.StringValue(username))
+	util.SetField(mod, "host", rt.StringValue(host))
+	util.SetField(mod, "home", rt.StringValue(curuser.HomeDir))
+	util.SetField(mod, "dataDir", rt.StringValue(dataDir))
+	util.SetField(mod, "defaultConfDir", rt.StringValue(defaultConfDir))
+	util.SetField(mod, "confFile", rt.StringValue(confPath))
+	util.SetField(mod, "interactive", rt.BoolValue(interactive))
+	util.SetField(mod, "login", rt.BoolValue(login))
+	util.SetField(mod, "vimMode", rt.NilValue)
+	util.SetField(mod, "exitCode", rt.IntValue(0))
 
 	// hilbish.userDir table
 	hshuser := userDirLoader(rtm)
@@ -101,7 +102,7 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	historyModule := lr.Loader(rtm)
 	mod.Set(rt.StringValue("history"), rt.TableValue(historyModule))
 
-	// hilbish.completion table
+	// hilbish.completions table
 	hshcomp := completionLoader(rtm)
 	mod.Set(rt.StringValue("completions"), rt.TableValue(hshcomp))
 
@@ -116,10 +117,10 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	mod.Set(rt.StringValue("timers"), rt.TableValue(timersModule))
 
 	versionModule := rt.NewTable()
-	util.SetField(rtm, versionModule, "branch", rt.StringValue(gitBranch))
-	util.SetField(rtm, versionModule, "full", rt.StringValue(getVersion()))
-	util.SetField(rtm, versionModule, "commit", rt.StringValue(gitCommit))
-	util.SetField(rtm, versionModule, "release", rt.StringValue(releaseName))
+	util.SetField(versionModule, "branch", rt.StringValue(gitBranch))
+	util.SetField(versionModule, "full", rt.StringValue(getVersion()))
+	util.SetField(versionModule, "commit", rt.StringValue(gitCommit))
+	util.SetField(versionModule, "release", rt.StringValue(releaseName))
 	mod.Set(rt.StringValue("version"), rt.TableValue(versionModule))
 
 	pluginModule := moduleLoader(rtm)
@@ -140,44 +141,13 @@ func getenv(key, fallback string) string {
 }
 
 func setVimMode(mode string) {
-	util.SetField(l, hshMod, "vimMode", rt.StringValue(mode))
+	util.SetField(hshMod, "vimMode", rt.StringValue(mode))
 	hooks.Emit("hilbish.vimMode", mode)
 }
 
 func unsetVimMode() {
-	util.SetField(l, hshMod, "vimMode", rt.NilValue)
+	util.SetField(hshMod, "vimMode", rt.NilValue)
 }
-
-/*
-func handleStream(v rt.Value, strms *streams, errStream bool) error {
-	ud, ok := v.TryUserData()
-	if !ok {
-		return errors.New("expected metatable argument")
-	}
-
-	val := ud.Value()
-	var varstrm io.Writer
-	if f, ok := val.(*iolib.File); ok {
-		varstrm = f.Handle()
-	}
-
-	if f, ok := val.(*sink); ok {
-		varstrm = f.writer
-	}
-
-	if varstrm == nil {
-		return errors.New("expected either a sink or file")
-	}
-
-	if errStream {
-		strms.stderr = varstrm
-	} else {
-		strms.stdout = varstrm
-	}
-
-	return nil
-}
-*/
 
 // cwd() -> string
 // Returns the current directory of the shell.
@@ -233,6 +203,9 @@ func hlexec(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 	cmdArgs, _ := splitInput(cmd)
+	if len(cmdArgs) == 0 {
+		return nil, errors.New("expected a command to run")
+	}
 	if runtime.GOOS != "windows" {
 		cmdPath, err := util.LookPath(cmdArgs[0])
 		if err != nil {
@@ -252,38 +225,6 @@ func hlexec(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		cmd.Run()
 		os.Exit(0)
 	}
-
-	return c.Next(), nil
-}
-
-// goro(fn)
-// Puts `fn` in a Goroutine.
-// This can be used to run any function in another thread at the same time as other Lua code.
-// **NOTE: THIS FUNCTION MAY CRASH HILBISH IF OUTSIDE VARIABLES ARE ACCESSED.**
-// **This is a limitation of the Lua runtime.**
-// #param fn function
-func hlgoro(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
-	}
-	fn, err := c.ClosureArg(0)
-	if err != nil {
-		return nil, err
-	}
-
-	// call fn
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				// do something here?
-			}
-		}()
-
-		_, err := rt.Call1(l.MainThread(), rt.FunctionValue(fn), c.Etc()...)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error in goro function:\n\n", err)
-		}
-	}()
 
 	return c.Next(), nil
 }
@@ -338,51 +279,6 @@ func hlinterval(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	timer.start()
 
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(timer.ud)), nil
-}
-
-// complete(scope, cb)
-// Registers a completion handler for the specified scope.
-// A `scope` is expected to be `command.<cmd>`,
-// replacing <cmd> with the name of the command (for example `command.git`).
-// The documentation for completions, under Features/Completions or `doc completions`
-// provides more details.
-// #param scope string
-// #param cb function
-/*
-#example
--- This is a very simple example. Read the full doc for completions for details.
-hilbish.complete('command.sudo', function(query, ctx, fields)
-	if #fields == 0 then
-		-- complete for commands
-		local comps, pfx = hilbish.completion.bins(query, ctx, fields)
-		local compGroup = {
-			items = comps, -- our list of items to complete
-			type = 'grid' -- what our completions will look like.
-		}
-
-		return {compGroup}, pfx
-	end
-
-	-- otherwise just be boring and return files
-
-	local comps, pfx = hilbish.completion.files(query, ctx, fields)
-	local compGroup = {
-		items = comps,
-		type = 'grid'
-	}
-
-	return {compGroup}, pfx
-end)
-#example
-*/
-func hlcomplete(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	scope, cb, err := util.HandleStrCallback(t, c)
-	if err != nil {
-		return nil, err
-	}
-	luaCompletions[scope] = cb
-
-	return c.Next(), nil
 }
 
 // which(name) -> string
