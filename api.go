@@ -35,10 +35,8 @@ import (
 
 var exports = map[string]util.LuaExport{
 	"alias":       {Function: hlalias, ArgNum: 2, Variadic: false},
-	"complete":    {Function: hlcomplete, ArgNum: 2, Variadic: false},
 	"cwd":         {Function: hlcwd, ArgNum: 0, Variadic: false},
 	"exec":        {Function: hlexec, ArgNum: 1, Variadic: false},
-	"goro":        {Function: hlgoro, ArgNum: 1, Variadic: true},
 	"highlighter": {Function: hlhighlighter, ArgNum: 1, Variadic: false},
 	"hinter":      {Function: hlhinter, ArgNum: 1, Variadic: false},
 	"inputMode":   {Function: hlinputMode, ArgNum: 1, Variadic: false},
