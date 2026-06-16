@@ -123,8 +123,8 @@ while hilbish.interactive do
 			print '^C'
 			bait.throw 'hilbish.cancel'
 		else
-			error(res)
-			io.read()
+			print(tostring(res))
+			_ = io.read()
 		end
 		goto continue
 	end
