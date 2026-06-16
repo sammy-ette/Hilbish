@@ -53,7 +53,7 @@ end)
 */
 func runnerModeLoader(rtm *rt.Runtime) *rt.Table {
 	exports := map[string]util.LuaExport{
-		"lua": {luaRunner, 1, false},
+		"lua": {Function: luaRunner, ArgNum: 1, Variadic: false},
 	}
 
 	mod := rt.NewTable()
