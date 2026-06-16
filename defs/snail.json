@@ -1,5 +1,6 @@
 {
 	"name": "snail",
+	"section": "api",
 	"shortDescription": "shell script interpreter library",
 	"description": "\nThe snail library houses Hilbish's Lua wrapper of its shell script interpreter.\nIt's not very useful other than running shell scripts, which can be done with other\nHilbish functions.",
 	"properties": [],

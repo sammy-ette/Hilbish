@@ -12,11 +12,11 @@ func FindExecutable(path string, inPath, dirs bool) error {
 		return err
 	}
 	if dirs {
-		if m := f.Mode(); m & 0111 != 0 {
+		if m := f.Mode(); m&0111 != 0 {
 			return nil
 		}
 	} else {
-		if m := f.Mode(); !m.IsDir() && m & 0111 != 0 {
+		if m := f.Mode(); !m.IsDir() && m&0111 != 0 {
 			return nil
 		}
 	}

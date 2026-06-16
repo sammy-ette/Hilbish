@@ -1,5 +1,6 @@
 {
 	"name": "fs",
+	"section": "api",
 	"shortDescription": "filesystem interaction and functionality library",
 	"description": "\nThe fs module provides filesystem functions to Hilbish. While Lua's standard\nlibrary has some I/O functions, they're missing a lot of the basics. The `fs`\nlibrary offers more functions and will work on any operating system Hilbish does.",
 	"properties": [],

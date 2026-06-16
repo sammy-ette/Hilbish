@@ -14,6 +14,8 @@ function hilbish.processors.add(processor)
 		error 'processor is missing function'
 	end
 
+	processor.priority = processor.priority or 0
+
 	table.insert(hilbish.processors.list, processor)
 	table.sort(hilbish.processors.list, function(a, b) return a.priority < b.priority end)
 end
@@ -40,11 +42,13 @@ function hilbish.processors.execute(command, opts)
 	for _, processor in ipairs(hilbish.processors.list) do
 		if not contains(opts.skip, processor.name) then
 			local processed = processor.func(command)
-			if processed.history ~= nil then history = processed.history end
-			if processed.command then command = processed.command end
-			if not processed.continue then
-				continue = false
-				break
+			if processed then
+				if processed.history ~= nil then history = processed.history end
+				if processed.command then command = processed.command end
+				if not processed.continue then
+					continue = false
+					break
+				end
 			end
 		end
 	end

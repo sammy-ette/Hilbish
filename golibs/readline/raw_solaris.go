@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build solaris
 // +build solaris
 
 package readline
@@ -79,4 +80,3 @@ func GetSize(fd int) (width, height int, err error) {
 	}
 	return int(ws.Col), int(ws.Row), nil
 }
-

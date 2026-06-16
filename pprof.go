@@ -3,12 +3,12 @@
 package main
 
 import (
-    _ "net/http/pprof"
-    "net/http"
+	"net/http"
+	_ "net/http/pprof"
 )
 
 func init() {
-    go func() {
-        http.ListenAndServe("localhost:8080", nil)
-    }()
+	go func() {
+		http.ListenAndServe("localhost:8080", nil)
+	}()
 }

@@ -31,8 +31,8 @@ func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	snailMeta := rt.NewTable()
 	snailMethods := rt.NewTable()
 	snailFuncs := map[string]util.LuaExport{
-		"run": {snailrun, 3, false},
-		"dir": {snaildir, 2, false},
+		"run": {Function: snailrun, ArgNum: 3, Variadic: false},
+		"dir": {Function: snaildir, ArgNum: 2, Variadic: false},
 	}
 	util.SetExports(rtm, snailMethods, snailFuncs)
 
@@ -46,8 +46,8 @@ func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	rtm.SetRegistry(snailMetaKey, rt.TableValue(snailMeta))
 
 	exports := map[string]util.LuaExport{
-		"new":      util.LuaExport{snailnew, 0, false},
-		"validate": util.LuaExport{snailvalidate, 1, false},
+    "new":      util.LuaExport{Function: snailnew, ArgNum: 0, Variadic: false},
+    "validate": util.LuaExport{Function: snailvalidate, ArgNum: 1, Variadic: false},
 	}
 
 	mod := rt.NewTable()

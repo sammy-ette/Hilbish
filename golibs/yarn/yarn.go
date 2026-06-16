@@ -117,7 +117,7 @@ func (y *Thread) Run(args []rt.Value) {
 		term := rt.NewTerminationWith(y.rtm.MainThread().CurrentCont(), 0, true)
 		err := rt.Call(y.rtm.MainThread(), rt.FunctionValue(y.f), args, term)
 		if err != nil {
-			panic(err)
+			fmt.Fprintln(os.Stderr, "yarn thread error:", err)
 		}
 	}()
 }

@@ -11,30 +11,32 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 
-	"hilbish/util"
 	"hilbish/golibs/bait"
 	"hilbish/golibs/commander"
+	"hilbish/util"
 
 	rt "github.com/arnodel/golua/runtime"
-	"github.com/pborman/getopt"
 	"github.com/maxlandon/readline"
+	"github.com/pborman/getopt"
 	"golang.org/x/term"
 )
 
 var (
-	l *rt.Runtime
+	l  *rt.Runtime
 	lr *lineReader
 
-	luaCompletions = map[string]*rt.Closure{}
+	luaCompletions   = map[string]*rt.Closure{}
+	luaCompletionsMu sync.RWMutex
 
-	confDir string
+	confDir     string
 	userDataDir string
-	curuser *user.User
+	curuser     *user.User
 
-	hooks *bait.Bait
-	cmds *commander.Commander
+	hooks           *bait.Bait
+	cmds            *commander.Commander
 	defaultConfPath string
 	defaultHistPath string
 )
@@ -62,7 +64,7 @@ func main() {
 	// i honestly dont know what directories to use for this
 	switch runtime.GOOS {
 	case "linux", "darwin":
-		userDataDir = getenv("XDG_DATA_HOME", curuser.HomeDir + "/.local/share")
+		userDataDir = getenv("XDG_DATA_HOME", curuser.HomeDir+"/.local/share")
 	default:
 		// this is fine on windows, dont know about others
 		userDataDir = confDir
@@ -105,7 +107,7 @@ func main() {
 		interactive = true
 	}
 
-	if fileInfo, _ := os.Stdin.Stat(); (fileInfo.Mode() & os.ModeCharDevice) == 0 || !term.IsTerminal(int(os.Stdin.Fd())) {
+	if fileInfo, _ := os.Stdin.Stat(); (fileInfo.Mode()&os.ModeCharDevice) == 0 || !term.IsTerminal(int(os.Stdin.Fd())) {
 		interactive = false
 	}
 
@@ -138,7 +140,7 @@ func main() {
 
 	}
 
-	lr = newLineReader("", false)
+	lr = newLineReader(false)
 	luaInit()
 
 	go handleSignals()
@@ -236,7 +238,7 @@ input:
 		if strings.HasSuffix(input, "\\") {
 			print("\n")
 			for {
-				input, err = continuePrompt(strings.TrimSuffix(input, "\\") + "\n", false)
+				input, err = continuePrompt(strings.TrimSuffix(input, "\\")+"\n", false)
 				if err != nil {
 					running = true
 					lr.SetPrompt(fmtPrompt(prompt))
@@ -254,7 +256,7 @@ input:
 		if err != nil {
 			continue
 		}
-		fmt.Printf("\u001b[7m∆\u001b[0m" + strings.Repeat(" ", termwidth - 1) + "\r")
+		fmt.Print("\u001b[7m∆\u001b[0m" + strings.Repeat(" ", termwidth-1) + "\r")
 	}
 
 	exit(0)
@@ -289,7 +291,11 @@ func fmtPrompt(prompt string) string {
 	username := curuser.Username
 	// this will be baked into binary since GOOS is a constant
 	if runtime.GOOS == "windows" {
-		username = strings.Split(username, "\\")[1] // for some reason Username includes the hostname on windows
+		// Username is usually in the form DOMAIN\username
+		// but just in case it isnt
+		if parts := strings.Split(username, "\\"); len(parts) > 1 {
+			username = parts[1]
+		}
 	}
 
 	args := []string{
@@ -300,7 +306,7 @@ func fmtPrompt(prompt string) string {
 	}
 
 	for i, v := range args {
-		if i % 2 == 0 {
+		if i%2 == 0 {
 			args[i] = "%" + v
 		}
 	}
@@ -354,5 +360,5 @@ func getVersion() string {
 }
 
 func cut(slice []string, idx int) []string {
-	return append(slice[:idx], slice[idx + 1:]...)
+	return append(slice[:idx], slice[idx+1:]...)
 }

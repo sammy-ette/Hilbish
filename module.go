@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"plugin"
 
 	"hilbish/util"
@@ -48,7 +49,7 @@ If you attempt to require and print the result (`print(require 'plugin')`), it w
 */
 func moduleLoader(rtm *rt.Runtime) *rt.Table {
 	exports := map[string]util.LuaExport{
-		"load": {moduleLoad, 2, false},
+		"load": {Function: moduleLoad, ArgNum: 2, Variadic: false},
 	}
 
 	mod := rt.NewTable()
@@ -61,12 +62,12 @@ func moduleLoader(rtm *rt.Runtime) *rt.Table {
 // load(path)
 // Loads a module at the designated `path`.
 // It will throw if any error occurs.
-// #param path string 
+// #param path string
 func moduleLoad(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(1); err != nil {
 		return nil, err
 	}
-	
+
 	path, err := c.StringArg(0)
 	if err != nil {
 		return nil, err
@@ -84,7 +85,7 @@ func moduleLoad(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	loader, ok := value.(func(*rt.Runtime) rt.Value)
 	if !ok {
-		return nil, nil
+		return nil, fmt.Errorf("module has wrong function signature: should be func(*rt.Runtime) rt.Value")
 	}
 
 	val := loader(t.Runtime)

@@ -1,0 +1,52 @@
+{
+	"name": "hilbish.os",
+	"section": "api",
+	"shortDescription": "operating system info",
+	"description": "Provides simple text information properties about the current operating system.\nThis mainly includes the name and version.",
+	"parent": "hilbish",
+	"properties": [],
+	"fields": [
+		{
+			"name": "family",
+			"description": [
+				"Family",
+				"name",
+				"of",
+				"the",
+				"current",
+				"OS"
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "name",
+			"description": [
+				"Pretty",
+				"name",
+				"of",
+				"the",
+				"current",
+				"OS"
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "version",
+			"description": [
+				"Version",
+				"of",
+				"the",
+				"current",
+				"OS"
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		}
+	],
+	"docs": null
+}

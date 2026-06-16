@@ -1,0 +1,60 @@
+{
+	"name": "hilbish.abbr",
+	"section": "api",
+	"shortDescription": "command line abbreviations",
+	"description": "The abbr module manages Hilbish abbreviations. These are words that can be replaced\nwith longer command line strings when entered.\nAs an example, `git push` can be abbreviated to `gp`. When the user types\n`gp` into the command line, after hitting space or enter, it will expand to `git push`.\nAbbreviations can be used as an alternative to aliases. They are saved entirely in the history\nInstead of the aliased form of the same command.",
+	"properties": null,
+	"fields": null,
+	"docs": [
+		{
+			"name": "add",
+			"description": [
+				"Adds an abbreviation. The `abbr` is the abbreviation itself,",
+				"while `expanded` is what the abbreviation should expand to.",
+				"It can be either a function or a string. If it is a function, it will expand to what",
+				"the function returns.",
+				"`opts` is a table that accepts 1 key: `anywhere`.",
+				"`opts.anywhere` defines whether the abbr expands anywhere in the command line or not,",
+				"whereas the default behavior is only at the beginning of the line"
+			],
+			"signature": "add(abbr, expanded, opts)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "abbr",
+					"Type": "string",
+					"Doc": null
+				},
+				{
+					"Name": "expanded|function",
+					"Type": "string",
+					"Doc": null
+				},
+				{
+					"Name": "opts",
+					"Type": "table",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "remove",
+			"description": [
+				"Removes the named `abbr`."
+			],
+			"signature": "remove(abbr)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "abbr",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		}
+	]
+}
