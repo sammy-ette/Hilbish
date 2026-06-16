@@ -114,7 +114,6 @@ function hilbish.appendPath(path)
 end
 
 local function prependPath(path)
-	print('prepending', path, expandHome(path))
 	os.setenv('PATH', expandHome(path) .. pathSep .. os.getenv 'PATH')
 end
 
