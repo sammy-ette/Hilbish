@@ -7,7 +7,7 @@
 // #field host Hostname of the machine
 // #field dataDir Directory for Hilbish data files, including the docs and default modules
 // #field defaultConfDir Default directory Hilbish runs its config file from
-// #field confFile File to run as Hilbish config, this is only set with the -C flag
+// #field confFile Path to the Hilbish config file being used, either the default or a path provided with the -C/--config flag
 // #field interactive Is Hilbish in an interactive shell?
 // #field login Is Hilbish the login shell?
 // #field vimMode Current Vim input mode of Hilbish (will be nil if not in Vim input mode)
