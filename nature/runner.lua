@@ -47,12 +47,10 @@
 --- })
 --- hilbish.runner.setCurrent('fennel')
 --- ```
+local bait = require 'bait'
 local snail = require 'snail'
 local currentRunner = 'hybrid'
 local runners = {}
-
--- lsp shut up
-hilbish.runner = {}
 
 --- Get a runner by name.
 --- @param name string Name of the runner to retrieve.
