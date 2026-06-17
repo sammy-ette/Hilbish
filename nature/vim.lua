@@ -5,10 +5,10 @@ hilbish.vim = {
 
 setmetatable(hilbish.vim.registers, {
 	__newindex = function(_, k, v)
-		hilbish.editor.setVimRegister(k, v)
+		hilbish.editor:setVimRegister(k, v)
 	end,
 	__index = function(_, k)
-		return hilbish.editor.getVimRegister(k)
+		return hilbish.editor:getVimRegister(k)
 	end
 })
 
