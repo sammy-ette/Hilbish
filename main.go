@@ -73,7 +73,7 @@ func main() {
 		// else do ~ substitution
 		defaultConfDir = filepath.Join(util.ExpandHome(defaultConfDir), "hilbish")
 	}
-	defaultConfPath := filepath.Join(defaultConfDir, "init.lua")
+	defaultConfPath = filepath.Join(defaultConfDir, "init.lua")
 	if defaultHistDir == "" {
 		defaultHistDir = filepath.Join(userDataDir, "hilbish")
 	} else {

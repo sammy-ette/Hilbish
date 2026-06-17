@@ -38,6 +38,7 @@ hilbish.editor:setRawInputCallback(function(input)
 	bait.throw('hilbish.rawInput', input)
 end)
 
+-- Returns nil if fuzzy search is off, falling back to Go's default regex searcher
 hilbish.editor:setSearcher(function(needle, haystack)
 	if hilbish.opts.fuzzy then
 		return readline.fuzzySearch(needle, haystack)
