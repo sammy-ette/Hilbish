@@ -2,7 +2,7 @@ local bait = require 'bait'
 local lunacolors = require 'lunacolors'
 
 hilbish.motd = [[
-{magenta}Hilbish{reset} blooms in the {blue}midnight.{reset}
+{magenta}Hilbish{reset} blooms at {blue}midnight.{reset}
 ]]
 
 bait.catch('hilbish.init', function()
