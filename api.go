@@ -82,11 +82,11 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	util.SetField(mod, "exitCode", rt.IntValue(0))
 
 	// hilbish.userDir table
-	hshuser := userDirLoader(rtm)
+	hshuser := userDirLoader()
 	mod.Set(rt.StringValue("userDir"), rt.TableValue(hshuser))
 
 	// hilbish.os table
-	hshos := hshosLoader(rtm)
+	hshos := hshosLoader()
 	mod.Set(rt.StringValue("os"), rt.TableValue(hshos))
 
 	// hilbish.completions table

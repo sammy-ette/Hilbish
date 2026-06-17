@@ -22,7 +22,7 @@ interfaces and functions which directly relate to shell functionality.
 - [`hilbish.read(prompt) -> string|nil`](#read): read(prompt) -> input (string)
 - [`hilbish.run(cmd, streams) -> number, string, string`](#run): Runs `cmd` in Hilbish's shell script interpreter.
 - [`hilbish.timeout(cb, time) -> @Timer`](#timeout): Executed the `cb` function after a period of `time`.
-- [`hilbish.which(name) -> string`](#which): Checks if `name` is a valid command.
+- [`hilbish.which(name) -> string|nil`](#which): Checks if `name` is a valid command.
 
 ## Static module fields
 
@@ -126,12 +126,12 @@ Throws an error if it is not found.
 
 #### multiprompt
 
-hilbish.multiprompt(str)
+hilbish.multiprompt(str) -> string|nil Returns the currently set multilinePrompt if `str` is not provided.
 
 
 #### Parameters
 
-`string` _str_  
+`string|nil` _str_  
 
 
 #### Example
@@ -168,7 +168,7 @@ These will be formatted and replaced with the appropriate values.
 `string` _p_  
 
 
-`string` _typ_  
+`string` _typ?_  
 Type of prompt, either left or right
 
 #### Example
@@ -261,7 +261,7 @@ Time to run in milliseconds.
 
 #### which
 
-hilbish.which(name) -> string
+hilbish.which(name) -> string|nil
 
 Checks if `name` is a valid command.  
 Will return the path of the binary, or a basename if it's a commander.  

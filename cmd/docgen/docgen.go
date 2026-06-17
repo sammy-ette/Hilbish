@@ -151,7 +151,7 @@ func setupDocType(mod string, typ *doc.Type) *docPiece {
 	docs := strings.TrimSpace(typ.Doc)
 	tags, doc := getTagsAndDocs(docs)
 
-	if tags["type"] == nil {
+	if tags["type"] == nil || tags["private"] != nil {
 		return nil
 	}
 	inInterface := tags["interface"] != nil
@@ -217,6 +217,10 @@ func setupDoc(mod string, fun *doc.Func) *docPiece {
 
 	docs := strings.TrimSpace(fun.Doc)
 	tags, parts := getTagsAndDocs(docs)
+
+	if tags["private"] != nil {
+		return nil
+	}
 
 	// i couldnt fit this into the condition below for some reason so here's a goto!
 	if tags["member"] != nil {
@@ -312,6 +316,8 @@ func main() {
 	collectDefs()
 	// render the defs into markdown docs.
 	renderDocs()
+	// render the defs into LuaLS type definition files.
+	renderLuaDefs()
 }
 
 // collectDefs parses both the Go source (via go/doc) and the Lua source (via
@@ -628,6 +634,7 @@ func collectLuaModules() []module {
 			var descLines, exampleLines []string
 			var params []param
 			var returns []string
+			isPrivate := false
 			doingExample := false
 			for offset := 1; idx-offset >= 0; offset++ {
 				dm := docPattern.FindStringSubmatch(body[idx-offset])
@@ -655,6 +662,8 @@ func collectLuaModules() []module {
 						params = append([]param{p}, params...)
 					case "return", "returns":
 						returns = append([]string{rest}, returns...)
+					case "private":
+						isPrivate = true
 					}
 					continue
 				}
@@ -668,6 +677,10 @@ func collectLuaModules() []module {
 				} else {
 					descLines = append([]string{docline}, descLines...)
 				}
+			}
+
+			if isPrivate {
+				continue
 			}
 
 			// skip functions without any documentation at all
@@ -882,4 +895,396 @@ func bulletList(elems [][]string) string {
 	b.WriteString("\n")
 
 	return b.String()
+}
+
+// renderLuaDefs reads every def written by collectDefs and renders LuaLS
+// @meta definition files into types/. These teach the language server about
+// Go-implemented globals and modules so that hilbish-specific symbols are
+// recognised in editor without generating undefined-global warnings.
+func renderLuaDefs() {
+	os.RemoveAll("types")
+	os.MkdirAll("types", 0777)
+
+	// Static file for bare globals injected by Go but not in any def.
+	os.WriteFile("types/globals.lua", []byte(
+		"---@meta\n\n"+
+			"---@type string[]\nargs = {}\n\n"+
+			"---@type table<string, string>\nenv = {}\n\n"+
+			// golua oslib extension (not in any workspace Lua file).
+			"---@param name string\n---@param value string\n"+
+			"function os.setenv(name, value) end\n",
+	), 0644)
+
+	defs, err := os.ReadDir("defs")
+	if err != nil {
+		panic(err)
+	}
+
+	var hilbishMods []module
+	for _, entry := range defs {
+		content, err := os.ReadFile(filepath.Join("defs", entry.Name()))
+		if err != nil {
+			continue
+		}
+		var mod module
+		json.Unmarshal(content, &mod)
+
+		if mod.Name == "hilbish" || strings.HasPrefix(mod.Name, "hilbish.") {
+			hilbishMods = append(hilbishMods, mod)
+			continue
+		}
+		if mod.Section != "api" {
+			// nature/ modules already have Lua source visible to LuaLS.
+			continue
+		}
+		writeLuaModDef(mod)
+	}
+
+	sort.Slice(hilbishMods, func(i, j int) bool {
+		a, b := hilbishMods[i].Name, hilbishMods[j].Name
+		if a == "hilbish" {
+			return true
+		}
+		if b == "hilbish" {
+			return false
+		}
+		return a < b
+	})
+	writeLuaHilbishDef(hilbishMods)
+}
+
+// luaSigName extracts the function name from a signature like "foo(a, b) -> x".
+func luaSigName(sig string) string {
+	idx := strings.Index(sig, "(")
+	if idx < 0 {
+		return strings.TrimSpace(sig)
+	}
+	return strings.TrimSpace(sig[:idx])
+}
+
+// Matches "word (type)" descriptions like "entries (table)" or "prefix (string)".
+// The space before "(" distinguishes these from function-call syntax "fun(args)".
+var reDescType = regexp.MustCompile(`\w+\s+\(([^)]+)\)`)
+
+// Matches table[X] (should be table<X> in LuaLS).
+var reTableBracket = regexp.MustCompile(`table\[([^\]]*)\]`)
+
+// Matches the "function" keyword optionally followed by a param list like
+// "function(...)" so the whole thing can be replaced with "fun(...: any)".
+var reBareFunction = regexp.MustCompile(`\bfunction\b(\s*\([^)]*\))?`)
+
+// sanitizeLuaType normalises a raw type string from defs JSON into valid LuaLS
+// syntax. Handles three cases from legacy doc comments:
+//
+//	"@Job"              → "Job"          (leading @ is Hilbish's internal ref prefix)
+//	"table[Job]"        → "table<Job>"   (square → angle brackets)
+//	"entries (table)"   → "table"        (name-then-parenthesised-type description)
+func sanitizeLuaType(t string) string {
+	t = strings.TrimSpace(t)
+	// Strip leading @
+	t = strings.TrimPrefix(t, "@")
+	// Handle "name (type)" description style — keep only the type in parens.
+	// e.g. "entries (table), prefix (string)" → "table, string"
+	t = reDescType.ReplaceAllStringFunc(t, func(m string) string {
+		sub := reDescType.FindStringSubmatch(m)
+		if len(sub) > 1 {
+			return strings.TrimSpace(sub[1])
+		}
+		return m
+	})
+	// table[X] → table<X>
+	t = reTableBracket.ReplaceAllString(t, "table<$1>")
+	// "function" or "function(...)" → "fun(...: any)"
+	t = reBareFunction.ReplaceAllString(t, "fun(...: any)")
+	return t
+}
+
+// luaSigParamNames extracts bare parameter names from a signature string like
+// "write(str, flags)" → ["str", "flags"]. Used as a fallback when doc.Params
+// is empty (common for Go-implemented member functions).
+func luaSigParamNames(sig string) []string {
+	start := strings.Index(sig, "(")
+	end := strings.Index(sig, ")")
+	if start < 0 || end < 0 || end <= start+1 {
+		return nil
+	}
+	inner := strings.TrimSpace(sig[start+1 : end])
+	if inner == "" {
+		return nil
+	}
+	parts := strings.Split(inner, ",")
+	names := make([]string, len(parts))
+	for i, p := range parts {
+		names[i] = strings.TrimSpace(p)
+	}
+	return names
+}
+
+// luaSigReturn extracts a return type embedded in the signature after "->".
+// Lua-source defs store return info this way instead of in Tags.
+func luaSigReturn(sig string) string {
+	idx := strings.Index(sig, "->")
+	if idx < 0 {
+		return ""
+	}
+	return strings.TrimSpace(sig[idx+2:])
+}
+
+// luaReturnStr collects the return type from Tags first, then falls back to
+// the embedded signature return.
+func luaReturnStr(doc docPiece) string {
+	for _, key := range []string{"returns", "return"} {
+		if tags, ok := doc.Tags[key]; ok {
+			var ids []string
+			for _, t := range tags {
+				if t.Id != "" {
+					ids = append(ids, t.Id)
+				}
+			}
+			if len(ids) > 0 {
+				return strings.Join(ids, ", ")
+			}
+		}
+	}
+	return luaSigReturn(doc.FuncSig)
+}
+
+// luaFunField builds a "fun(params): ret" type string for use in ---@field.
+func luaFunField(doc docPiece) string {
+	parts := make([]string, 0, len(doc.Params))
+	for _, p := range doc.Params {
+		name := strings.TrimSuffix(p.Name, "?")
+		typ := sanitizeLuaType(p.Type)
+		if typ == "" {
+			typ = "any"
+		}
+		if strings.HasPrefix(typ, "...") {
+			varType := strings.TrimPrefix(typ, "...")
+			if varType == "" {
+				parts = append(parts, "...")
+			} else {
+				parts = append(parts, "...: "+varType)
+			}
+		} else {
+			parts = append(parts, name+": "+typ)
+		}
+	}
+	// If no typed params, fall back to names extracted from the signature.
+	if len(parts) == 0 {
+		for _, name := range luaSigParamNames(doc.FuncSig) {
+			parts = append(parts, name+": any")
+		}
+	}
+
+	var ret string
+	if r := luaReturnStr(doc); r != "" {
+		ret = ": " + sanitizeLuaType(r)
+	}
+
+	return fmt.Sprintf("fun(%s)%s", strings.Join(parts, ", "), ret)
+}
+
+// luaMethodDecl writes param/return annotations and a function declaration
+// for a member method on className.
+func luaMethodDecl(className string, doc docPiece) string {
+	name := luaSigName(doc.FuncSig)
+	if name == "" {
+		return ""
+	}
+	var b strings.Builder
+
+	// Prefer typed params from doc.Params; fall back to sig names as untyped.
+	if len(doc.Params) > 0 {
+		for _, p := range doc.Params {
+			typ := sanitizeLuaType(p.Type)
+			if typ == "" {
+				typ = "any"
+			}
+			b.WriteString(fmt.Sprintf("---@param %s %s\n", p.Name, typ))
+		}
+	}
+	if r := luaReturnStr(doc); r != "" {
+		b.WriteString(fmt.Sprintf("---@return %s\n", sanitizeLuaType(r)))
+	}
+
+	var paramList []string
+	if len(doc.Params) > 0 {
+		paramList = make([]string, len(doc.Params))
+		for i, p := range doc.Params {
+			paramList[i] = strings.TrimSuffix(p.Name, "?")
+		}
+	} else {
+		paramList = luaSigParamNames(doc.FuncSig)
+	}
+	b.WriteString(fmt.Sprintf("function %s:%s(%s) end\n\n", className, name, strings.Join(paramList, ", ")))
+	return b.String()
+}
+
+// writeLuaModDef generates types/<modname>.lua for a single top-level api module.
+func writeLuaModDef(mod module) {
+	var b strings.Builder
+	b.WriteString("---@meta\n\n")
+
+	var memberDocs, modDocs []docPiece
+	for _, d := range mod.Docs {
+		if d.IsMember {
+			memberDocs = append(memberDocs, d)
+		} else {
+			modDocs = append(modDocs, d)
+		}
+	}
+
+	// Instance types (e.g. Readline, Snail, Thread).
+	for _, typ := range mod.Types {
+		b.WriteString(fmt.Sprintf("---@class %s\n", typ.FuncName))
+		for _, p := range typ.Properties {
+			b.WriteString(fmt.Sprintf("---@field %s any\n", p.FuncName))
+		}
+		b.WriteString(fmt.Sprintf("local %s = {}\n\n", typ.FuncName))
+		for _, d := range memberDocs {
+			b.WriteString(luaMethodDecl(typ.FuncName, d))
+		}
+	}
+
+	// Module class — functions declared as @field fun(...) to avoid forward
+	// references to the module variable.
+	b.WriteString(fmt.Sprintf("---@class %s\n", mod.Name))
+	for _, f := range mod.Fields {
+		b.WriteString(fmt.Sprintf("---@field %s any\n", f.FuncName))
+	}
+	for _, d := range modDocs {
+		name := luaSigName(d.FuncSig)
+		if name == "" {
+			continue
+		}
+		b.WriteString(fmt.Sprintf("---@field %s %s\n", name, luaFunField(d)))
+	}
+	b.WriteString(fmt.Sprintf("local %s = {}\n\n", mod.Name))
+	b.WriteString(fmt.Sprintf("return %s\n", mod.Name))
+
+	os.WriteFile(filepath.Join("types", mod.Name+".lua"), []byte(b.String()), 0644)
+}
+
+// writeLuaHilbishDef generates types/hilbish.lua from all hilbish and
+// hilbish.* defs merged into a single file.
+func writeLuaHilbishDef(mods []module) {
+	var b strings.Builder
+	b.WriteString("---@meta\n\n")
+
+	var mainMod module
+	var subMods []module
+	for _, m := range mods {
+		if m.Name == "hilbish" {
+			mainMod = m
+		} else {
+			subMods = append(subMods, m)
+		}
+	}
+
+	// Sink type from the main hilbish module.
+	var sinkMembers []docPiece
+	for _, d := range mainMod.Docs {
+		if d.IsMember {
+			sinkMembers = append(sinkMembers, d)
+		}
+	}
+	for _, typ := range mainMod.Types {
+		b.WriteString(fmt.Sprintf("---@class %s\n", typ.FuncName))
+		for _, p := range typ.Properties {
+			b.WriteString(fmt.Sprintf("---@field %s any\n", p.FuncName))
+		}
+		b.WriteString(fmt.Sprintf("local %s = {}\n\n", typ.FuncName))
+		for _, d := range sinkMembers {
+			b.WriteString(luaMethodDecl(typ.FuncName, d))
+		}
+	}
+
+	// Sub-module instance types and their classes.
+	for _, sub := range subMods {
+		var memberDocs []docPiece
+		for _, d := range sub.Docs {
+			if d.IsMember {
+				memberDocs = append(memberDocs, d)
+			}
+		}
+		for _, typ := range sub.Types {
+			b.WriteString(fmt.Sprintf("---@class %s\n", typ.FuncName))
+			for _, p := range typ.Properties {
+				b.WriteString(fmt.Sprintf("---@field %s any\n", p.FuncName))
+			}
+			b.WriteString(fmt.Sprintf("local %s = {}\n\n", typ.FuncName))
+			for _, d := range memberDocs {
+				b.WriteString(luaMethodDecl(typ.FuncName, d))
+			}
+		}
+
+		// Sub-module class (e.g. hilbish.jobs, hilbish.aliases).
+		b.WriteString(fmt.Sprintf("---@class %s\n", sub.Name))
+		for _, f := range sub.Fields {
+			b.WriteString(fmt.Sprintf("---@field %s any\n", f.FuncName))
+		}
+		for _, d := range sub.Docs {
+			if d.IsMember {
+				continue
+			}
+			name := luaSigName(d.FuncSig)
+			if name == "" {
+				continue
+			}
+			b.WriteString(fmt.Sprintf("---@field %s %s\n", name, luaFunField(d)))
+		}
+		// Extra fields added by nature/ Lua files for specific sub-modules.
+		// switch sub.Name {
+		// case "hilbish.aliases":
+		// 	b.WriteString("---@field all table<string, string>\n")
+		// case "hilbish.runner":
+		// 	b.WriteString("---@field sh fun(input: string)\n")
+		// case "hilbish.processors":
+		// 	b.WriteString("---@field add fun(processor: table)\n")
+		// 	b.WriteString("---@field list table\n")
+		// 	b.WriteString("---@field sorted table\n")
+		// }
+		b.WriteString("\n")
+	}
+
+	// Main Hilbish class.
+	b.WriteString("---@class Hilbish\n")
+	for _, f := range mainMod.Fields {
+		b.WriteString(fmt.Sprintf("---@field %s any\n", f.FuncName))
+	}
+	// Extra fields defined by nature/ Lua files, not present in Go defs.
+	b.WriteString("---@field home string\n")
+	b.WriteString("---@field editor Readline\n")
+	b.WriteString("---@field snail Snail\n")
+	b.WriteString("---@field history table\n")
+	b.WriteString("---@field opts table\n")
+	b.WriteString("---@field vim table\n")
+	b.WriteString("---@field sink { new: fun(): Sink }\n")
+	b.WriteString("---@field motd string\n")
+	b.WriteString("---@field hinter fun(line: string, pos: number): string\n")
+	b.WriteString("---@field highlighter fun(line: string): string\n")
+	b.WriteString("---@field inputMode fun(mode: string)\n")
+	b.WriteString("---@field appendPath fun(path: string|table)\n")
+	b.WriteString("---@field prependPath fun(path: string|table)\n")
+	// Sub-module references.
+	for _, sub := range subMods {
+		fieldName := strings.TrimPrefix(sub.Name, "hilbish.")
+		b.WriteString(fmt.Sprintf("---@field %s %s\n", fieldName, sub.Name))
+	}
+	// Main module functions.
+	for _, d := range mainMod.Docs {
+		if d.IsMember {
+			continue
+		}
+		name := luaSigName(d.FuncSig)
+		if name == "" {
+			continue
+		}
+		b.WriteString(fmt.Sprintf("---@field %s %s\n", name, luaFunField(d)))
+	}
+	b.WriteString("\n")
+
+	b.WriteString("---@type Hilbish\n---@diagnostic disable-next-line: missing-fields\nhilbish = {}\n\nreturn hilbish\n")
+
+	os.WriteFile(filepath.Join("types", "hilbish.lua"), []byte(b.String()), 0644)
 }

@@ -13,7 +13,7 @@ import (
 // for configs and data.
 // #field config The user's config directory
 // #field data The user's directory for program data
-func userDirLoader(rtm *rt.Runtime) *rt.Table {
+func userDirLoader() *rt.Table {
 	mod := rt.NewTable()
 
 	util.SetField(mod, "config", rt.StringValue(confDir))

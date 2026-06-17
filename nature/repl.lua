@@ -20,13 +20,14 @@ while hilbish.interactive do
 		end
 		goto continue
 	end
-	--- @type string
+	---@type string|nil
 	local input = res
 
 	local priv = false
 	if res:sub(1, 1) == ' ' then
 		priv = true
 	end
+	---@diagnostic disable-next-line: need-check-nil
 	input = input:gsub('%s+$', '')
 	--:gsub('^([%s]+).', '')
 

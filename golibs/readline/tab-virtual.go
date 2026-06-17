@@ -63,7 +63,7 @@ func (rl *Readline) insertCandidate() {
 	cur := rl.getCurrentGroup()
 
 	if cur != nil {
-		completion := cur.getCurrentCell(rl)
+		completion := cur.getCurrentCell()
 		prefix := len(rl.tcPrefix)
 
 		// Special case for the only special escape, which
@@ -88,7 +88,7 @@ func (rl *Readline) updateVirtualComp() {
 	cur := rl.getCurrentGroup()
 	if cur != nil {
 
-		completion := cur.getCurrentCell(rl)
+		completion := cur.getCurrentCell()
 		prefix := len(rl.tcPrefix)
 
 		// If the total number of completions is one, automatically insert it.
@@ -133,7 +133,7 @@ func (rl *Readline) resetVirtualComp(drop bool) {
 	if cur == nil {
 		return
 	}
-	completion := cur.getCurrentCell(rl)
+	completion := cur.getCurrentCell()
 	// Avoid problems with empty completions
 	if completion == "" {
 		rl.clearVirtualComp()

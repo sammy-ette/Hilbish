@@ -19,9 +19,9 @@ hilbish.abbr = {
 --- `opts` is a table that accepts 1 key: `anywhere`.
 --- `opts.anywhere` defines whether the abbr expands anywhere in the command line or not,
 --- whereas the default behavior is only at the beginning of the line
--- @param abbr string
--- @param expanded|function string
--- @param opts table
+--- @param abbr string
+--- @param expanded string|function
+--- @param opts? table
 function hilbish.abbr.add(abbr, expanded, opts)
 	opts = opts or {}
 	opts.abbr = abbr
@@ -30,7 +30,7 @@ function hilbish.abbr.add(abbr, expanded, opts)
 end
 
 --- Removes the named `abbr`.
--- @param abbr string
+--- @param abbr string
 function hilbish.abbr.remove(abbr)
 	hilbish.abbr.all[abbr] = nil
 end

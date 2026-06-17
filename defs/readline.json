@@ -314,7 +314,7 @@
 			"description": [
 				"Reads a keystroke from the user. This is in a format of something like Ctrl-L."
 			],
-			"signature": "getChar() -\u003e string",
+			"signature": "readChar() -\u003e string",
 			"goFuncName": "rlreadchar",
 			"isInterface": false,
 			"isMember": true,
@@ -342,7 +342,7 @@
 			"params": [
 				{
 					"Name": "fn",
-					"Type": "function",
+					"Type": "fun(line:string,pos:integer):table,string",
 					"Doc": []
 				}
 			],
@@ -358,7 +358,7 @@
 					{
 						"id": "fn",
 						"fields": [
-							"function"
+							"fun(line:string,pos:integer):table,string"
 						],
 						"startIdx": 3
 					}
@@ -378,7 +378,7 @@
 			"params": [
 				{
 					"Name": "fn",
-					"Type": "function",
+					"Type": "fun(line:string):string",
 					"Doc": []
 				}
 			],
@@ -394,7 +394,7 @@
 					{
 						"id": "fn",
 						"fields": [
-							"function"
+							"fun(line:string):string"
 						],
 						"startIdx": 3
 					}
@@ -414,7 +414,7 @@
 			"params": [
 				{
 					"Name": "fn",
-					"Type": "function",
+					"Type": "fun(line:string,pos:integer):string",
 					"Doc": []
 				}
 			],
@@ -430,7 +430,7 @@
 					{
 						"id": "fn",
 						"fields": [
-							"function"
+							"fun(line:string,pos:integer):string"
 						],
 						"startIdx": 3
 					}
@@ -610,7 +610,7 @@
 			"params": [
 				{
 					"Name": "fn",
-					"Type": "function",
+					"Type": "fun(needle:string,haystack:table\u003cstring\u003e):table|nil",
 					"Doc": []
 				}
 			],
@@ -626,7 +626,7 @@
 					{
 						"id": "fn",
 						"fields": [
-							"function"
+							"fun(needle:string,haystack:table\u003cstring\u003e):table|nil"
 						],
 						"startIdx": 5
 					}

@@ -460,9 +460,9 @@
 			"name": "pipe",
 			"description": [
 				"Returns a pair of connected files, also known as a pipe.",
-				"The type returned is a Lua file, same as returned from `io` functions."
+				"The type returned is a Lua file, same as returned from `io` functions, like `io.open`."
 			],
-			"signature": "fpipe() -\u003e File, File",
+			"signature": "pipe() -\u003e file*, file*",
 			"goFuncName": "fpipe",
 			"isInterface": false,
 			"isMember": false,
@@ -470,12 +470,12 @@
 			"tags": {
 				"returns": [
 					{
-						"id": "File",
+						"id": "file*",
 						"fields": [],
 						"startIdx": 3
 					},
 					{
-						"id": "File",
+						"id": "file*",
 						"fields": [],
 						"startIdx": 0
 					}

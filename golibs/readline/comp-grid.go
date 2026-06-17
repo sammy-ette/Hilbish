@@ -10,7 +10,7 @@ import (
 
 // initGrid - Grid display details. Called each time we want to be sure to have
 // a working completion group either immediately, or later on. Generally defered.
-func (g *CompletionGroup) initGrid(rl *Readline) {
+func (g *CompletionGroup) initGrid() {
 
 	// Compute size of each completion item box
 	tcMaxLength := 1

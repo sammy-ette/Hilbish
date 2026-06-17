@@ -445,7 +445,7 @@ func (rl *Readline) Readline() (string, error) {
 
 				// IF we have a prefix and completions printed, but no candidate
 				// (in which case the completion is ""), we immediately return.
-				completion := cur.getCurrentCell(rl)
+				completion := cur.getCurrentCell()
 				prefix := len(rl.tcPrefix)
 				if prefix > len(completion) {
 					rl.carridgeReturn()

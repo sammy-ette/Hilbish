@@ -7,7 +7,7 @@ import (
 
 // initMap - Map display details. Called each time we want to be sure to have
 // a working completion group either immediately, or later on. Generally defered.
-func (g *CompletionGroup) initMap(rl *Readline) {
+func (g *CompletionGroup) initMap() {
 
 	// We make the map anyway, especially if we need to use it later
 	if g.Descriptions == nil {

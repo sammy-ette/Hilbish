@@ -52,6 +52,7 @@ local snail = require 'snail'
 local currentRunner = 'hybrid'
 local runners = {}
 
+---@diagnostic disable-next-line: missing-fields
 hilbish.runner = {}
 
 --- Get a runner by name.
@@ -125,7 +126,7 @@ function hilbish.runner.setCurrent(name)
 end
 
 --- Returns the current runner by name.
---- @returns string
+--- @return string
 function hilbish.runner.getCurrent()
 	return currentRunner
 end
@@ -135,6 +136,11 @@ local function finishExec(exitCode, input, priv)
 	bait.throw('command.exit', exitCode, input, priv)
 end
 
+--- Prompts for continued input from the user.
+--- @param prev string
+--- @param newline boolean
+--- @return string|nil
+--- @private
 function hilbish.runner.continuePrompt(prev, newline)
 	local multilinePrompt = hilbish.multiprompt()
 	-- the return of hilbish.read is nil when error or ctrl-d
@@ -157,8 +163,8 @@ end
 --- Runs `input` with the currently set Hilbish runner.
 --- This method is how Hilbish executes commands.
 --- `priv` is an optional boolean used to state if the input should be saved to history.
--- @param input string
--- @param priv bool
+--- @param input string
+--- @param priv? boolean
 function hilbish.runner.run(input, priv)
 	bait.throw('command.preprocess', input)
 	local processed = hilbish.processors.execute(input, {
@@ -176,7 +182,7 @@ function hilbish.runner.run(input, priv)
 	local command = hilbish.aliases.resolve(processed.command)
 	local valid = runner.validate(processed.command)
 	if not valid then
-		local contInput = continuePrompt(processed.command, false)
+		local contInput = hilbish.runner.continuePrompt(processed.command, false)
 		if contInput then
 			processed.command = contInput
 			goto rerun
@@ -216,14 +222,17 @@ function hilbish.runner.run(input, priv)
 	finishExec(out.exitCode, out.input, priv)
 end
 
+--- Runs input using Hilbish's snail instance, that is, as shell script.
+--- @param input string
+--- @return table
 function hilbish.runner.sh(input)
 	return hilbish.snail:run(input)
 end
 
---- lua(cmd)
 --- Evaluates `cmd` as Lua input. This is the same as using `dofile`
 --- or `load`, but is appropriated for the runner interface.
--- @param cmd string
+--- @param input string
+--- @return table
 function hilbish.runner.lua(input)
 	local fun, err = load(input)
 	if err then
@@ -235,6 +244,7 @@ function hilbish.runner.lua(input)
 	end
 
 	local ok
+---@diagnostic disable-next-line: param-type-mismatch
 	ok, err = pcall(fun)
 	if not ok then
 		return {

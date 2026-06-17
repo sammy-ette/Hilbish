@@ -210,6 +210,7 @@ func timerUserData(j *timer) *rt.UserData {
 	return rt.NewUserData(j, timerMeta.AsTable())
 }
 
+// #interface timers
 // wait()
 // Waits for all timers to finish.
 func timerWait(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {

@@ -14,7 +14,7 @@ import (
 // #field family Family name of the current OS
 // #field name Pretty name of the current OS
 // #field version Version of the current OS
-func hshosLoader(rtm *rt.Runtime) *rt.Table {
+func hshosLoader() *rt.Table {
 	info, _ := osinfo.GetOSInfo()
 	mod := rt.NewTable()
 

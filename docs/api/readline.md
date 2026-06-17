@@ -105,7 +105,7 @@ Sets the prompt of the line reader. This is the text that shows up before user i
 
 Reads input from the user.
 
-#### getChar() -> string
+#### readChar() -> string
 
 Reads a keystroke from the user. This is in a format of something like Ctrl-L.
 

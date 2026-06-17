@@ -86,17 +86,16 @@
 		{
 			"name": "lua",
 			"description": [
-				"lua(cmd)",
 				"Evaluates `cmd` as Lua input. This is the same as using `dofile`",
 				"or `load`, but is appropriated for the runner interface."
 			],
-			"signature": "lua(input)",
+			"signature": "lua(input) -\u003e table",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
 			"params": [
 				{
-					"Name": "cmd",
+					"Name": "input",
 					"Type": "string",
 					"Doc": null
 				}
@@ -120,8 +119,8 @@
 					"Doc": null
 				},
 				{
-					"Name": "priv",
-					"Type": "bool",
+					"Name": "priv?",
+					"Type": "boolean",
 					"Doc": null
 				}
 			]
@@ -162,6 +161,23 @@
 			"params": [
 				{
 					"Name": "name",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "sh",
+			"description": [
+				"Runs input using Hilbish's snail instance, that is, as shell script."
+			],
+			"signature": "sh(input) -\u003e table",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "input",
 					"Type": "string",
 					"Doc": null
 				}

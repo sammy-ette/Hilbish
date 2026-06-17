@@ -48,7 +48,7 @@
 		{
 			"name": "list",
 			"description": null,
-			"signature": "list() -\u003e table[string, string]",
+			"signature": "list() -\u003e table\u003cstring, string\u003e",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false

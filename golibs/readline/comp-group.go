@@ -59,9 +59,9 @@ func (g *CompletionGroup) init(rl *Readline) {
 	switch g.DisplayType {
 
 	case TabDisplayGrid:
-		g.initGrid(rl)
+		g.initGrid()
 	case TabDisplayMap:
-		g.initMap(rl)
+		g.initMap()
 	case TabDisplayList:
 		g.initList(rl)
 	}
@@ -133,10 +133,10 @@ func (g *CompletionGroup) checkMaxLength(rl *Readline) {
 func checkNilItems(groups []*CompletionGroup) (checked []*CompletionGroup) {
 
 	for _, grp := range groups {
-		if grp.Descriptions == nil || len(grp.Descriptions) == 0 {
+		if len(grp.Descriptions) == 0 {
 			grp.Descriptions = make(map[string]string)
 		}
-		if grp.Aliases == nil || len(grp.Aliases) == 0 {
+		if len(grp.Aliases) == 0 {
 			grp.Aliases = make(map[string]string)
 		}
 		checked = append(checked, grp)
@@ -169,7 +169,7 @@ func (g *CompletionGroup) writeCompletion(rl *Readline) (comp string) {
 
 // getCurrentCell - The completion groups computes the current cell value,
 // depending on its display type and its different parameters
-func (g *CompletionGroup) getCurrentCell(rl *Readline) string {
+func (g *CompletionGroup) getCurrentCell() string {
 
 	switch g.DisplayType {
 	case TabDisplayGrid:

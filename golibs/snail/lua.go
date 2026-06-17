@@ -46,8 +46,8 @@ func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	rtm.SetRegistry(snailMetaKey, rt.TableValue(snailMeta))
 
 	exports := map[string]util.LuaExport{
-    "new":      util.LuaExport{Function: snailnew, ArgNum: 0, Variadic: false},
-    "validate": util.LuaExport{Function: snailvalidate, ArgNum: 1, Variadic: false},
+		"new":      {Function: snailnew, ArgNum: 0, Variadic: false},
+		"validate": {Function: snailvalidate, ArgNum: 1, Variadic: false},
 	}
 
 	mod := rt.NewTable()
@@ -63,6 +63,9 @@ func snailnew(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(snailUserData(s))), nil
 }
 
+// validate(input)
+// Checks if input is incomplete. Does not error otherwise.
+// #param input string
 func snailvalidate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.Check1Arg(); err != nil {
 		return nil, err
@@ -80,7 +83,8 @@ func snailvalidate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // run(command, streams)
 // Runs a shell command. Works the same as `hilbish.run`, but only accepts a table of streams.
 // #param command string
-// #param streams table
+// #param streams? table
+// #returns table
 func snailrun(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(2); err != nil {
 		return nil, err

@@ -28,17 +28,17 @@ var Loader = packagelib.Loader{
 
 func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"cd":         util.LuaExport{Function: fcd, ArgNum: 1, Variadic: false},
-		"executable": util.LuaExport{Function: fexecutable, ArgNum: 1, Variadic: false},
-		"mkdir":      util.LuaExport{Function: fmkdir, ArgNum: 2, Variadic: false},
-		"stat":       util.LuaExport{Function: fstat, ArgNum: 1, Variadic: false},
-		"readdir":    util.LuaExport{Function: freaddir, ArgNum: 1, Variadic: false},
-		"abs":        util.LuaExport{Function: fabs, ArgNum: 1, Variadic: false},
-		"basename":   util.LuaExport{Function: fbasename, ArgNum: 1, Variadic: false},
-		"dir":        util.LuaExport{Function: fdir, ArgNum: 1, Variadic: false},
-		"glob":       util.LuaExport{Function: fglob, ArgNum: 1, Variadic: false},
-		"join":       util.LuaExport{Function: fjoin, ArgNum: 0, Variadic: true},
-		"pipe":       util.LuaExport{Function: fpipe, ArgNum: 0, Variadic: false},
+		"cd":         {Function: fcd, ArgNum: 1, Variadic: false},
+		"executable": {Function: fexecutable, ArgNum: 1, Variadic: false},
+		"mkdir":      {Function: fmkdir, ArgNum: 2, Variadic: false},
+		"stat":       {Function: fstat, ArgNum: 1, Variadic: false},
+		"readdir":    {Function: freaddir, ArgNum: 1, Variadic: false},
+		"abs":        {Function: fabs, ArgNum: 1, Variadic: false},
+		"basename":   {Function: fbasename, ArgNum: 1, Variadic: false},
+		"dir":        {Function: fdir, ArgNum: 1, Variadic: false},
+		"glob":       {Function: fglob, ArgNum: 1, Variadic: false},
+		"join":       {Function: fjoin, ArgNum: 0, Variadic: true},
+		"pipe":       {Function: fpipe, ArgNum: 0, Variadic: false},
 	}
 	mod := rt.NewTable()
 	util.SetExports(rtm, mod, exports)
@@ -262,11 +262,11 @@ func fmkdir(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), err
 }
 
-// fpipe() -> File, File
+// pipe() -> file*, file*
 // Returns a pair of connected files, also known as a pipe.
-// The type returned is a Lua file, same as returned from `io` functions.
-// #returns File
-// #returns File
+// The type returned is a Lua file, same as returned from `io` functions, like `io.open`.
+// #returns file*
+// #returns file*
 func fpipe(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	rf, wf, err := os.Pipe()
 	if err != nil {

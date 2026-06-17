@@ -11,7 +11,7 @@
 			"description": [
 				"Returns all messages."
 			],
-			"signature": "all()",
+			"signature": "all() -\u003e table\u003chilbish.message\u003e",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false
@@ -92,7 +92,7 @@
 			"description": [
 				"Returns the amount of unread messages."
 			],
-			"signature": "unreadCount()",
+			"signature": "unreadCount() -\u003e integer",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false

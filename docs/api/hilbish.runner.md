@@ -20,10 +20,11 @@ write commands in Fennel.
 - [`hilbish.runner.exec(cmd, runnerName) -> table`](#exec): Executes `cmd` with a runner.
 - [`hilbish.runner.get(name) -> table`](#get): Get a runner by name.
 - [`hilbish.runner.getCurrent() -> string`](#getCurrent): Returns the current runner by name.
-- [`hilbish.runner.lua(input)`](#lua): lua(cmd)
+- [`hilbish.runner.lua(input) -> table`](#lua): Evaluates `cmd` as Lua input. This is the same as using `dofile`
 - [`hilbish.runner.run(input, priv)`](#run): Runs `input` with the currently set Hilbish runner.
 - [`hilbish.runner.set(name, runner)`](#set): *Sets* a runner by name. The difference between this function and
 - [`hilbish.runner.setCurrent(name)`](#setCurrent): Sets Hilbish's runner mode by name.
+- [`hilbish.runner.sh(input) -> table`](#sh): Runs input using Hilbish's snail instance, that is, as shell script.
 
 ---
 
@@ -95,15 +96,14 @@ This function has no parameters.
 
 #### lua
 
-hilbish.runner.lua(input)
+hilbish.runner.lua(input) -> table
 
-lua(cmd)  
 Evaluates `cmd` as Lua input. This is the same as using `dofile`  
 or `load`, but is appropriated for the runner interface.  
 
 #### Parameters
 
-`string` _cmd_  
+`string` _input_  
 
 
 
@@ -123,7 +123,7 @@ This method is how Hilbish executes commands.
 `string` _input_  
 
 
-`bool` _priv_  
+`boolean` _priv?_  
 
 
 
@@ -159,6 +159,21 @@ Sets Hilbish's runner mode by name.
 #### Parameters
 
 `string` _name_  
+
+
+
+
+---
+
+#### sh
+
+hilbish.runner.sh(input) -> table
+
+Runs input using Hilbish's snail instance, that is, as shell script.  
+
+#### Parameters
+
+`string` _input_  
 
 
 

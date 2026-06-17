@@ -54,7 +54,7 @@ Removes an alias.
 
 #### list
 
-hilbish.aliases.list() -> table[string, string]
+hilbish.aliases.list() -> table<string, string>
 
 
 #### Parameters

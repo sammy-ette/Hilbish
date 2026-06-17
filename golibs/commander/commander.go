@@ -70,7 +70,7 @@ func (c *Commander) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 // Adds a new command with the given `name`. When Hilbish has to run a command with a name,
 // it will run the function providing the arguments and sinks.
 // #param name string Name of the command
-// #param cb function Callback to handle command invocation
+// #param cb fun(args:table,sinks:table<string,Sink>):number? Callback to handle command invocation
 /*
 #example
 -- When you run the command `hello` in the shell, it will print `Hello world`.

@@ -78,8 +78,8 @@ end
 --- hilbish.prompt '%u@%h :%d $'
 --- -- prompt: user@hostname: ~/directory $
 --- #example
--- @param p string
--- @param typ string Type of prompt, either left or right
+--- @param p string
+--- @param typ? string Type of prompt, either left or right
 function hilbish.prompt(p, typ)
 	if type(p) ~= 'string' then
 		error('expected #1 to be string, got ' .. type(p))
@@ -205,8 +205,8 @@ end
 --- Read input from the user, using Hilbish's line editor/input reader.
 --- This is a separate instance from the one Hilbish actually uses.
 --- Returns `input`, will be nil if Ctrl-D is pressed, or an error occurs.
--- @param prompt? string Text to print before input, can be empty.
--- @returns string|nil
+--- @param prompt? string Text to print before input, can be empty.
+--- @return string|nil
 function hilbish.read(prompt)
 	prompt = prompt or ''
 	if type(prompt) ~= 'string' then
@@ -238,9 +238,9 @@ end
 --- 	stdin = pr
 --- })
 --- #example
--- @param cmd string
--- @param streams table|boolean
--- @returns number, string, string
+--- @param cmd string
+--- @param streams table|boolean
+--- @return number, string, string
 function hilbish.run(cmd, streams)
 	local sinks = {}
 
@@ -264,6 +264,7 @@ function hilbish.run(cmd, streams)
 		table.insert(returns, sinks.err:readAll())
 	end
 
+	---@diagnostic disable-next-line: redundant-return-value
 	return table.unpack(returns)
 end
 
@@ -287,7 +288,8 @@ local multilinePrompt = '~> '
 --- ]]--
 --- hilbish.multiprompt '-->'
 --- #example
---- @param str string
+--- @param str string|nil
+--- @return string|nil Returns the currently set multilinePrompt if `str` is not provided.
 function hilbish.multiprompt(str)
 	if str == nil then
 		return multilinePrompt
@@ -300,7 +302,7 @@ end
 -- Checks if `name` is a valid command.
 -- Will return the path of the binary, or a basename if it's a commander.
 --- @param name string
---- @returns string
+--- @return string|nil
 function hilbish.which(name)
 	local alias = hilbish.aliases.resolve(name)
 	local cmd = string.split(alias, ' ')[1]

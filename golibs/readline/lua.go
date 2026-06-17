@@ -29,25 +29,25 @@ var Loader = packagelib.Loader{
 func luaLoader(rtm *rt.Runtime) (rt.Value, func()) {
 	rlMethods := rt.NewTable()
 	rlMethodss := map[string]util.LuaExport{
-		"deleteByAmount":      {rlDeleteByAmount, 2, false},
-		"getLine":             {rlGetLine, 1, false},
-		"getVimRegister":      {rlGetRegister, 2, false},
-		"insert":              {rlInsert, 2, false},
-		"read":                {rlRead, 1, false},
-		"readChar":            {rlReadChar, 1, false},
-		"setVimRegister":      {rlSetRegister, 3, false},
-		"log":                 {rlLog, 2, false},
-		"prompt":              {rlPrompt, 2, false},
-		"refreshPrompt":       {rlRefreshPrompt, 1, false},
-		"setHinter":           {rlSetHinter, 2, false},
-		"setHighlighter":      {rlSetHighlighter, 2, false},
-		"setCompleter":        {rlSetCompleter, 2, false},
-		"setViModeCallback":   {rlSetViModeCallback, 2, false},
-		"setViActionCallback": {rlSetViActionCallback, 2, false},
-		"setInputMode":        {rlSetInputMode, 2, false},
-		"setHistory":          {rlSetHistory, 2, false},
-		"setRawInputCallback": {rlSetRawInputCallback, 2, false},
-		"setSearcher":         {rlSetSearcher, 2, false},
+		"deleteByAmount":      {Function: rlDeleteByAmount, ArgNum: 2, Variadic: false},
+		"getLine":             {Function: rlGetLine, ArgNum: 1, Variadic: false},
+		"getVimRegister":      {Function: rlGetRegister, ArgNum: 2, Variadic: false},
+		"insert":              {Function: rlInsert, ArgNum: 2, Variadic: false},
+		"read":                {Function: rlRead, ArgNum: 1, Variadic: false},
+		"readChar":            {Function: rlReadChar, ArgNum: 1, Variadic: false},
+		"setVimRegister":      {Function: rlSetRegister, ArgNum: 3, Variadic: false},
+		"log":                 {Function: rlLog, ArgNum: 2, Variadic: false},
+		"prompt":              {Function: rlPrompt, ArgNum: 2, Variadic: false},
+		"refreshPrompt":       {Function: rlRefreshPrompt, ArgNum: 1, Variadic: false},
+		"setHinter":           {Function: rlSetHinter, ArgNum: 2, Variadic: false},
+		"setHighlighter":      {Function: rlSetHighlighter, ArgNum: 2, Variadic: false},
+		"setCompleter":        {Function: rlSetCompleter, ArgNum: 2, Variadic: false},
+		"setViModeCallback":   {Function: rlSetViModeCallback, ArgNum: 2, Variadic: false},
+		"setViActionCallback": {Function: rlSetViActionCallback, ArgNum: 2, Variadic: false},
+		"setInputMode":        {Function: rlSetInputMode, ArgNum: 2, Variadic: false},
+		"setHistory":          {Function: rlSetHistory, ArgNum: 2, Variadic: false},
+		"setRawInputCallback": {Function: rlSetRawInputCallback, ArgNum: 2, Variadic: false},
+		"setSearcher":         {Function: rlSetSearcher, ArgNum: 2, Variadic: false},
 	}
 	util.SetExports(rtm, rlMethods, rlMethodss)
 
@@ -68,9 +68,9 @@ func luaLoader(rtm *rt.Runtime) (rt.Value, func()) {
 	rtm.SetRegistry(rlMetaKey, rt.TableValue(rlMeta))
 
 	rlFuncs := map[string]util.LuaExport{
-		"new":         {rlNew, 0, false},
-		"newHistory":  {rlNewHistory, 1, false},
-		"fuzzySearch": {rlFuzzySearch, 2, false},
+		"new":         {Function: rlNew, ArgNum: 0, Variadic: false},
+		"newHistory":  {Function: rlNewHistory, ArgNum: 1, Variadic: false},
+		"fuzzySearch": {Function: rlFuzzySearch, ArgNum: 2, Variadic: false},
 	}
 
 	luaRl := rt.NewTable()
@@ -276,7 +276,7 @@ func rlGetLine(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 }
 
 // #member
-// getChar() -> string
+// readChar() -> string
 // Reads a keystroke from the user. This is in a format of something like Ctrl-L.
 func rlReadChar(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.Check1Arg(); err != nil {
@@ -389,7 +389,7 @@ func rlRefreshPrompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #member
 // setHinter(fn)
 // Sets the hinter function. Called on every key insert to provide inline hint text.
-// #param fn function
+// #param fn fun(line:string,pos:integer):string
 func rlSetHinter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(2); err != nil {
 		return nil, err
@@ -418,7 +418,7 @@ func rlSetHinter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #member
 // setHighlighter(fn)
 // Sets the syntax highlighter function. Called on every key insert to style the input.
-// #param fn function
+// #param fn fun(line:string):string
 func rlSetHighlighter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(2); err != nil {
 		return nil, err
@@ -446,7 +446,7 @@ func rlSetHighlighter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #member
 // setCompleter(fn)
 // Sets the tab completion handler. fn receives (line, pos) and returns (groups, prefix).
-// #param fn function
+// #param fn fun(line:string,pos:integer):table,string
 func rlSetCompleter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(2); err != nil {
 		return nil, err
@@ -695,7 +695,7 @@ func rlSetHistory(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 	handler := c.Arg(1)
 	if handler.Type() != rt.TableType {
-		return nil, fmt.Errorf("setHistory: expected a table, got %s", handler.Type())
+		return nil, fmt.Errorf("setHistory: expected a table, got %s", handler.TypeName())
 	}
 
 	wrapper := &luaHistoryWrapper{
@@ -746,7 +746,7 @@ func rlFuzzySearch(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // Sets the searcher used for history search and completion filtering.
 // fn receives (needle string, haystack table) and returns a table of results,
 // or nil to fall back to the default regex searcher.
-// #param fn function
+// #param fn fun(needle:string,haystack:table<string>):table|nil
 func rlSetSearcher(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(2); err != nil {
 		return nil, err

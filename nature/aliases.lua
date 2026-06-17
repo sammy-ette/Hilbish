@@ -1,6 +1,7 @@
 -- @module hilbish.aliases
 -- command aliasing
 -- The alias interface deals with all command aliases in Hilbish.
+---@diagnostic disable-next-line: missing-fields
 hilbish.aliases = {
     all = {}
 }
@@ -27,7 +28,7 @@ end
     -- -> {hi = 'echo hi'}
     #example
 --]]
---- @return table[string, string]
+--- @return table<string, string>
 function hilbish.aliases.list()
     return hilbish.aliases.all
 end

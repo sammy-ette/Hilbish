@@ -13,13 +13,13 @@ menu:
 
 ## Functions
 
-- [`hilbish.processors.execute(command, opts)`](#execute): Run all command processors, in order by priority.
+- [`hilbish.processors.execute(command, opts) -> table`](#execute): Run all command processors, in order by priority.
 
 ---
 
 #### execute
 
-hilbish.processors.execute(command, opts)
+hilbish.processors.execute(command, opts) -> table
 
 Run all command processors, in order by priority.  
 It returns the processed command (which may be the same as the passed command)  
