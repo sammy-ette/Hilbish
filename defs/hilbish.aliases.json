@@ -9,8 +9,6 @@
 		{
 			"name": "add",
 			"description": [
-				"#interface aliases",
-				"add(alias, cmd)",
 				"This is an alias (ha) for the [hilbish.alias](../#alias) function."
 			],
 			"signature": "add(alias, cmd)",
@@ -25,6 +23,48 @@
 				},
 				{
 					"Name": "cmd",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "delete",
+			"description": [
+				"Removes an alias."
+			],
+			"signature": "delete(alias)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "alias",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "list",
+			"description": null,
+			"signature": "list() -\u003e table[string, string]",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "resolve",
+			"description": [
+				"Resolves an alias to its original command. Will thrown an error if the alias doesn't exist."
+			],
+			"signature": "resolve(cmdstr) -\u003e string",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cmdstr",
 					"Type": "string",
 					"Doc": null
 				}
