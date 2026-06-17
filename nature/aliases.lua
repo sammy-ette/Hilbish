@@ -5,8 +5,6 @@ hilbish.aliases = {
     all = {}
 }
 
---- #interface aliases
---- add(alias, cmd)
 --- This is an alias (ha) for the [hilbish.alias](../#alias) function.
 --- @param alias string
 --- @param cmd string
@@ -14,14 +12,29 @@ function hilbish.aliases.add(alias, cmd)
     hilbish.aliases.all[alias] = cmd
 end
 
+--- Removes an alias.
+--- @param alias string
 function hilbish.aliases.delete(alias)
     hilbish.aliases.all[alias] = nil
 end
 
+-- Get a table of all aliases, with string keys as the alias and the value as the command.
+--[[
+    #example
+    hilbish.aliases.add('hi', 'echo hi')
+    
+    local aliases = hilbish.aliases.list()
+    -- -> {hi = 'echo hi'}
+    #example
+--]]
+--- @return table[string, string]
 function hilbish.aliases.list()
     return hilbish.aliases.all
 end
 
+--- Resolves an alias to its original command. Will thrown an error if the alias doesn't exist.
+--- @param cmdstr string
+--- @return string
 function hilbish.aliases.resolve(cmdstr)
     local args = string.split(cmdstr, ' ')
     if #args == 0 then

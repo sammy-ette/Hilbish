@@ -42,7 +42,6 @@ func luaInit() {
 
 	err1 := util.DoFile(l, "nature/init.lua")
 	if err1 != nil {
-		fmt.Println(err1)
 		err2 := util.DoFile(l, filepath.Join(dataDir, "nature", "init.lua"))
 		if err2 != nil {
 			fmt.Fprintln(os.Stderr, "Missing nature module, some functionality and builtins will be missing.")
