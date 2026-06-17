@@ -250,7 +250,7 @@ func (g *CompletionGroup) getCurrentItem() *MenuItem {
 
 // getCurrentCell - The completion groups computes the current cell value (the
 // text that would be inserted), depending on its display type and parameters.
-func (g *CompletionGroup) getCurrentCell(rl *Readline) string {
+func (g *CompletionGroup) getCurrentCell() string {
 	idx := g.currentCellIndex()
 	if idx < 0 {
 		return ""

@@ -36,7 +36,7 @@ func newFileHistory(path string) *fileHistory {
 		if i == len(lines)-1 {
 			continue
 		}
-		itms[i] = decodeHistoryLine(l)
+		itms[i] = l
 	}
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0755)
 	if err != nil {
@@ -54,8 +54,7 @@ func (h *fileHistory) Write(line string) (int, error) {
 		return len(h.items), nil
 	}
 
-	encodedLine := encodeHistoryLine(line)
-	_, err := h.f.WriteString(encodedLine + "\n")
+	_, err := h.f.WriteString(line + "\n")
 	if err != nil {
 		return 0, err
 	}

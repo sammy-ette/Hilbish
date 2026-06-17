@@ -87,7 +87,7 @@ func (rl *Readline) insertCandidate() {
 		return
 	}
 
-	completion := cur.getCurrentCell(rl)
+	completion := cur.getCurrentCell()
 	if completion == "" {
 		return
 	}
@@ -104,7 +104,7 @@ func (rl *Readline) updateVirtualComp() {
 	cur := rl.getCurrentGroup()
 	if cur != nil {
 
-		completion := cur.getCurrentCell(rl)
+		completion := cur.getCurrentCell()
 		compRunes := []rune(completion)
 		prefix := len([]rune(rl.tcPrefix))
 
