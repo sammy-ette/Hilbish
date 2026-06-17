@@ -1,6 +1,5 @@
 package readline
 
-import "strings"
 
 // CompletionGroup - A group/category of items offered to completion, with its own
 // name, descriptions and completion display format/type.
@@ -335,6 +334,3 @@ func (g *CompletionGroup) goLastCell() {
 	}
 }
 
-func fmtEscape(s string) string {
-	return strings.Replace(s, "%", "%%", -1)
-}

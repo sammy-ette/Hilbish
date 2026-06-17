@@ -282,7 +282,7 @@ func (rl *Readline) writeTabCompletion() {
 	completions, rl.tcUsedY = rl.cropCompletions(completions)
 
 	// Then we print all of them.
-	rl.bufprintF(completions)
+	rl.bufprint(completions)
 	rl.bufflush()
 }
 

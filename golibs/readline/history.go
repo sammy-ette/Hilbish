@@ -3,6 +3,8 @@ package readline
 import (
 	"strconv"
 	"strings"
+
+	ansi "github.com/acarl005/stripansi"
 )
 
 // History is an interface to allow you to write your own history logging
@@ -26,6 +28,15 @@ type History interface {
 	// convenient for your own applications (or even just create an empty
 	//function which returns `nil` if you don't require Dump() either)
 	Dump() interface{}
+}
+
+// DeletableHistory is an optional extension of History that supports removing
+// individual entries. Readline checks for this interface via type assertion;
+// implementations that don't need deletion don't have to satisfy it.
+type DeletableHistory interface {
+	History
+	// Delete removes the history entry at the given index (same indexing as GetLine).
+	Delete(index int) error
 }
 
 // SetHistoryCtrlR - Set the history source triggered with Ctrl-r combination
@@ -230,4 +241,45 @@ func (rl *Readline) completeHistory() (hist []*CompletionGroup) {
 	}
 
 	return
+}
+
+// deleteHistoryEntry deletes the currently highlighted history entry (used by
+// the ctrl+r Delete key binding).  It type-asserts the active history source
+// against DeletableHistory; if the source doesn't support deletion it no-ops.
+// The history index is recovered by stripping ANSI from the item's Description
+// field, which completeHistory() stores as the raw numeric index.
+func (rl *Readline) deleteHistoryEntry() {
+	cur := rl.getCurrentGroup()
+	if cur == nil {
+		return
+	}
+	item := cur.getCurrentItem()
+	if item == nil {
+		return
+	}
+
+	// The history index was stored as the Description (with ANSI styling).
+	rawDesc := ansi.Strip(item.Description)
+	idx, err := strconv.Atoi(strings.TrimSpace(rawDesc))
+	if err != nil {
+		return
+	}
+
+	var history History
+	if !rl.mainHist {
+		history = rl.altHistory
+	} else {
+		history = rl.mainHistory
+	}
+
+	dh, ok := history.(DeletableHistory)
+	if !ok {
+		return
+	}
+	if err := dh.Delete(idx); err != nil {
+		return
+	}
+
+	// Refresh the history search completions after deletion.
+	rl.getHistorySearchCompletion()
 }

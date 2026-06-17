@@ -72,7 +72,7 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 
 	if g.Name != "" {
 		// Print group title (changes with line returns depending on type)
-		comp += fmt.Sprintf("%s%s%s %s\n", BOLD, YELLOW, fmtEscape(g.Name), RESET)
+		comp += fmt.Sprintf("%s%s%s %s\n", BOLD, YELLOW, g.Name, RESET)
 		rl.tcUsedY++
 	}
 
@@ -121,8 +121,7 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 			descPadding = 0
 		}
 
-		comp += fmt.Sprintf("\r%s%s %s %s%s %s\n",
-			description, strings.Repeat(" ", descPadding), highlight(y), fmtEscape(item), strings.Repeat(" ", itemPadding), seqReset)
+		comp += "\r" + description + strings.Repeat(" ", descPadding) + " " + highlight(y) + item + strings.Repeat(" ", itemPadding) + " " + seqReset + "\n"
 	}
 
 	// Add the equivalent of this group's size to final screen clearing

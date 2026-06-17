@@ -236,8 +236,9 @@ func (rl *Readline) Readline() (string, error) {
 			if rl.modeViMode != VimInsert {
 				continue
 			}
-			rl.saveToRegister(rl.viJumpB(tokeniseLine))
-			rl.viDeleteByAdjust(rl.viJumpB(tokeniseLine))
+			adj := rl.Buffer.EmacsWordBackward(rl.pos) - rl.pos
+			rl.saveToRegister(adj)
+			rl.viDeleteByAdjust(adj)
 			rl.updateHelpers()
 
 		case charCtrlY:
@@ -723,16 +724,24 @@ func (rl *Readline) escapeSeq(r []rune) {
 
 	// Movement -------------------------------------------------------------------------------
 	case seqCtrlLeftArrow:
-		rl.moveCursorByAdjust(rl.viJumpB(tokeniseLine))
+		rl.pos = rl.Buffer.EmacsWordBackward(rl.pos)
 		rl.updateHelpers()
 		return
 	case seqCtrlRightArrow:
 		rl.insert(rl.hintText)
-		rl.moveCursorByAdjust(rl.viJumpW(tokeniseLine))
+		rl.pos = rl.Buffer.EmacsWordForward(rl.pos)
 		rl.updateHelpers()
 		return
 
 	case seqDelete, seqDelete2:
+		// In history search (ctrl+r), Delete removes the highlighted entry.
+		if rl.modeAutoFind && rl.searchMode == HistoryFind {
+			rl.deleteHistoryEntry()
+			rl.updateVirtualComp()
+			rl.renderHelpers()
+			rl.viUndoSkipAppend = true
+			return
+		}
 		if rl.modeTabFind {
 			rl.backspaceTabFind()
 		} else {
@@ -767,8 +776,7 @@ func (rl *Readline) escapeSeq(r []rune) {
 			return
 		}
 
-		move := rl.emacsBackwardWord(tokeniseLine)
-		rl.moveCursorByAdjust(-move)
+		rl.pos = rl.Buffer.EmacsWordBackward(rl.pos)
 		rl.updateHelpers()
 
 	case seqAltF:
@@ -781,8 +789,7 @@ func (rl *Readline) escapeSeq(r []rune) {
 			return
 		}
 
-		move := rl.emacsForwardWord(tokeniseLine)
-		rl.moveCursorByAdjust(move)
+		rl.pos = rl.Buffer.EmacsWordForward(rl.pos)
 		rl.updateHelpers()
 
 	case seqAltR:
@@ -812,25 +819,28 @@ func (rl *Readline) escapeSeq(r []rune) {
 			return
 		}
 
-		rl.saveToRegister(rl.viJumpB(tokeniseLine))
-		rl.viDeleteByAdjust(rl.viJumpB(tokeniseLine))
+		adj := rl.Buffer.EmacsWordBackward(rl.pos) - rl.pos
+		rl.saveToRegister(adj)
+		rl.viDeleteByAdjust(adj)
 		rl.updateHelpers()
 
 	case seqCtrlDelete, seqCtrlDelete2, seqAltD:
 		if rl.modeTabCompletion {
 			rl.resetVirtualComp(false)
 		}
-		rl.saveToRegister(rl.emacsForwardWord(tokeniseLine))
+		adj := rl.Buffer.EmacsWordForward(rl.pos) - rl.pos
+		rl.saveToRegister(adj)
 		// vi delete, emacs forward, funny huh
-		rl.viDeleteByAdjust(rl.emacsForwardWord(tokeniseLine))
+		rl.viDeleteByAdjust(adj)
 		rl.updateHelpers()
 
 	case seqAltDelete:
 		if rl.modeTabCompletion {
 			rl.resetVirtualComp(false)
 		}
-		rl.saveToRegister(-rl.emacsBackwardWord(tokeniseLine))
-		rl.viDeleteByAdjust(-rl.emacsBackwardWord(tokeniseLine))
+		adj := rl.Buffer.EmacsWordBackward(rl.pos) - rl.pos
+		rl.saveToRegister(adj)
+		rl.viDeleteByAdjust(adj)
 		rl.updateHelpers()
 
 	default:

@@ -208,10 +208,6 @@ func matchPath(query string) ([]string, string) {
 			entries = append(entries, entry)
 		}
 	}
-	if !strings.HasPrefix(oldQuery, "\"") {
-		baseName = escapeFilename(baseName)
-	}
-
 	return entries, baseName
 }
 

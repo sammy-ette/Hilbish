@@ -141,6 +141,20 @@ func rlNewHistory(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return c.Next(), nil
 	}, 0, false)
 
+	rtm.SetEnvGoFunc(tbl, "delete", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+		if err := c.Check1Arg(); err != nil {
+			return nil, err
+		}
+		idx, err := c.IntArg(0)
+		if err != nil {
+			return nil, err
+		}
+		if err := hist.Delete(int(idx)); err != nil {
+			return nil, err
+		}
+		return c.Next(), nil
+	}, 1, false)
+
 	rtm.SetEnvGoFunc(tbl, "all", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		allTbl := rt.NewTable()
 		size := hist.Len()

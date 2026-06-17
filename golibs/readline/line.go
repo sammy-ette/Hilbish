@@ -56,9 +56,22 @@ func (rl *Readline) echo() {
 			line = rl.line
 		}
 
-		// Print the input line with optional syntax highlighting
+		// Print the input line with optional syntax highlighting.
+		// For multiline buffers the highlighter is called once per logical row
+		// so that Lua highlighters (which expect a single line) work correctly.
+		// We split the local `line` variable (not rl.Buffer.line) so that
+		// virtual completion candidates in lineComp are included.
 		if rl.SyntaxHighlighter != nil {
-			rl.bufprint(rl.SyntaxHighlighter(line))
+			start := 0
+			for i := 0; i <= len(line); i++ {
+				if i == len(line) || line[i] == '\n' {
+					if start > 0 {
+						rl.bufprint("\n")
+					}
+					rl.bufprint(rl.SyntaxHighlighter(line[start:i]))
+					start = i + 1
+				}
+			}
 		} else {
 			rl.bufprint(string(line))
 		}
@@ -192,41 +205,3 @@ func (rl *Readline) deleteToEnd() {
 	rl.line = rl.line[:rl.pos]
 }
 
-// @TODO(Renzix): move to emacs sepecific file
-func (rl *Readline) emacsForwardWord(tokeniser tokeniser) (adjust int) {
-	split, index, pos := tokeniser(rl.line, rl.pos)
-	if len(split) == 0 {
-		return
-	}
-
-	word := strings.TrimSpace(split[index])
-
-	switch {
-	case len(split) == 0:
-		return
-	case pos == len(word) && index != len(split)-1:
-		extrawhitespace := len(strings.TrimLeft(split[index], " ")) - len(word)
-		word = split[index+1]
-		adjust = len(word) + extrawhitespace
-	default:
-		adjust = len(word) - pos
-	}
-	return
-}
-
-func (rl *Readline) emacsBackwardWord(tokeniser tokeniser) (adjust int) {
-	split, index, pos := tokeniser(rl.line, rl.pos)
-	if len(split) == 0 {
-		return
-	}
-
-	switch {
-	case len(split) == 0:
-		return
-	case pos == 0 && index != 0:
-		adjust = len(split[index-1])
-	default:
-		adjust = pos
-	}
-	return
-}

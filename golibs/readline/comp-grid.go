@@ -100,7 +100,7 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 
 	// If group title, print it and adjust offset.
 	if g.Name != "" {
-		comp += fmt.Sprintf("%s%s%s %s\n", BOLD, YELLOW, fmtEscape(g.Name), RESET)
+		comp += fmt.Sprintf("%s%s%s %s\n", BOLD, YELLOW, g.Name, RESET)
 		rl.tcUsedY++
 	}
 
@@ -132,7 +132,7 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 
 		// Pad to cellWidth with spaces, accounting for visible width
 		if g.tcMaxX == 1 {
-			comp += fmt.Sprintf("%s%s", fmtEscape(sugg), seqReset)
+			comp += sugg + seqReset
 		} else {
 			// Manual width-based padding
 			suggWidth := printWidth(sugg)
@@ -141,7 +141,7 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 			if padding < 0 {
 				padding = 0
 			}
-			comp += fmt.Sprintf("%s%s%s ", fmtEscape(sugg), strings.Repeat(" ", padding), seqReset)
+			comp += sugg + strings.Repeat(" ", padding) + seqReset + " "
 		}
 	}
 

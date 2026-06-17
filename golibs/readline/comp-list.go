@@ -197,7 +197,7 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 		if padding < 0 {
 			padding = 0
 		}
-		sugg := fmt.Sprintf("\r%s%s%s", highlight(y, 0), fmtEscape(item), strings.Repeat(" ", padding))
+		sugg := "\r" + highlight(y, 0) + item + strings.Repeat(" ", padding)
 
 		// Alt suggestion (with visible-width padding)
 		alt := g.Items[i].Alias
@@ -206,7 +206,7 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 			if altPadding < 0 {
 				altPadding = 0
 			}
-			alt = fmt.Sprintf(" %s%s%s", highlight(y, 1), fmtEscape(alt), strings.Repeat(" ", altPadding))
+			alt = " " + highlight(y, 1) + alt + strings.Repeat(" ", altPadding)
 		} else {
 			// Else, make an empty cell
 			alt = strings.Repeat(" ", maxLengthAlt+1) // + 2 to keep account of spaces
