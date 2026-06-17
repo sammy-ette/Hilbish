@@ -4,6 +4,16 @@ local bait = require 'bait'
 local fs = require 'fs'
 local terminal = require 'terminal'
 
+local oldOsExit = os.exit
+---@diagnostic disable-next-line: duplicate-set-field
+function os.exit(code)
+	hilbish.jobs.stopAll()
+	if not hilbish.interactive then
+		hilbish.timers.wait()
+	end
+	oldOsExit(code or 0)
+end
+
 package.path = package.path .. ';' .. hilbish.dataDir .. '/?/init.lua'
 .. ';' .. hilbish.dataDir .. '/?/?.lua' .. ";" .. hilbish.dataDir .. '/?.lua'
 
@@ -105,66 +115,26 @@ else
 	runConfig(hilbish.confFile)
 end
 
--- TODO: hilbish.exit function, stop jobs and timers.
-local function exit(code)
-	os.exit(code)
+-- Input piped to Hilbish (not interactive, and not because a file or command
+-- was passed). Run each line, then exit.
+if not hilbish.interactive and not args[0] and hilbish.command == '' then
+	for line in io.lines() do
+		hilbish.runner.run(line, true)
+	end
+	os.exit(0)
 end
 
-while hilbish.interactive do
-	::rerun::
-	hilbish.running = false
+if hilbish.command ~= "" then
+	hilbish.runner.run(hilbish.command, true)
+end
 
-	local ok, res = pcall(function() return hilbish.editor:read() end)
-	if not ok and tostring(res):lower():match 'eof' then
-		bait.throw 'hilbish.exit'
-		exit(0)
-	end
+if args[0] then
+	local ok, err = pcall(dofile, args[0])
 	if not ok then
-		if tostring(res):lower():match 'ctrl%+c' then
-			print '^C'
-			bait.throw 'hilbish.cancel'
-		else
-			print(tostring(res))
-			_ = io.read()
-		end
-		goto continue
+		io.stderr:write(err .. '\n')
+		os.exit(1)
 	end
-	--- @type string
-	local input = res
-
-	local priv = false
-	if res:sub(1, 1) == ' ' then
-		priv = true
-	end
-	input = input:gsub('%s+$', '')
-	--:gsub('^([%s]+).', '')
-
-	if input:len() == 0 then
-		hilbish.running = true
-		bait.throw('command.exit', 0 )
-		goto continue
-	end
-
-	if input:match '\\$' then
-		io.write '\n'
-		while true do
-			input = hilbish.runner.continuePrompt(input:gsub('\\$', '') .. '\n', false)
-			if not input then
-				goto rerun
-			end
-
-			if not input:match '\\$' then break end
-		end
-	end
-
-	hilbish.running = true
-	hilbish.runner.run(input, priv)
-
-	local ok, term = pcall(function() return terminal.size() end)
-	if ok and term and term.width and term.width > 0 then
-		io.write(string.char(0x001b) .. '[7m∆' .. string.char(0x001b) .. '[0m' .. string.rep(' ', term.width - 1) .. "\r")
-		io.flush()
-	end
-
-	::continue::
+	os.exit(0)
 end
+
+require 'nature.repl'

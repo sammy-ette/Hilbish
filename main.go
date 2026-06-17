@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -35,6 +34,7 @@ var (
 	confPath        string
 	defaultConfPath string
 	defaultHistPath string
+	cmdString       string
 )
 
 func main() {
@@ -93,6 +93,7 @@ func main() {
 	loginshflag := getopt.Lookup('l').Seen()
 	interactiveflag := getopt.Lookup('i').Seen()
 	noexecflag := getopt.Lookup('n').Seen()
+	cmdString = *cmdflag
 	confPath = *configflag
 
 	if *helpflag {
@@ -140,29 +141,8 @@ func main() {
 
 	luaInit()
 
-	if !interactive {
-		scanner := bufio.NewScanner(bufio.NewReader(os.Stdin))
-		for scanner.Scan() {
-			text := scanner.Text()
-			runInput(text, true)
-		}
-		exit(0)
-	}
+	// Hilbish's REPL is implemented in Lua, specifically in nature/repl.lua
 
-	if *cmdflag != "" {
-		runInput(*cmdflag, true)
-	}
-
-	if getopt.NArgs() > 0 {
-		err := util.DoFile(l, getopt.Arg(0))
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			exit(1)
-		}
-		exit(0)
-	}
-
-	// Hilbish's REPL is implemented in Lua, specifically at the end of nature/init.lua
 	exit(0)
 }
 

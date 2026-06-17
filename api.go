@@ -8,6 +8,7 @@
 // #field dataDir Directory for Hilbish data files, including the docs and default modules
 // #field defaultConfDir Default directory Hilbish runs its config file from
 // #field confFile Path to the Hilbish config file being used, either the default or a path provided with the -C/--config flag
+// #field command The command string passed to Hilbish via the -c flag
 // #field interactive Is Hilbish in an interactive shell?
 // #field login Is Hilbish the login shell?
 // #field vimMode Current Vim input mode of Hilbish (will be nil if not in Vim input mode)
@@ -73,6 +74,7 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	util.SetField(mod, "dataDir", rt.StringValue(dataDir))
 	util.SetField(mod, "defaultConfDir", rt.StringValue(defaultConfDir))
 	util.SetField(mod, "confFile", rt.StringValue(confPath))
+	util.SetField(mod, "command", rt.StringValue(cmdString))
 	util.SetField(mod, "interactive", rt.BoolValue(interactive))
 	util.SetField(mod, "login", rt.BoolValue(login))
 	util.SetField(mod, "vimMode", rt.NilValue)
@@ -248,4 +250,3 @@ func hlinterval(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(timer.ud)), nil
 }
-

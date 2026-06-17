@@ -174,6 +174,7 @@ func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
 	thExports := map[string]util.LuaExport{
 		"create": {Function: th.luaCreate, ArgNum: 3, Variadic: false},
 		"get":    {Function: th.luaGet, ArgNum: 1, Variadic: false},
+		"wait":   {Function: timerWait, ArgNum: 0, Variadic: false},
 	}
 
 	luaTh := rt.NewTable()
@@ -207,4 +208,11 @@ func valueToTimer(val rt.Value) (*timer, bool) {
 func timerUserData(j *timer) *rt.UserData {
 	timerMeta := l.Registry(timerMetaKey)
 	return rt.NewUserData(j, timerMeta.AsTable())
+}
+
+// wait()
+// Waits for all timers to finish.
+func timerWait(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	timers.wait()
+	return c.Next(), nil
 }
