@@ -21,8 +21,7 @@ import (
 )
 
 var (
-	l  *rt.Runtime
-	lr *lineReader
+	l *rt.Runtime
 
 	luaCompletions   = map[string]*rt.Closure{}
 	luaCompletionsMu sync.RWMutex
@@ -139,7 +138,6 @@ func main() {
 
 	go handleSignals()
 
-	lr = newLineReader(false)
 	luaInit()
 
 	if !interactive {

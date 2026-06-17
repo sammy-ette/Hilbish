@@ -1,4 +1,4 @@
-package main
+package readline
 
 import (
 	"errors"
@@ -9,49 +9,6 @@ import (
 
 	rt "github.com/arnodel/golua/runtime"
 )
-
-type luaHistory struct{}
-
-func (h *luaHistory) Write(line string) (int, error) {
-	histWrite := hshMod.Get(rt.StringValue("history")).AsTable().Get(rt.StringValue("add"))
-	ln, err := rt.Call1(l.MainThread(), histWrite, rt.StringValue(line))
-
-	var num int64
-	if ln.Type() == rt.IntType {
-		num = ln.AsInt()
-	}
-
-	return int(num), err
-}
-
-func (h *luaHistory) GetLine(idx int) (string, error) {
-	histGet := hshMod.Get(rt.StringValue("history")).AsTable().Get(rt.StringValue("get"))
-	lcmd, err := rt.Call1(l.MainThread(), histGet, rt.IntValue(int64(idx)))
-
-	var cmd string
-	if lcmd.Type() == rt.StringType {
-		cmd = lcmd.AsString()
-	}
-
-	return cmd, err
-}
-
-func (h *luaHistory) Len() int {
-	histSize := hshMod.Get(rt.StringValue("history")).AsTable().Get(rt.StringValue("size"))
-	ln, _ := rt.Call1(l.MainThread(), histSize)
-
-	var num int64
-	if ln.Type() == rt.IntType {
-		num = ln.AsInt()
-	}
-
-	return int(num)
-}
-
-func (h *luaHistory) Dump() interface{} {
-	// hilbish.history interface already has all function, this isnt used in readline
-	return nil
-}
 
 type fileHistory struct {
 	items []string
@@ -86,12 +43,10 @@ func newFileHistory(path string) *fileHistory {
 		panic(err)
 	}
 
-	fh := &fileHistory{
+	return &fileHistory{
 		items: itms,
 		f:     f,
 	}
-
-	return fh
 }
 
 func (h *fileHistory) Write(line string) (int, error) {
@@ -113,7 +68,7 @@ func (h *fileHistory) GetLine(idx int) (string, error) {
 	if len(h.items) == 0 {
 		return "", nil
 	}
-	if idx == -1 { // this should be fixed readline side
+	if idx == -1 {
 		return "", nil
 	}
 	return h.items[idx], nil
@@ -131,4 +86,45 @@ func (h *fileHistory) clear() {
 	h.items = []string{}
 	h.f.Truncate(0)
 	h.f.Sync()
+}
+
+// luaHistoryWrapper wraps any Lua table with add/get/size/clear/all methods
+// as a readline History interface. This lets users supply custom history handlers.
+type luaHistoryWrapper struct {
+	handler rt.Value
+	rtm     *rt.Runtime
+}
+
+func (h *luaHistoryWrapper) Write(line string) (int, error) {
+	addFn := h.handler.AsTable().Get(rt.StringValue("add"))
+	ln, err := rt.Call1(h.rtm.MainThread(), addFn, rt.StringValue(line))
+	var num int64
+	if ln.Type() == rt.IntType {
+		num = ln.AsInt()
+	}
+	return int(num), err
+}
+
+func (h *luaHistoryWrapper) GetLine(idx int) (string, error) {
+	getFn := h.handler.AsTable().Get(rt.StringValue("get"))
+	lcmd, err := rt.Call1(h.rtm.MainThread(), getFn, rt.IntValue(int64(idx)))
+	var cmd string
+	if lcmd.Type() == rt.StringType {
+		cmd = lcmd.AsString()
+	}
+	return cmd, err
+}
+
+func (h *luaHistoryWrapper) Len() int {
+	sizeFn := h.handler.AsTable().Get(rt.StringValue("size"))
+	ln, _ := rt.Call1(h.rtm.MainThread(), sizeFn)
+	var num int64
+	if ln.Type() == rt.IntType {
+		num = ln.AsInt()
+	}
+	return int(num)
+}
+
+func (h *luaHistoryWrapper) Dump() interface{} {
+	return nil
 }

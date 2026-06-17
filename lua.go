@@ -8,6 +8,7 @@ import (
 	"hilbish/golibs/bait"
 	"hilbish/golibs/commander"
 	"hilbish/golibs/fs"
+	"hilbish/golibs/readline"
 	"hilbish/golibs/snail"
 	"hilbish/golibs/terminal"
 	"hilbish/golibs/yarn"
@@ -41,6 +42,7 @@ func luaInit() {
 
 	err1 := util.DoFile(l, "nature/init.lua")
 	if err1 != nil {
+		fmt.Println(err1)
 		err2 := util.DoFile(l, filepath.Join(dataDir, "nature", "init.lua"))
 		if err2 != nil {
 			fmt.Fprintln(os.Stderr, "Missing nature module, some functionality and builtins will be missing.")
@@ -75,17 +77,13 @@ func loadLibs(r *rt.Runtime) {
 		return rt.NilValue
 	})
 
-	lr.rl.RawInputCallback = func(rn []rune) {
-		hooks.Emit("hilbish.rawInput", string(rn))
-	}
-
 	lib.LoadLibs(r, fs.Loader)
 	lib.LoadLibs(r, terminal.Loader)
 	lib.LoadLibs(r, snail.Loader)
 
 	cmds = commander.New(r)
 	lib.LoadLibs(r, cmds.Loader)
-	lib.LoadLibs(l, lr.rl.Loader)
+	lib.LoadLibs(l, readline.Loader)
 }
 
 func yarnloadLibs(r *rt.Runtime) {
@@ -100,6 +98,5 @@ func yarnloadLibs(r *rt.Runtime) {
 	lib.LoadLibs(r, terminal.Loader)
 	lib.LoadLibs(r, snail.Loader)
 	lib.LoadLibs(r, cmds.Loader)
-	lib.LoadLibs(r, lr.rl.Loader)
-
+	lib.LoadLibs(r, readline.Loader)
 }

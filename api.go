@@ -30,19 +30,14 @@ import (
 	"github.com/arnodel/golua/lib/packagelib"
 	rt "github.com/arnodel/golua/runtime"
 	"mvdan.cc/sh/v3/shell"
-
-	"github.com/maxlandon/readline"
 )
 
 var exports = map[string]util.LuaExport{
-	"cwd":         {Function: hlcwd, ArgNum: 0, Variadic: false},
-	"exec":        {Function: hlexec, ArgNum: 1, Variadic: false},
-	"highlighter": {Function: hlhighlighter, ArgNum: 1, Variadic: false},
-	"hinter":      {Function: hlhinter, ArgNum: 1, Variadic: false},
-	"inputMode":   {Function: hlinputMode, ArgNum: 1, Variadic: false},
-	"interval":    {Function: hlinterval, ArgNum: 2, Variadic: false},
-	"lookpath":    {Function: hllookpath, ArgNum: 1, Variadic: false},
-	"timeout":     {Function: hltimeout, ArgNum: 2, Variadic: false},
+	"cwd":      {Function: hlcwd, ArgNum: 0, Variadic: false},
+	"exec":     {Function: hlexec, ArgNum: 1, Variadic: false},
+	"interval": {Function: hlinterval, ArgNum: 2, Variadic: false},
+	"lookpath": {Function: hllookpath, ArgNum: 1, Variadic: false},
+	"timeout":  {Function: hltimeout, ArgNum: 2, Variadic: false},
 }
 
 var hshMod *rt.Table
@@ -91,10 +86,6 @@ func hilbishLoad(rtm *rt.Runtime) (rt.Value, func()) {
 	hshos := hshosLoader(rtm)
 	mod.Set(rt.StringValue("os"), rt.TableValue(hshos))
 
-	// hilbish.history table
-	historyModule := lr.Loader(rtm)
-	mod.Set(rt.StringValue("history"), rt.TableValue(historyModule))
-
 	// hilbish.completions table
 	hshcomp := completionLoader(rtm)
 	mod.Set(rt.StringValue("completions"), rt.TableValue(hshcomp))
@@ -131,15 +122,6 @@ func getenv(key, fallback string) string {
 		return fallback
 	}
 	return value
-}
-
-func setVimMode(mode string) {
-	util.SetField(hshMod, "vimMode", rt.StringValue(mode))
-	hooks.Emit("hilbish.vimMode", mode)
-}
-
-func unsetVimMode() {
-	util.SetField(hshMod, "vimMode", rt.NilValue)
 }
 
 // cwd() -> string
@@ -267,78 +249,3 @@ func hlinterval(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(timer.ud)), nil
 }
 
-// inputMode(mode)
-// Sets the input mode for Hilbish's line reader.
-// `emacs` is the default. Setting it to `vim` changes behavior of input to be
-// Vim-like with modes and Vim keybinds.
-// #param mode string Can be set to either `emacs` or `vim`
-func hlinputMode(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
-	}
-	mode, err := c.StringArg(0)
-	if err != nil {
-		return nil, err
-	}
-
-	switch mode {
-	case "emacs":
-		unsetVimMode()
-		lr.rl.InputMode = readline.Emacs
-	case "vim":
-		setVimMode("insert")
-		lr.rl.InputMode = readline.Vim
-	default:
-		return nil, errors.New("inputMode: expected vim or emacs, received " + mode)
-	}
-
-	return c.Next(), nil
-}
-
-// hinter(line, pos)
-// The command line hint handler. It gets called on every key insert to
-// determine what text to use as an inline hint. It is passed the current
-// line and cursor position. It is expected to return a string which is used
-// as the text for the hint. This is by default a shim. To set hints,
-// override this function with your custom handler.
-// #param line string
-// #param pos number Position of cursor in line. Usually equals string.len(line)
-/*
-#example
--- this will display "hi" after the cursor in a dimmed color.
-function hilbish.hinter(line, pos)
-	return 'hi'
-end
-#example
-*/
-func hlhinter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	return c.Next(), nil
-}
-
-// highlighter(line)
-// Line highlighter handler.
-// This is mainly for syntax highlighting, but in reality could set the input
-// of the prompt to *display* anything. The callback is passed the current line
-// and is expected to return a line that will be used as the input display.
-// Note that to set a highlighter, one has to override this function.
-// #example
-// --This code will highlight all double quoted strings in green.
-// function hilbish.highlighter(line)
-//
-//	return line:gsub('"%w+"', function(c) return lunacolors.green(c) end)
-//
-// end
-// #example
-// #param line string
-func hlhighlighter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
-	}
-
-	line, err := c.StringArg(0)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.PushingNext1(t.Runtime, rt.StringValue(line)), nil
-}

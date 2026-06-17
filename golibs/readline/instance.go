@@ -5,8 +5,6 @@ import (
 	"os"
 	"regexp"
 	"sync"
-
-	"github.com/arnodel/golua/lib/packagelib"
 )
 
 // Instance is used to encapsulate the parameter group and run time of any given
@@ -210,8 +208,6 @@ type Readline struct {
 	RawInputCallback func([]rune) // called on all input
 
 	bufferedOut *bufio.Writer
-
-	Loader packagelib.Loader
 }
 
 // NewInstance is used to create a readline instance and initialise it with sane defaults.
@@ -263,11 +259,6 @@ func NewInstance() *Readline {
 	}
 
 	rl.bufferedOut = bufio.NewWriter(os.Stdout)
-
-	rl.Loader = packagelib.Loader{
-		Name: "readline",
-		Load: rl.luaLoader,
-	}
 
 	// Registers
 	rl.initRegisters()
