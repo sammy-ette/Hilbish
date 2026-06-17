@@ -92,7 +92,6 @@ local function runConfig(path)
 		print 'An error has occurred while loading your config!\n'
 		hilbish.prompt '& '
 	else
-		hilbish.initialized = true
 		bait.throw 'hilbish.init'
 	end
 end
@@ -140,4 +139,5 @@ if args[0] then
 	os.exit(0)
 end
 
+hilbish.initialized = true
 require 'nature.repl'

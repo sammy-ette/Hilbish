@@ -14,7 +14,7 @@
 // #field vimMode Current Vim input mode of Hilbish (will be nil if not in Vim input mode)
 // #field exitCode Exit code of the last executed command
 // #field running If Hilbish is currently running any interactive input
-// #field initialized If Hilbish has been fully initialized. Should always be `true` from a user's config
+// #field initialized If Hilbish has been fully initialized. This is `false` until the interactive REPL.
 package main
 
 import (
