@@ -152,64 +152,6 @@
 	],
 	"docs": [
 		{
-			"name": "timers.start",
-			"description": [
-				"Starts a timer."
-			],
-			"parent": "hilbish",
-			"interfaces": "timers",
-			"signature": "start()",
-			"goFuncName": "timerstart",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "timers",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				]
-			}
-		},
-		{
-			"name": "timers.stop",
-			"description": [
-				"Stops a timer."
-			],
-			"parent": "hilbish",
-			"interfaces": "timers",
-			"signature": "stop()",
-			"goFuncName": "timerstop",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "timers",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				]
-			}
-		},
-		{
 			"name": "timers.create",
 			"description": [
 				"Creates a timer that runs based on the specified `time`."
@@ -373,6 +315,86 @@
 						"id": "Timer",
 						"fields": [],
 						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "timers.start",
+			"description": [
+				"Starts a timer."
+			],
+			"parent": "hilbish",
+			"interfaces": "timers",
+			"signature": "start()",
+			"goFuncName": "timerstart",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "timers",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "timers.stop",
+			"description": [
+				"Stops a timer."
+			],
+			"parent": "hilbish",
+			"interfaces": "timers",
+			"signature": "stop()",
+			"goFuncName": "timerstop",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "timers",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "timers.wait",
+			"description": [
+				"Waits for all timers to finish."
+			],
+			"parent": "hilbish",
+			"interfaces": "timers",
+			"signature": "wait()",
+			"goFuncName": "timerwait",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "timers",
+						"fields": [],
+						"startIdx": 0
 					}
 				]
 			}

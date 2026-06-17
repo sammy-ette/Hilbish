@@ -200,6 +200,42 @@
 			}
 		},
 		{
+			"name": "executable",
+			"description": [
+				"Checks if `path` is an executable file."
+			],
+			"signature": "executable(path) -\u003e boolean",
+			"goFuncName": "fexecutable",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"string"
+						],
+						"startIdx": 2
+					}
+				],
+				"returns": [
+					{
+						"id": "boolean",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
 			"name": "glob",
 			"description": [
 				"Match all files based on the provided `pattern`.",
@@ -424,9 +460,9 @@
 			"name": "pipe",
 			"description": [
 				"Returns a pair of connected files, also known as a pipe.",
-				"The type returned is a Lua file, same as returned from `io` functions."
+				"The type returned is a Lua file, same as returned from `io` functions, like `io.open`."
 			],
-			"signature": "fpipe() -\u003e File, File",
+			"signature": "pipe() -\u003e file*, file*",
 			"goFuncName": "fpipe",
 			"isInterface": false,
 			"isMember": false,
@@ -434,12 +470,12 @@
 			"tags": {
 				"returns": [
 					{
-						"id": "File",
+						"id": "file*",
 						"fields": [],
 						"startIdx": 3
 					},
 					{
-						"id": "File",
+						"id": "file*",
 						"fields": [],
 						"startIdx": 0
 					}

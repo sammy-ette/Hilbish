@@ -7,7 +7,7 @@ import (
 
 // initMap - Map display details. Called each time we want to be sure to have
 // a working completion group either immediately, or later on. Generally defered.
-func (g *CompletionGroup) initMap(rl *Readline) {
+func (g *CompletionGroup) initMap() {
 
 	// Compute size of each completion item box. Group independent (display width, not byte length)
 	g.tcMaxLength = 1

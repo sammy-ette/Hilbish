@@ -7,8 +7,8 @@ import (
 
 	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/arnodel/golua/lib/packagelib"
+	rt "github.com/arnodel/golua/runtime"
 	"golang.org/x/term"
 )
 
@@ -20,10 +20,10 @@ var Loader = packagelib.Loader{
 
 func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"setRaw": util.LuaExport{termsetRaw, 0, false},
-		"restoreState": util.LuaExport{termrestoreState, 0, false},
-		"size": util.LuaExport{termsize, 0, false},
-		"saveState": util.LuaExport{termsaveState, 0, false},
+		"setRaw":       util.LuaExport{Function: termsetRaw, ArgNum: 0, Variadic: false},
+		"restoreState": util.LuaExport{Function: termrestoreState, ArgNum: 0, Variadic: false},
+		"size":         util.LuaExport{Function: termsize, ArgNum: 0, Variadic: false},
+		"saveState":    util.LuaExport{Function: termsaveState, ArgNum: 0, Variadic: false},
 	}
 
 	mod := rt.NewTable()

@@ -8,6 +8,7 @@ import (
 	"hilbish/golibs/bait"
 	"hilbish/golibs/commander"
 	"hilbish/golibs/fs"
+	"hilbish/golibs/readline"
 	"hilbish/golibs/snail"
 	"hilbish/golibs/terminal"
 	"hilbish/golibs/yarn"
@@ -16,14 +17,19 @@ import (
 	"github.com/arnodel/golua/lib"
 	"github.com/arnodel/golua/lib/debuglib"
 	rt "github.com/arnodel/golua/runtime"
+	"github.com/pborman/getopt"
 )
-
-var minimalconf = `hilbish.prompt '& '`
 
 func luaInit() {
 	l = rt.New(os.Stdout)
 
 	loadLibs(l)
+	luaArgs := rt.NewTable()
+	for i, arg := range getopt.Args() {
+		luaArgs.Set(rt.IntValue(int64(i)), rt.StringValue(arg))
+	}
+
+	l.GlobalEnv().Set(rt.StringValue("args"), rt.TableValue(luaArgs))
 
 	yarnPool := yarn.New(yarnloadLibs)
 	lib.LoadLibs(l, yarnPool.Loader)
@@ -70,17 +76,13 @@ func loadLibs(r *rt.Runtime) {
 		return rt.NilValue
 	})
 
-	lr.rl.RawInputCallback = func(rn []rune) {
-		hooks.Emit("hilbish.rawInput", string(rn))
-	}
-
 	lib.LoadLibs(r, fs.Loader)
 	lib.LoadLibs(r, terminal.Loader)
 	lib.LoadLibs(r, snail.Loader)
 
 	cmds = commander.New(r)
 	lib.LoadLibs(r, cmds.Loader)
-	lib.LoadLibs(l, lr.rl.Loader)
+	lib.LoadLibs(l, readline.Loader)
 }
 
 func yarnloadLibs(r *rt.Runtime) {
@@ -95,17 +97,5 @@ func yarnloadLibs(r *rt.Runtime) {
 	lib.LoadLibs(r, terminal.Loader)
 	lib.LoadLibs(r, snail.Loader)
 	lib.LoadLibs(r, cmds.Loader)
-	lib.LoadLibs(l, lr.rl.Loader)
-
-}
-
-func runConfig(confpath string) {
-	if !interactive {
-		return
-	}
-	err := util.DoFile(l, confpath)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err, "\nAn error has occured while loading your config! Falling back to minimal default config.")
-		util.DoString(l, minimalconf)
-	}
+	lib.LoadLibs(r, readline.Loader)
 }

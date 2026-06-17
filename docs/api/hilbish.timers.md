@@ -31,6 +31,7 @@ print(t.running) // true
 
 - [`hilbish.timers.create(type, time, callback) -> @Timer`](#timers.create): Creates a timer that runs based on the specified `time`.
 - [`hilbish.timers.get(id) -> @Timer`](#timers.get): Retrieves a timer via its ID.
+- [`hilbish.timers.wait()`](#timers.wait): Waits for all timers to finish.
 
 ## Static module fields
 
@@ -71,6 +72,19 @@ Retrieves a timer via its ID.
 `number` _id_  
 
 
+
+
+---
+
+#### timers.wait
+
+hilbish.timers.wait()
+
+Waits for all timers to finish.  
+
+#### Parameters
+
+This function has no parameters.  
 
 
 ## Types

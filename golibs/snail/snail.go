@@ -39,6 +39,13 @@ func New(rtm *rt.Runtime) *Snail {
 	}
 }
 
+// Checks if input is incomplete. Does not error otherwise.
+func Validate(input string) bool {
+	r := strings.NewReader(input)
+	_, err := syntax.NewParser().Parse(r, "")
+	return !syntax.IsIncomplete(err)
+}
+
 func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer, error) {
 	file, err := syntax.NewParser().Parse(strings.NewReader(cmd), "")
 	if err != nil {
@@ -67,7 +74,9 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 	buf := new(bytes.Buffer)
 	//printer := syntax.NewPrinter()
 
-	replacer := strings.NewReplacer("[", "\\[", "]", "\\]")
+	aliasesMod := util.MustDoString(s.runtime, "return hilbish.aliases").AsTable()
+	aliasesListFn := aliasesMod.Get(rt.StringValue("list"))
+	aliasesResolveFn := aliasesMod.Get(rt.StringValue("resolve"))
 
 	var bg bool
 	for _, stmt := range file.Stmts {
@@ -83,10 +92,13 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 
 		execHandler := func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
 			return func(ctx context.Context, args []string) error {
-				_, argstring := splitInput(strings.Join(args, " "))
+				argstring := strings.Join(args, " ")
 				// i dont really like this but it works
 				aliases := make(map[string]string)
-				aliasesLua, _ := util.DoString(s.runtime, "return hilbish.aliases.list()")
+				aliasesLua, err := rt.Call1(s.runtime.MainThread(), aliasesListFn)
+				if err != nil {
+					return err
+				}
 				util.ForEach(aliasesLua.AsTable(), func(k, v rt.Value) {
 					aliases[k.AsString()] = v.AsString()
 				})
@@ -96,12 +108,15 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 							args[i] = fmt.Sprintf("\"%s\"", arg)
 						}
 					}
-					_, argstring = splitInput(strings.Join(args, " "))
+					argstring = strings.Join(args, " ")
 
 					// If alias was found, use command alias
-					argstring = util.MustDoString(s.runtime, fmt.Sprintf(`return hilbish.aliases.resolve [[%s]]`, replacer.Replace(argstring))).AsString()
+					resolved, err := rt.Call1(s.runtime.MainThread(), aliasesResolveFn, rt.StringValue(argstring))
+					if err != nil {
+						return err
+					}
+					argstring = resolved.AsString()
 
-					var err error
 					args, err = shell.Fields(argstring, nil)
 					if err != nil {
 						return err
@@ -133,25 +148,25 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 					sinks.Set(rt.StringValue("err"), rt.UserDataValue(stderr.UserData))
 
 					t := rt.NewThread(s.runtime)
-					sig := make(chan os.Signal)
-					exit := make(chan bool)
+					sig := make(chan os.Signal, 1)
+					exit := make(chan bool, 1)
+					done := make(chan struct{})
 
 					luaexitcode := rt.IntValue(63)
 					var err error
+
+					signal.Notify(sig, os.Interrupt)
 					go func() {
+						// KillContext panics, so recover is required
 						defer func() {
-							if r := recover(); r != nil {
-								exit <- true
-							}
+							recover()
 						}()
 
-						signal.Notify(sig, os.Interrupt)
 						select {
 						case <-sig:
 							t.KillContext()
-							return
+						case <-done: // branch allows the goroutine to go away
 						}
-
 					}()
 
 					go func() {
@@ -160,6 +175,8 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 					}()
 
 					<-exit
+					close(done)
+					signal.Stop(sig)
 					if err != nil {
 						fmt.Fprintln(os.Stderr, "Error in command:\n"+err.Error())
 						return interp.NewExitStatus(1)
@@ -170,8 +187,9 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 					if code, ok := luaexitcode.TryInt(); ok {
 						exitcode = uint8(code)
 					} else if luaexitcode != rt.NilValue {
-						// deregister commander
-						delete(cmds, args[0])
+						commanderMod := util.MustDoString(s.runtime, "return require 'commander'").AsTable()
+						deregister := commanderMod.Get(rt.StringValue("deregister"))
+						rt.Call1(s.runtime.MainThread(), deregister, rt.StringValue(args[0]))
 						fmt.Fprintf(os.Stderr, "Commander did not return number for exit code. %s, you're fired.\n", args[0])
 					}
 
@@ -274,38 +292,4 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 	}
 
 	return bg, strms.Stdout, strms.Stderr, nil
-}
-
-func splitInput(input string) ([]string, string) {
-	// end my suffering
-	// TODO: refactor this garbage
-	quoted := false
-	cmdArgs := []string{}
-	sb := &strings.Builder{}
-	cmdstr := &strings.Builder{}
-
-	for _, r := range input {
-		if r == '"' {
-			// start quoted input
-			// this determines if other runes are replaced
-			quoted = !quoted
-			// dont add back quotes
-			//sb.WriteRune(r)
-		} else if !quoted && r == '~' {
-			// if not in quotes and ~ is found then make it $HOME
-			sb.WriteString(os.Getenv("HOME"))
-		} else if !quoted && r == ' ' {
-			// if not quoted and there's a space then add to cmdargs
-			cmdArgs = append(cmdArgs, sb.String())
-			sb.Reset()
-		} else {
-			sb.WriteRune(r)
-		}
-		cmdstr.WriteRune(r)
-	}
-	if sb.Len() > 0 {
-		cmdArgs = append(cmdArgs, sb.String())
-	}
-
-	return cmdArgs, cmdstr.String()
 }

@@ -72,7 +72,7 @@ it will run the function providing the arguments and sinks.
 `string` _name_  
 Name of the command
 
-`function` _cb_  
+`fun(args:table,sinks:table<string,Sink>):number?` _cb_  
 Callback to handle command invocation
 
 #### Example

@@ -13,14 +13,13 @@ The alias interface deals with all command aliases in Hilbish.
 
 ## Functions
 
-- [`hilbish.aliases.add(alias, cmd)`](#aliases.add): This is an alias (ha) for the [hilbish.alias](../#alias) function.
-- [`hilbish.aliases.delete(name)`](#aliases.delete): Removes an alias.
-- [`hilbish.aliases.list() -> table[string, string]`](#aliases.list): Get a table of all aliases, with string keys as the alias and the value as the command.
-- [`hilbish.aliases.resolve(alias) -> string?`](#aliases.resolve): Resolves an alias to its original command. Will thrown an error if the alias doesn't exist.
+- [`hilbish.aliases.add(alias, cmd)`](#add): This is an alias (ha) for the [hilbish.alias](../#alias) function.
+- [`hilbish.aliases.delete(alias)`](#delete): Removes an alias.
+- [`hilbish.aliases.resolve(cmdstr) -> string`](#resolve): Resolves an alias to its original command. Will thrown an error if the alias doesn't exist.
 
 ---
 
-#### aliases.add
+#### add
 
 hilbish.aliases.add(alias, cmd)
 
@@ -28,56 +27,52 @@ This is an alias (ha) for the [hilbish.alias](../#alias) function.
 
 #### Parameters
 
-This function has no parameters.  
+`string` _alias_  
+
+
+`string` _cmd_  
+
+
 
 
 ---
 
-#### aliases.delete
+#### delete
 
-hilbish.aliases.delete(name)
+hilbish.aliases.delete(alias)
 
 Removes an alias.  
 
 #### Parameters
 
-`string` _name_  
+`string` _alias_  
 
 
 
 
 ---
 
-#### aliases.list
+#### list
 
-hilbish.aliases.list() -> table[string, string]
+hilbish.aliases.list() -> table<string, string>
 
-Get a table of all aliases, with string keys as the alias and the value as the command.  
 
 #### Parameters
 
 This function has no parameters.  
-#### Example
-
-```lua
-hilbish.aliases.add('hi', 'echo hi')
-
-local aliases = hilbish.aliases.list()
--- -> {hi = 'echo hi'}
-```
 
 
 ---
 
-#### aliases.resolve
+#### resolve
 
-hilbish.aliases.resolve(alias) -> string?
+hilbish.aliases.resolve(cmdstr) -> string
 
 Resolves an alias to its original command. Will thrown an error if the alias doesn't exist.  
 
 #### Parameters
 
-`string` _alias_  
+`string` _cmdstr_  
 
 
 

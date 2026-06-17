@@ -33,7 +33,7 @@
 				},
 				{
 					"Name": "cb",
-					"Type": "function",
+					"Type": "fun(query:string,ctx:string,fields:table\u003cstring\u003e):table,string",
 					"Doc": []
 				}
 			],
@@ -87,7 +87,7 @@
 					{
 						"id": "cb",
 						"fields": [
-							"function"
+							"fun(query:string,ctx:string,fields:table\u003cstring\u003e):table,string"
 						],
 						"startIdx": 0
 					}
@@ -440,7 +440,7 @@
 							"\tend",
 							"end"
 						],
-						"startIdx": 8
+						"startIdx": 10
 					}
 				],
 				"interface": [
@@ -472,6 +472,32 @@
 							"of",
 							"the",
 							"cursor"
+						],
+						"startIdx": 0
+					}
+				],
+				"returns": [
+					{
+						"id": "string",
+						"fields": [
+							"The",
+							"common",
+							"prefix",
+							"of",
+							"all",
+							"completion",
+							"items"
+						],
+						"startIdx": 7
+					},
+					{
+						"id": "table",
+						"fields": [
+							"A",
+							"list",
+							"of",
+							"completion",
+							"groups"
 						],
 						"startIdx": 0
 					}

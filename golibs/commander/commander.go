@@ -56,9 +56,9 @@ func New(rtm *rt.Runtime) *Commander {
 
 func (c *Commander) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"register":   util.LuaExport{c.cregister, 2, false},
-		"deregister": util.LuaExport{c.cderegister, 1, false},
-		"registry":   util.LuaExport{c.cregistry, 0, false},
+		"register":   util.LuaExport{Function: c.cregister, ArgNum: 2, Variadic: false},
+		"deregister": util.LuaExport{Function: c.cderegister, ArgNum: 1, Variadic: false},
+		"registry":   util.LuaExport{Function: c.cregistry, ArgNum: 0, Variadic: false},
 	}
 	mod := rt.NewTable()
 	util.SetExports(rtm, mod, exports)
@@ -70,7 +70,7 @@ func (c *Commander) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 // Adds a new command with the given `name`. When Hilbish has to run a command with a name,
 // it will run the function providing the arguments and sinks.
 // #param name string Name of the command
-// #param cb function Callback to handle command invocation
+// #param cb fun(args:table,sinks:table<string,Sink>):number? Callback to handle command invocation
 /*
 #example
 -- When you run the command `hello` in the shell, it will print `Hello world`.

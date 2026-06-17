@@ -13,7 +13,7 @@
 				"It returns the processed command (which may be the same as the passed command)",
 				"and a boolean which states whether to proceed with command execution."
 			],
-			"signature": "execute(command, opts)",
+			"signature": "execute(command, opts) -\u003e table",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false

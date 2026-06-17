@@ -3,8 +3,6 @@ local hilbish = require 'hilbish'
 local Greenhouse = require 'nature.greenhouse'
 local Page = require 'nature.greenhouse.page'
 
-print 'wildcard warn loaded'
-
 local function contains(search, needle)
 	for _, p in ipairs(search) do
 		if p:match(needle) then

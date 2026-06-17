@@ -37,7 +37,7 @@ provides more details.
 `string` _scope_  
 
 
-`function` _cb_  
+`fun(query:string,ctx:string,fields:table<string>):table,string` _cb_  
 
 
 #### Example

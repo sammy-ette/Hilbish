@@ -15,9 +15,9 @@ dirs.recentDirs = {}
 dirs.recentSize = 10
 
 --- Get (and remove) a `num` of entries from recent directories.
--- @param num number
--- @param remove boolean Whether to remove items
-function dirRecents(num, remove)
+--- @param num? number
+--- @param remove? boolean Whether to remove items
+local function dirRecents(num, remove)
 	num = num or 1
 	local entries = {}
 
@@ -39,7 +39,7 @@ end
 
 --- Look at `num` amount of recent directories, starting from the latest.
 --- This returns  a table of recent directories, up to the `num` amount.
--- @param num? number
+--- @param num? number
 function dirs.peak(num)
 	return dirRecents(num)
 end
@@ -47,35 +47,37 @@ end
 --- Add `dir` to the recent directories list.
 --- @param dir string
 function dirs.push(dir)
-	dirs.recentDirs[dirs.recentSize + 1] = nil
-	if dirs.recentDirs[#dirs.recentDirs - 1] ~= dir then
-		local ok, dir = pcall(fs.abs, dir)
-		assert(ok, 'could not turn "' .. dir .. '"into an absolute path')
+	local ok, absDir = pcall(fs.abs, dir)
+	assert(ok, 'could not turn "' .. dir .. '"into an absolute path')
 
-		table.insert(dirs.recentDirs, 1, dir)
+	if dirs.recentDirs[1] ~= absDir then
+		table.insert(dirs.recentDirs, 1, absDir)
+		if #dirs.recentDirs > dirs.recentSize then
+			table.remove(dirs.recentDirs)
+		end
 	end
 end
 
 --- Remove the specified amount of dirs from the recent directories list.
--- @param num number
+--- @param num number
 function dirs.pop(num)
 	return dirRecents(num, true)
 end
 
 --- Get entry from recent directories list based on index.
--- @param idx number
+--- @param idx number
 function dirs.recent(idx)
 	return dirs.recentDirs[idx]
 end
 
 --- Sets the old directory string.
--- @param d string
+--- @param d string
 function dirs.setOld(d)
-	ok, d = pcall(fs.abs, d)
-	assert(ok, 'could not turn "' .. d .. '"into an absolute path')
+	local ok, absDir = pcall(fs.abs, d)
+	assert(ok, 'could not turn "' .. absDir .. '"into an absolute path')
 
-	os.setenv('OLDPWD', d)
-	dirs.old = d
+	os.setenv('OLDPWD', absDir)
+	dirs.old = absDir
 end
 
 bait.catch('hilbish.cd', function(path, oldPath)

@@ -1,5 +1,6 @@
 -- @module hilbish.processors
 
+---@diagnostic disable-next-line: missing-fields
 hilbish.processors = {
 	list = {},
 	sorted = {}
@@ -13,6 +14,8 @@ function hilbish.processors.add(processor)
 	if not processor.func then
 		error 'processor is missing function'
 	end
+
+	processor.priority = processor.priority or 0
 
 	table.insert(hilbish.processors.list, processor)
 	table.sort(hilbish.processors.list, function(a, b) return a.priority < b.priority end)
@@ -31,6 +34,7 @@ end
 --- Run all command processors, in order by priority.
 --- It returns the processed command (which may be the same as the passed command)
 --- and a boolean which states whether to proceed with command execution.
+--- @return table
 function hilbish.processors.execute(command, opts)
 	opts = opts or {}
 	opts.skip = opts.skip or {}

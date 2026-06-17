@@ -2,6 +2,7 @@ local ansikit = require 'ansikit'
 local commander = require 'commander'
 local fs = require 'fs'
 local lunacolors = require 'lunacolors'
+local terminal = require 'terminal'
 local Greenhouse = require 'nature.greenhouse'
 local Page = require 'nature.greenhouse.page'
 local docfuncs = require 'nature.doc'
@@ -182,10 +183,12 @@ Available sections: ]] .. table.concat(modules, ', ')
 		end
 
 		local f = io.open(moddocPath .. sdFile, 'rb')
-		local doc, vals = handleYamlInfo(formatDocText(f:read '*a'))
-		local page = Page(vals.title or sdName, doc)
-		page.description = vals.description
-		gh:addPage(page)
+		if f then
+			local doc, vals = handleYamlInfo(formatDocText(f:read '*a'))
+			local page = Page(vals.title or sdName, doc)
+			page.description = vals.description
+			gh:addPage(page)
+		end
 	end
 	ansikit.hideCursor()
 	gh:initUi()

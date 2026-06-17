@@ -7,7 +7,7 @@ import (
 // LuaExport represents a Go function which can be exported to Lua.
 type LuaExport struct {
 	Function rt.GoFunctionFunc
-	ArgNum int
+	ArgNum   int
 	Variadic bool
 }
 

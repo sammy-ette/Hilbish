@@ -52,7 +52,7 @@ func splitForFile(str string) []string {
 		if r == '"' {
 			quoted = !quoted
 			sb.WriteRune(r)
-		} else if r == ' ' && str[i-1] == '\\' {
+		} else if r == ' ' && i > 0 && str[i-1] == '\\' {
 			sb.WriteRune(r)
 		} else if !quoted && r == ' ' {
 			split = append(split, sb.String())
@@ -72,7 +72,7 @@ func splitForFile(str string) []string {
 	return split
 }
 
-func fileComplete(query, ctx string, fields []string) ([]string, string) {
+func fileComplete(ctx string) ([]string, string) {
 	q := splitForFile(ctx)
 	path := ""
 	if len(q) != 0 {
@@ -82,7 +82,7 @@ func fileComplete(query, ctx string, fields []string) ([]string, string) {
 	return matchPath(path)
 }
 
-func dirComplete(query, ctx string, fields []string) ([]string, string) {
+func dirComplete(query, ctx string) ([]string, string) {
 	q := splitForFile(ctx)
 	path := ""
 	if len(q) != 0 {
@@ -107,7 +107,7 @@ func dirComplete(query, ctx string, fields []string) ([]string, string) {
 	return completions, query
 }
 
-func binaryComplete(query, ctx string, fields []string) ([]string, string) {
+func binaryComplete(query, ctx string) ([]string, string) {
 	q := splitForFile(ctx)
 	query = ""
 	if len(q) != 0 {
@@ -188,9 +188,12 @@ func matchPath(query string) ([]string, string) {
 		}
 
 		if file.Mode()&os.ModeSymlink != 0 {
-			path, err := filepath.EvalSymlinks(filepath.Join(path, file.Name()))
-			if err == nil {
-				file, err = os.Lstat(path)
+			// If the symlink is broken (or otherwise can't be resolved),
+			// just keep treating it as the symlink entry itself
+			if resolved, err := filepath.EvalSymlinks(filepath.Join(path, file.Name())); err == nil {
+				if info, err := os.Lstat(resolved); err == nil {
+					file = info
+				}
 			}
 		}
 
@@ -221,12 +224,12 @@ func escapeFilename(fname string) string {
 // The completions interface deals with tab completions.
 func completionLoader(rtm *rt.Runtime) *rt.Table {
 	exports := map[string]util.LuaExport{
-		"bins":    {hcmpBins, 3, false},
-		"call":    {hcmpCall, 4, false},
-		"files":   {hcmpFiles, 3, false},
-		"dirs":    {hcmpDirs, 3, false},
-		"add":     {hcmpAdd, 2, false},
-		"handler": {hcmpHandler, 2, false},
+		"bins":    {Function: hcmpBins, ArgNum: 3, Variadic: false},
+		"call":    {Function: hcmpCall, ArgNum: 4, Variadic: false},
+		"files":   {Function: hcmpFiles, ArgNum: 3, Variadic: false},
+		"dirs":    {Function: hcmpDirs, ArgNum: 3, Variadic: false},
+		"add":     {Function: hcmpAdd, ArgNum: 2, Variadic: false},
+		"handler": {Function: hcmpHandler, ArgNum: 2, Variadic: false},
 	}
 
 	mod := rt.NewTable()
@@ -243,7 +246,7 @@ func completionLoader(rtm *rt.Runtime) *rt.Table {
 // The documentation for completions, under Features/Completions or `doc completions`
 // provides more details.
 // #param scope string
-// #param cb function
+// #param cb fun(query:string,ctx:string,fields:table<string>):table,string
 /*
 #example
 -- This is a very simple example. Read the full doc for completions for details.
@@ -276,7 +279,9 @@ func hcmpAdd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err != nil {
 		return nil, err
 	}
+	luaCompletionsMu.Lock()
 	luaCompletions[scope] = cb
+	luaCompletionsMu.Unlock()
 
 	return c.Next(), nil
 }
@@ -308,12 +313,13 @@ end)
 #example
 */
 func hcmpBins(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(t, c)
+	query, ctx, fds, err := getCompleteParams(c)
 	if err != nil {
 		return nil, err
 	}
 
-	completions, pfx := binaryComplete(query, ctx, fds)
+	var _ []string = fds
+	completions, pfx := binaryComplete(query, ctx)
 	luaComps := rt.NewTable()
 
 	for i, comp := range completions {
@@ -353,9 +359,10 @@ func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return nil, err
 	}
 
-	var completecb *rt.Closure
-	var ok bool
-	if completecb, ok = luaCompletions[completer]; !ok {
+	luaCompletionsMu.RLock()
+	completecb, ok := luaCompletions[completer]
+	luaCompletionsMu.RUnlock()
+	if !ok {
 		return nil, errors.New("completer " + completer + " does not exist")
 	}
 
@@ -380,12 +387,14 @@ func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #param ctx string
 // #param fields table
 func hcmpFiles(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(t, c)
+	query, ctx, fds, err := getCompleteParams(c)
 	if err != nil {
 		return nil, err
 	}
 
-	completions, pfx := fileComplete(query, ctx, fds)
+	var _ []string = fds
+	var _ string = query
+	completions, pfx := fileComplete(ctx)
 	luaComps := rt.NewTable()
 
 	for i, comp := range completions {
@@ -403,12 +412,13 @@ func hcmpFiles(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #param ctx string
 // #param fields table
 func hcmpDirs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(t, c)
+	query, ctx, fds, err := getCompleteParams(c)
 	if err != nil {
 		return nil, err
 	}
 
-	completions, pfx := dirComplete(query, ctx, fds)
+	var _ []string = fds
+	completions, pfx := dirComplete(query, ctx)
 	luaComps := rt.NewTable()
 
 	for i, comp := range completions {
@@ -425,6 +435,8 @@ func hcmpDirs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // This function can be overridden to supply a custom handler. Note that alias resolution is required to be done in this function.
 // #param line string The current Hilbish command line
 // #param pos number Numerical position of the cursor
+// #returns string The common prefix of all completion items
+// #returns table A list of completion groups
 /*
 #example
 -- stripped down version of the default implementation
@@ -443,7 +455,7 @@ func hcmpHandler(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), nil
 }
 
-func getCompleteParams(t *rt.Thread, c *rt.GoCont) (string, string, []string, error) {
+func getCompleteParams(c *rt.GoCont) (string, string, []string, error) {
 	if err := c.CheckNArgs(3); err != nil {
 		return "", "", []string{}, err
 	}

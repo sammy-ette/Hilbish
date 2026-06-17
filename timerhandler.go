@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"hilbish/util"
-	
+
 	rt "github.com/arnodel/golua/runtime"
 )
 
@@ -14,19 +14,19 @@ var timers *timersModule
 var timerMetaKey = rt.StringValue("hshtimer")
 
 type timersModule struct {
-	mu *sync.RWMutex
-	wg *sync.WaitGroup
-	timers map[int]*timer
+	mu       *sync.RWMutex
+	wg       *sync.WaitGroup
+	timers   map[int]*timer
 	latestID int
-	running int
+	running  int
 }
 
 func newTimersModule() *timersModule {
 	return &timersModule{
-		timers: make(map[int]*timer),
+		timers:   make(map[int]*timer),
 		latestID: 0,
-		mu: &sync.RWMutex{},
-		wg: &sync.WaitGroup{},
+		mu:       &sync.RWMutex{},
+		wg:       &sync.WaitGroup{},
 	}
 }
 
@@ -40,17 +40,17 @@ func (th *timersModule) create(typ timerType, dur time.Duration, fun *rt.Closure
 
 	th.latestID++
 	t := &timer{
-		typ: typ,
-		fun: fun,
-		dur: dur,
+		typ:     typ,
+		fun:     fun,
+		dur:     dur,
 		channel: make(chan struct{}, 1),
-		th: th,
-		id: th.latestID,
+		th:      th,
+		id:      th.latestID,
 	}
 	t.ud = timerUserData(t)
 
 	th.timers[th.latestID] = t
-	
+
 	return t
 }
 
@@ -85,7 +85,7 @@ func (th *timersModule) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	timerTyp := timerType(timerTypInt)
-	tmr := th.create(timerTyp, time.Duration(ms) * time.Millisecond, cb)
+	tmr := th.create(timerTyp, time.Duration(ms)*time.Millisecond, cb)
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(tmr.ud)), nil
 }
 
@@ -136,8 +136,8 @@ print(t.running) // true
 func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
 	timerMethods := rt.NewTable()
 	timerFuncs := map[string]util.LuaExport{
-		"start": {timerStart, 1, false},
-		"stop": {timerStop, 1, false},
+		"start": {Function: timerStart, ArgNum: 1, Variadic: false},
+		"stop":  {Function: timerStop, ArgNum: 1, Variadic: false},
 	}
 	util.SetExports(rtm, timerMethods, timerFuncs)
 
@@ -155,9 +155,14 @@ func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
 		keyStr, _ := arg.TryString()
 
 		switch keyStr {
-			case "type": val = rt.IntValue(int64(ti.typ))
-			case "running": val = rt.BoolValue(ti.running)
-			case "duration": val = rt.IntValue(int64(ti.dur / time.Millisecond))
+		case "type":
+			val = rt.IntValue(int64(ti.typ))
+		case "running":
+			ti.mu.Lock()
+			val = rt.BoolValue(ti.running)
+			ti.mu.Unlock()
+		case "duration":
+			val = rt.IntValue(int64(ti.dur / time.Millisecond))
 		}
 
 		return c.PushingNext1(t.Runtime, val), nil
@@ -167,15 +172,16 @@ func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
 	l.SetRegistry(timerMetaKey, rt.TableValue(timerMeta))
 
 	thExports := map[string]util.LuaExport{
-		"create": {th.luaCreate, 3, false},
-		"get": {th.luaGet, 1, false},
+		"create": {Function: th.luaCreate, ArgNum: 3, Variadic: false},
+		"get":    {Function: th.luaGet, ArgNum: 1, Variadic: false},
+		"wait":   {Function: timerWait, ArgNum: 0, Variadic: false},
 	}
 
 	luaTh := rt.NewTable()
 	util.SetExports(rtm, luaTh, thExports)
 
-	util.SetField(rtm, luaTh, "INTERVAL", rt.IntValue(0))
-	util.SetField(rtm, luaTh, "TIMEOUT", rt.IntValue(1))
+	util.SetField(luaTh, "INTERVAL", rt.IntValue(0))
+	util.SetField(luaTh, "TIMEOUT", rt.IntValue(1))
 
 	return luaTh
 }
@@ -183,7 +189,7 @@ func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
 func timerArg(c *rt.GoCont, arg int) (*timer, error) {
 	j, ok := valueToTimer(c.Arg(arg))
 	if !ok {
-		return nil, fmt.Errorf("#%d must be a timer", arg + 1)
+		return nil, fmt.Errorf("#%d must be a timer", arg+1)
 	}
 
 	return j, nil
@@ -202,4 +208,12 @@ func valueToTimer(val rt.Value) (*timer, bool) {
 func timerUserData(j *timer) *rt.UserData {
 	timerMeta := l.Registry(timerMetaKey)
 	return rt.NewUserData(j, timerMeta.AsTable())
+}
+
+// #interface timers
+// wait()
+// Waits for all timers to finish.
+func timerWait(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	timers.wait()
+	return c.Next(), nil
 }

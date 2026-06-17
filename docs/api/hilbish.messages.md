@@ -21,19 +21,19 @@ The `hilbish.message` type is a table with the following keys:
 
 ## Functions
 
-- [`hilbish.messages.all()`](#all): Returns all messages.
+- [`hilbish.messages.all() -> table<hilbish.message>`](#all): Returns all messages.
 - [`hilbish.messages.clear()`](#clear): Deletes all messages.
 - [`hilbish.messages.delete(idx)`](#delete): Deletes the message at `idx`.
 - [`hilbish.messages.read(idx)`](#read): Marks a message at `idx` as read.
 - [`hilbish.messages.readAll()`](#readAll): Marks all messages as read.
 - [`hilbish.messages.send(message)`](#send): Sends a message.
-- [`hilbish.messages.unreadCount()`](#unreadCount): Returns the amount of unread messages.
+- [`hilbish.messages.unreadCount() -> integer`](#unreadCount): Returns the amount of unread messages.
 
 ---
 
 #### all
 
-hilbish.messages.all()
+hilbish.messages.all() -> table<hilbish.message>
 
 Returns all messages.  
 
@@ -117,7 +117,7 @@ Sends a message.
 
 #### unreadCount
 
-hilbish.messages.unreadCount()
+hilbish.messages.unreadCount() -> integer
 
 Returns the amount of unread messages.  
 

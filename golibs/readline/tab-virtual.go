@@ -168,7 +168,7 @@ func (rl *Readline) resetVirtualComp(drop bool) {
 	if cur == nil {
 		return
 	}
-	completion := cur.getCurrentCell(rl)
+	completion := cur.getCurrentCell()
 	// Avoid problems with empty completions
 	if completion == "" {
 		rl.clearVirtualComp()

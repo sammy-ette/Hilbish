@@ -267,123 +267,6 @@
 	],
 	"docs": [
 		{
-			"name": "jobs.background",
-			"description": [
-				"Puts a job in the background. This acts the same as initially running a job."
-			],
-			"parent": "hilbish",
-			"interfaces": "jobs",
-			"signature": "background()",
-			"goFuncName": "luabackgroundjob",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "jobs",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				]
-			}
-		},
-		{
-			"name": "jobs.foreground",
-			"description": [
-				"Puts a job in the foreground. This will cause it to run like it was",
-				"executed normally and wait for it to complete."
-			],
-			"parent": "hilbish",
-			"interfaces": "jobs",
-			"signature": "foreground()",
-			"goFuncName": "luaforegroundjob",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "jobs",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				]
-			}
-		},
-		{
-			"name": "jobs.start",
-			"description": [
-				"Starts running the job."
-			],
-			"parent": "hilbish",
-			"interfaces": "jobs",
-			"signature": "start()",
-			"goFuncName": "luastartjob",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "jobs",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				]
-			}
-		},
-		{
-			"name": "jobs.stop",
-			"description": [
-				"Stops the job from running."
-			],
-			"parent": "hilbish",
-			"interfaces": "jobs",
-			"signature": "stop()",
-			"goFuncName": "luastopjob",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "jobs",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				]
-			}
-		},
-		{
 			"name": "jobs.add",
 			"description": [
 				"Creates a new job. This function does not run the job. This function is intended to be",
@@ -558,6 +441,35 @@
 			}
 		},
 		{
+			"name": "jobs.background",
+			"description": [
+				"Puts a job in the background. This acts the same as initially running a job."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "background()",
+			"goFuncName": "luabackgroundjob",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
 			"name": "jobs.disown",
 			"description": [
 				"Disowns a job. This simply deletes it from the list of jobs without stopping it."
@@ -591,6 +503,36 @@
 							"number"
 						],
 						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.foreground",
+			"description": [
+				"Puts a job in the foreground. This will cause it to run like it was",
+				"executed normally and wait for it to complete."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "foreground()",
+			"goFuncName": "luaforegroundjob",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
 					}
 				]
 			}
@@ -642,6 +584,86 @@
 						"id": "Job",
 						"fields": [],
 						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.start",
+			"description": [
+				"Starts running the job."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "start()",
+			"goFuncName": "luastartjob",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.stop",
+			"description": [
+				"Stops the job from running."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "stop()",
+			"goFuncName": "luastopjob",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "jobs.stopAll",
+			"description": [
+				"Stops all running jobs."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "stopAll()",
+			"goFuncName": "luastopall",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
 					}
 				]
 			}

@@ -99,9 +99,9 @@ func (g *CompletionGroup) init(rl *Readline) {
 	switch g.DisplayType {
 
 	case TabDisplayGrid:
-		g.initGrid(rl)
+		g.initGrid()
 	case TabDisplayMap:
-		g.initMap(rl)
+		g.initMap()
 	case TabDisplayList:
 		g.initList(rl)
 	}

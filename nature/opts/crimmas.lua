@@ -1,3 +1,4 @@
+local bait = require 'bait'
 local lunacolors = require 'lunacolors'
 
 bait.catch('hilbish.init', function()

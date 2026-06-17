@@ -4,7 +4,8 @@ local Object = {}
 Object.__index = Object
 
 ---Can be overrided by child objects to implement a constructor.
-function Object:new() end
+---@param any ...
+function Object:new(any) end
 
 ---@return nature.object
 function Object:extend()

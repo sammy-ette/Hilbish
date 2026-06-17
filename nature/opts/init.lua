@@ -15,7 +15,6 @@ The nice lil shell for {blue}Lua{reset} fanatics!
 	fuzzy = false,
 	notifyJobFinish = true,
 	crimmas = true,
-	tips = true,
 	processorSkipList = {}
 }
 

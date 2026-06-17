@@ -25,23 +25,6 @@
 			]
 		},
 		{
-			"name": "push",
-			"description": [
-				"Add `dir` to the recent directories list."
-			],
-			"signature": "push(dir)",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "dir",
-					"Type": "string",
-					"Doc": null
-				}
-			]
-		},
-		{
 			"name": "pop",
 			"description": [
 				"Remove the specified amount of dirs from the recent directories list."
@@ -54,6 +37,23 @@
 				{
 					"Name": "num",
 					"Type": "number",
+					"Doc": null
+				}
+			]
+		},
+		{
+			"name": "push",
+			"description": [
+				"Add `dir` to the recent directories list."
+			],
+			"signature": "push(dir)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "dir",
+					"Type": "string",
 					"Doc": null
 				}
 			]

@@ -2,16 +2,14 @@ package util
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
-	"strings"
 	"os"
 	"os/exec"
-	"os/user"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 
 	rt "github.com/arnodel/golua/runtime"
@@ -20,25 +18,16 @@ import (
 var ErrNotExec = errors.New("not executable")
 var ErrNotFound = errors.New("not found")
 
-type ExecError struct{
-	Typ string
-	Cmd string
-	Code int
+type ExecError struct {
+	Typ   string
+	Cmd   string
+	Code  int
 	Colon bool
-	Err error
+	Err   error
 }
 
 func (e ExecError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Cmd, e.Typ)
-}
-
-func (e ExecError) sprint() error {
-	sep := " "
-	if e.Colon {
-		sep = ": "
-	}
-
-	return fmt.Errorf("hilbish: %s%s%s", e.Cmd, sep, e.Err.Error())
 }
 
 func IsExecError(err error) (ExecError, bool) {
@@ -56,18 +45,18 @@ func IsExecError(err error) (ExecError, bool) {
 		var colon bool
 		var e error
 		switch fields[1] {
-			case "not-found":
-				e = ErrNotFound
-			case "not-executable":
-				colon = true
-				e = ErrNotExec
+		case "not-found":
+			e = ErrNotFound
+		case "not-executable":
+			colon = true
+			e = ErrNotExec
 		}
 
 		return ExecError{
-			Cmd: fields[0],
-			Typ: fields[1],
+			Cmd:   fields[0],
+			Typ:   fields[1],
 			Colon: colon,
-			Err: e,
+			Err:   e,
 		}, true
 	}
 
@@ -76,8 +65,7 @@ func IsExecError(err error) (ExecError, bool) {
 
 // SetField sets a field in a table, adding docs for it.
 // It is accessible via the __docProp metatable. It is a table of the names of the fields.
-func SetField(rtm *rt.Runtime, module *rt.Table, field string, value rt.Value) {
-	// TODO:    ^ rtm isnt needed, i should remove it
+func SetField(module *rt.Table, field string, value rt.Value) {
 	module.Set(rt.StringValue(field), value)
 }
 
@@ -85,7 +73,7 @@ func SetField(rtm *rt.Runtime, module *rt.Table, field string, value rt.Value) {
 // is one which has a metatable proxy to ensure no overrides happen to it.
 // It sets the field in the table and sets the __docProp metatable on the
 // user facing table.
-func SetFieldProtected(module, realModule *rt.Table, field string, value rt.Value) {
+func SetFieldProtected(realModule *rt.Table, field string, value rt.Value) {
 	realModule.Set(rt.StringValue(field), value)
 }
 
@@ -112,12 +100,11 @@ func MustDoString(rtm *rt.Runtime, code string) rt.Value {
 // DoFile runs the contents of the file in the Lua runtime.
 func DoFile(rtm *rt.Runtime, path string) error {
 	f, err := os.Open(path)
-	defer f.Close()
-
 	if err != nil {
 		return err
 	}
-	
+	defer f.Close()
+
 	reader := bufio.NewReader(f)
 	c, err := reader.ReadByte()
 	if err != nil && err != io.EOF {
@@ -148,7 +135,7 @@ func DoFile(rtm *rt.Runtime, path string) error {
 			}
 			return err
 		}
-		
+
 		buf = append(buf, line...)
 	}
 
@@ -196,8 +183,10 @@ func ForEach(tbl *rt.Table, cb func(key rt.Value, val rt.Value)) {
 // directory.
 func ExpandHome(path string) string {
 	if strings.HasPrefix(path, "~") {
-		curuser, _ := user.Current()
-		homedir := curuser.HomeDir
+		homedir, err := os.UserHomeDir()
+		if err != nil {
+			return path
+		}
 
 		return strings.Replace(path, "~", homedir, 1)
 	}
@@ -207,9 +196,12 @@ func ExpandHome(path string) string {
 
 // AbbrevHome changes the user's home directory in the path string to ~ (tilde)
 func AbbrevHome(path string) string {
-	curuser, _ := user.Current()
-	if strings.HasPrefix(path, curuser.HomeDir) {
-		return "~" + strings.TrimPrefix(path, curuser.HomeDir)
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return path
+	}
+	if rest, ok := strings.CutPrefix(path, homedir); ok {
+		return "~" + rest
 	}
 
 	return path
@@ -218,7 +210,15 @@ func AbbrevHome(path string) string {
 func LookPath(file string) (string, error) { // custom lookpath function so we know if a command is found *and* is executable
 	var skip []string
 	if runtime.GOOS == "windows" {
-		skip = []string{"./", "../", "~/", "C:"}
+		skip = []string{"./", "../", "~/"}
+		// absolute paths with a drive letter (eg C:\foo, d:/foo) are
+		// already a full path and shouldn't be searched for in PATH
+		if len(file) >= 2 && file[1] == ':' {
+			c := file[0]
+			if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') {
+				return file, FindExecutable(file, false, false)
+			}
+		}
 	} else {
 		skip = []string{"./", "/", "../", "~/"}
 	}
@@ -227,22 +227,23 @@ func LookPath(file string) (string, error) { // custom lookpath function so we k
 			return file, FindExecutable(file, false, false)
 		}
 	}
+	err := os.ErrNotExist
 	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {
 		path := filepath.Join(dir, file)
-		err := FindExecutable(path, true, false)
-		if err == ErrNotExec {
-			return "", err
-		} else if err == nil {
+		switch ferr := FindExecutable(path, true, false); ferr {
+		case ErrNotExec:
+			err = ErrNotExec
+		case nil:
 			return path, nil
 		}
 	}
 
-	return "", os.ErrNotExist
+	return "", err
 }
 
 func Contains(s []string, e string) bool {
 	for _, a := range s {
-		if strings.ToLower(a) == strings.ToLower(e) {
+		if strings.EqualFold(a, e) {
 			return true
 		}
 	}
@@ -250,17 +251,12 @@ func Contains(s []string, e string) bool {
 }
 
 func HandleExecErr(err error) (exit uint8) {
-	ctx := context.TODO()
-
 	switch x := err.(type) {
 	case *exec.ExitError:
 		// started, but errored - default to 1 if OS
 		// doesn't have exit statuses
 		if status, ok := x.Sys().(syscall.WaitStatus); ok {
 			if status.Signaled() {
-				if ctx.Err() != nil {
-					return
-				}
 				exit = uint8(128 + status.Signal())
 				return
 			}
@@ -273,7 +269,8 @@ func HandleExecErr(err error) (exit uint8) {
 		// did not start
 		//fmt.Fprintf(hc.Stderr, "%v\n", err)
 		exit = 127
-	default: return
+	default:
+		return
 	}
 
 	return
