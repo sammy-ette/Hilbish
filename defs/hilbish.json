@@ -218,6 +218,28 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false
+		},
+		{
+			"name": "initialized",
+			"description": [
+				"If",
+				"Hilbish",
+				"has",
+				"been",
+				"fully",
+				"initialized.",
+				"Should",
+				"always",
+				"be",
+				"`true`",
+				"from",
+				"a",
+				"user's",
+				"config"
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
 		}
 	],
 	"types": [

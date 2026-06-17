@@ -39,6 +39,7 @@ interfaces and functions which directly relate to shell functionality.
 - `vimMode`: Current Vim input mode of Hilbish (will be nil if not in Vim input mode)
 - `exitCode`: Exit code of the last executed command
 - `running`: If Hilbish is currently running any interactive input
+- `initialized`: If Hilbish has been fully initialized. Should always be `true` from a user's config
 
 ---
 
