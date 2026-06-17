@@ -403,11 +403,12 @@ func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 	l.SetRegistry(jobMetaKey, rt.TableValue(jobMeta))
 
 	jobFuncs := map[string]util.LuaExport{
-		"all":    {Function: j.luaAllJobs, ArgNum: 0, Variadic: false},
-		"last":   {Function: j.luaLastJob, ArgNum: 0, Variadic: false},
-		"get":    {Function: j.luaGetJob, ArgNum: 1, Variadic: false},
-		"add":    {Function: j.luaAddJob, ArgNum: 3, Variadic: false},
-		"disown": {Function: j.luaDisownJob, ArgNum: 1, Variadic: false},
+		"all":     {Function: j.luaAllJobs, ArgNum: 0, Variadic: false},
+		"last":    {Function: j.luaLastJob, ArgNum: 0, Variadic: false},
+		"get":     {Function: j.luaGetJob, ArgNum: 1, Variadic: false},
+		"add":     {Function: j.luaAddJob, ArgNum: 3, Variadic: false},
+		"disown":  {Function: j.luaDisownJob, ArgNum: 1, Variadic: false},
+		"stopAll": {Function: j.luaStopAll, ArgNum: 0, Variadic: false},
 	}
 
 	luaJob := rt.NewTable()
@@ -557,4 +558,12 @@ func (j *jobHandler) luaLastJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(job.ud)), nil
+}
+
+// #interface jobs
+// stopAll()
+// Stops all running jobs.
+func (j *jobHandler) luaStopAll(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	j.stopAll()
+	return c.Next(), nil
 }

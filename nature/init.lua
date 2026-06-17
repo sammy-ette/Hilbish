@@ -2,6 +2,17 @@
 local _ = require 'succulent' -- Function additions
 local bait = require 'bait'
 local fs = require 'fs'
+local terminal = require 'terminal'
+
+local oldOsExit = os.exit
+---@diagnostic disable-next-line: duplicate-set-field
+function os.exit(code)
+	hilbish.jobs.stopAll()
+	if not hilbish.interactive then
+		hilbish.timers.wait()
+	end
+	oldOsExit(code or 0)
+end
 
 package.path = package.path .. ';' .. hilbish.dataDir .. '/?/init.lua'
 .. ';' .. hilbish.dataDir .. '/?/?.lua' .. ";" .. hilbish.dataDir .. '/?.lua'
@@ -18,6 +29,8 @@ table.insert(package.searchers, function(module)
 	return function() return hilbish.module.load(path) end, path
 end)
 
+require 'nature.editor'
+require 'nature.aliases'
 require 'nature.hilbish'
 
 require 'nature.processors'
@@ -31,7 +44,6 @@ require 'nature.runner'
 require 'nature.hummingbird'
 require 'nature.env'
 require 'nature.abbr'
-require 'nature.editor'
 
 local shlvl = tonumber(os.getenv 'SHLVL')
 if shlvl ~= nil then
@@ -68,3 +80,61 @@ end)
 bait.catch('command.not-executable', function(cmd)
 	print(string.format('hilbish: %s: not executable', cmd))
 end)
+
+local function runConfig(path)
+	if not hilbish.interactive then return end
+
+	local ok, err = pcall(dofile, path)
+	if not ok then
+		print(err)
+		print 'An error has occurred while loading your config!\n'
+		hilbish.prompt '& '
+	else
+		bait.throw 'hilbish.init'
+	end
+end
+
+local ok, ret = pcall(fs.stat, hilbish.confFile)
+if not ok and tostring(ret):match 'no such file' and hilbish.confFile == fs.join(hilbish.defaultConfDir, 'init.lua') then
+	-- Run config from current directory (assuming this is Hilbish's git)
+	local ok = pcall(fs.stat, '.hilbishrc.lua')
+	local confpath = '.hilbishrc.lua'
+
+	if not ok then
+		-- If it wasnt found go to system sample config
+		confpath = fs.join(hilbish.dataDir, confpath)
+		local ok = pcall(fs.stat, confpath)
+		if not ok then
+			print('could not find .hilbishrc.lua or ' .. confpath)
+			return
+		end
+	end
+
+	runConfig(confpath)
+else
+	runConfig(hilbish.confFile)
+end
+
+-- Input piped to Hilbish (not interactive, and not because a file or command
+-- was passed). Run each line, then exit.
+if not hilbish.interactive and not args[0] and hilbish.command == '' then
+	for line in io.lines() do
+		hilbish.runner.run(line, true)
+	end
+	os.exit(0)
+end
+
+if hilbish.command ~= "" then
+	hilbish.runner.run(hilbish.command, true)
+end
+
+if args[0] then
+	local ok, err = pcall(dofile, args[0])
+	if not ok then
+		io.stderr:write(err .. '\n')
+		os.exit(1)
+	end
+	os.exit(0)
+end
+
+require 'nature.repl'

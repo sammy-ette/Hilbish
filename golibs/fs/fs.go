@@ -28,16 +28,17 @@ var Loader = packagelib.Loader{
 
 func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	exports := map[string]util.LuaExport{
-		"cd":       util.LuaExport{Function: fcd, ArgNum: 1, Variadic: false},
-		"mkdir":    util.LuaExport{Function: fmkdir, ArgNum: 2, Variadic: false},
-		"stat":     util.LuaExport{Function: fstat, ArgNum: 1, Variadic: false},
-		"readdir":  util.LuaExport{Function: freaddir, ArgNum: 1, Variadic: false},
-		"abs":      util.LuaExport{Function: fabs, ArgNum: 1, Variadic: false},
-		"basename": util.LuaExport{Function: fbasename, ArgNum: 1, Variadic: false},
-		"dir":      util.LuaExport{Function: fdir, ArgNum: 1, Variadic: false},
-		"glob":     util.LuaExport{Function: fglob, ArgNum: 1, Variadic: false},
-		"join":     util.LuaExport{Function: fjoin, ArgNum: 0, Variadic: true},
-		"pipe":     util.LuaExport{Function: fpipe, ArgNum: 0, Variadic: false},
+		"cd":         util.LuaExport{Function: fcd, ArgNum: 1, Variadic: false},
+		"executable": util.LuaExport{Function: fexecutable, ArgNum: 1, Variadic: false},
+		"mkdir":      util.LuaExport{Function: fmkdir, ArgNum: 2, Variadic: false},
+		"stat":       util.LuaExport{Function: fstat, ArgNum: 1, Variadic: false},
+		"readdir":    util.LuaExport{Function: freaddir, ArgNum: 1, Variadic: false},
+		"abs":        util.LuaExport{Function: fabs, ArgNum: 1, Variadic: false},
+		"basename":   util.LuaExport{Function: fbasename, ArgNum: 1, Variadic: false},
+		"dir":        util.LuaExport{Function: fdir, ArgNum: 1, Variadic: false},
+		"glob":       util.LuaExport{Function: fglob, ArgNum: 1, Variadic: false},
+		"join":       util.LuaExport{Function: fjoin, ArgNum: 0, Variadic: true},
+		"pipe":       util.LuaExport{Function: fpipe, ArgNum: 0, Variadic: false},
 	}
 	mod := rt.NewTable()
 	util.SetExports(rtm, mod, exports)
@@ -132,6 +133,29 @@ func fdir(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.PushingNext(t.Runtime, rt.StringValue(filepath.Dir(path))), nil
 }
 
+// executable(path) -> boolean
+// Checks if `path` is an executable file.
+// #param path string
+// #returns boolean
+func fexecutable(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
+	}
+	path, err := c.StringArg(0)
+	if err != nil {
+		return nil, err
+	}
+
+	err = util.FindExecutable(path, true, false)
+	if err != nil {
+		c.Push(t.Runtime, rt.BoolValue(false))
+	} else {
+		c.Push(t.Runtime, rt.BoolValue(true))
+	}
+
+	return c.Next(), nil
+}
+
 // glob(pattern) -> matches (table)
 // Match all files based on the provided `pattern`.
 // For the syntax' refer to Go's filepath.Match function: https://pkg.go.dev/path/filepath#Match
@@ -190,7 +214,7 @@ func fjoin(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	for i, v := range c.Etc() {
 		if v.Type() != rt.StringType {
 			// +2; go indexes of 0 and first arg from above
-			return nil, fmt.Errorf("bad argument #%d to run (expected string, got %s)", i+1, v.TypeName())
+			return nil, fmt.Errorf("bad argument #%d to join (expected string, got %s)", i+1, v.TypeName())
 		}
 		strs[i] = v.AsString()
 	}

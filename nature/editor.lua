@@ -1,28 +1,63 @@
 local readline = require 'readline'
+local bait = require 'bait'
 
-local editor = readline.new()
-local editorMt = {}
+hilbish.editor = readline.new()
 
-hilbish.editor = {}
+local defaultHistPath = hilbish.userDir.data .. '/hilbish/.hilbish-history'
 
-local function contains(search, needle)
-	for _, p in ipairs(search) do
-		if p == needle then
-			return true
-		end
+function hilbish.hinter(line, pos)
+	return ''
+end
+
+function hilbish.highlighter(line)
+	return line
+end
+
+hilbish.editor:setHinter(function(line, pos)
+	return hilbish.hinter(line, pos)
+end)
+
+hilbish.editor:setHighlighter(function(line)
+	return hilbish.highlighter(line)
+end)
+
+hilbish.editor:setCompleter(function(line, pos)
+	return hilbish.completions.handler(line, pos)
+end)
+
+hilbish.editor:setViModeCallback(function(mode)
+	hilbish.vimMode = mode
+	bait.throw('hilbish.vimMode', mode)
+end)
+
+hilbish.editor:setViActionCallback(function(action, args)
+	bait.throw('hilbish.vimAction', action, args)
+end)
+
+hilbish.editor:setRawInputCallback(function(input)
+	bait.throw('hilbish.rawInput', input)
+end)
+
+-- Returns nil if fuzzy search is off, falling back to Go's default regex searcher
+hilbish.editor:setSearcher(function(needle, haystack)
+	if hilbish.opts.fuzzy then
+		return readline.fuzzySearch(needle, haystack)
 	end
+end)
 
-	return false
+local hist = readline.newHistory(defaultHistPath)
+hilbish.history = hist
+hilbish.editor:setHistory(hist)
+
+function hilbish.inputMode(mode)
+	if mode == 'emacs' then
+		hilbish.vimMode = nil
+		hilbish.editor:setInputMode('emacs')
+	elseif mode == 'vim' then
+		hilbish.vimMode = 'insert'
+		bait.throw('hilbish.vimMode', 'insert')
+		hilbish.editor:setInputMode('vim')
+	else
+		error('inputMode: expected vim or emacs, got ' .. mode)
+	end
 end
-
-function editorMt.__index(_, key)
-    if contains({'deleteByAmount', 'getVimRegister', 'getLine', 'insert', 'readChar', 'setVimRegister'}, key) then
-		--editor:log 'The calling method of this function has changed. Please use the colon to call this hilbish.editor function.'
-    end
-
-	return function(...)
-        return editor[key](editor, ...)
-    end
-end
-
-setmetatable(hilbish.editor, editorMt)
