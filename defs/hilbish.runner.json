@@ -1,11 +1,10 @@
 {
 	"name": "hilbish.runner",
 	"section": "api",
-	"shortDescription": "interactive command runner customization",
-	"description": " The runner interface contains functions that allow the user to change\nhow Hilbish interprets interactive input.\nUsers can add and change the default runner for interactive input to any\nlanguage or script of their choosing. A good example is using it to\nwrite commands in Fennel.\n\nA runner is a table with two required functions:\n- `run(input) -\u003e table`: Evaluates the input and returns a result table.\n- `validate(input) -\u003e boolean`: Checks whether the input is complete and\nready to run. Return `false` to prompt the user for more input (continuation),\nor `true` to proceed.\n\nThe table returned by `run` can have these fields.\nAll are optional; only set the ones relevant to the runner.\n(So if there isn't an error, just omit `err`.)\n\n- `exitCode` (number): Exit code of the command\n- `input` (string): The text input of the user. This is used by Hilbish to append extra input, in case\nmore is requested.\n- `err` (string): A string that represents an error from the runner.\nThis should only be set when, for example, there is a syntax error.\nIt can be set to a few special values for Hilbish to throw the right\nhooks and have a better looking message.\n\t- `\u003ccommand\u003e: not-found` will throw a `command.not-found` hook\n\tbased on what `\u003ccommand\u003e` is.\n\t- `\u003ccommand\u003e: not-executable` will throw a `command.not-executable` hook.\n- `continue` (boolean): Whether Hilbish should prompt the user for more input\n- `newline` (boolean): Whether a newline should be added at the end of `input`.\n\nHere is a simple example of a fennel runner. It falls back to\nshell script if fennel eval has an error.\n```lua\nlocal fennel = require 'fennel'\n\nhilbish.runner.add('fennel', {\n\trun = function(input)\n\t\tlocal ok = pcall(fennel.eval, input)\n\t\tif ok then\n\t\t\treturn { input = input }\n\t\tend\n\t\treturn hilbish.runner.sh(input)\n\tend,\n\tvalidate = function(input)\n\t\treturn someMethodUsedToCheckIfFennelInputIsFinished(input)\n\tend,\n})\nhilbish.runner.setCurrent('fennel')\n```",
-	"parent": "hilbish",
-	"properties": [],
-	"fields": [],
+	"shortDescription": "The runner interface contains functions that allow the user to change",
+	"description": "how Hilbish interprets interactive input.\nUsers can add and change the default runner for interactive input to any\nlanguage or script of their choosing. A good example is using it to\nwrite commands in Fennel.",
+	"properties": null,
+	"fields": null,
 	"docs": [
 		{
 			"name": "add",
@@ -85,6 +84,25 @@
 			"isType": false
 		},
 		{
+			"name": "lua",
+			"description": [
+				"lua(cmd)",
+				"Evaluates `cmd` as Lua input. This is the same as using `dofile`",
+				"or `load`, but is appropriated for the runner interface."
+			],
+			"signature": "lua(input)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "cmd",
+					"Type": "string",
+					"Doc": null
+				}
+			]
+		},
+		{
 			"name": "run",
 			"description": [
 				"Runs `input` with the currently set Hilbish runner.",
@@ -107,45 +125,6 @@
 					"Doc": null
 				}
 			]
-		},
-		{
-			"name": "runner.lua",
-			"description": [
-				"Evaluates `cmd` as Lua input. This is the same as using `dofile`",
-				"or `load`, but is appropriated for the runner interface."
-			],
-			"parent": "hilbish",
-			"interfaces": "runner",
-			"signature": "lua(cmd)",
-			"goFuncName": "luarunner",
-			"isInterface": true,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "cmd",
-					"Type": "string",
-					"Doc": []
-				}
-			],
-			"tags": {
-				"interface": [
-					{
-						"id": "runner",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"param": [
-					{
-						"id": "cmd",
-						"fields": [
-							"string"
-						],
-						"startIdx": 4
-					}
-				]
-			}
 		},
 		{
 			"name": "set",

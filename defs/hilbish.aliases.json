@@ -3,159 +3,32 @@
 	"section": "api",
 	"shortDescription": "command aliasing",
 	"description": "The alias interface deals with all command aliases in Hilbish.",
-	"parent": "hilbish",
-	"properties": [],
-	"fields": [],
+	"properties": null,
+	"fields": null,
 	"docs": [
 		{
-			"name": "aliases.add",
+			"name": "add",
 			"description": [
+				"#interface aliases",
+				"add(alias, cmd)",
 				"This is an alias (ha) for the [hilbish.alias](../#alias) function."
 			],
-			"parent": "hilbish",
-			"interfaces": "aliases",
 			"signature": "add(alias, cmd)",
-			"goFuncName": "_hlalias",
-			"isInterface": true,
-			"isMember": false,
-			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "aliases",
-						"fields": [],
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "aliases.delete",
-			"description": [
-				"Removes an alias."
-			],
-			"parent": "hilbish",
-			"interfaces": "aliases",
-			"signature": "delete(name)",
-			"goFuncName": "luadelete",
-			"isInterface": true,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "name",
-					"Type": "string",
-					"Doc": []
-				}
-			],
-			"tags": {
-				"interface": [
-					{
-						"id": "aliases",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"param": [
-					{
-						"id": "name",
-						"fields": [
-							"string"
-						],
-						"startIdx": 3
-					}
-				]
-			}
-		},
-		{
-			"name": "aliases.list",
-			"description": [
-				"Get a table of all aliases, with string keys as the alias and the value as the command.",
-				"",
-				""
-			],
-			"parent": "hilbish",
-			"interfaces": "aliases",
-			"signature": "list() -\u003e table[string, string]",
-			"goFuncName": "lualist",
-			"isInterface": true,
-			"isMember": false,
-			"isType": false,
-			"tags": {
-				"example": [
-					{
-						"id": "",
-						"fields": [
-							"hilbish.aliases.add('hi', 'echo hi')",
-							"",
-							"local aliases = hilbish.aliases.list()",
-							"-- -\u003e {hi = 'echo hi'}"
-						],
-						"startIdx": 5
-					}
-				],
-				"interface": [
-					{
-						"id": "aliases",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"returns": [
-					{
-						"id": "table[string,",
-						"fields": [
-							"string]"
-						],
-						"startIdx": 3
-					}
-				]
-			}
-		},
-		{
-			"name": "aliases.resolve",
-			"description": [
-				"Resolves an alias to its original command. Will thrown an error if the alias doesn't exist."
-			],
-			"parent": "hilbish",
-			"interfaces": "aliases",
-			"signature": "resolve(alias) -\u003e string?",
-			"goFuncName": "luaresolve",
-			"isInterface": true,
+			"isInterface": false,
 			"isMember": false,
 			"isType": false,
 			"params": [
 				{
 					"Name": "alias",
 					"Type": "string",
-					"Doc": []
+					"Doc": null
+				},
+				{
+					"Name": "cmd",
+					"Type": "string",
+					"Doc": null
 				}
-			],
-			"tags": {
-				"interface": [
-					{
-						"id": "aliases",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"param": [
-					{
-						"id": "alias",
-						"fields": [
-							"string"
-						],
-						"startIdx": 3
-					}
-				],
-				"returns": [
-					{
-						"id": "string",
-						"fields": [],
-						"startIdx": 4
-					}
-				]
-			}
+			]
 		}
 	]
 }

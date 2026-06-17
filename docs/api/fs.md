@@ -20,6 +20,7 @@ library offers more functions and will work on any operating system Hilbish does
 - [`fs.basename(path) -> string`](#basename): Returns the "basename," or the last part of the provided `path`. If path is empty,
 - [`fs.cd(dir)`](#cd): Changes Hilbish's directory to `dir`.
 - [`fs.dir(path) -> string`](#dir): Returns the directory part of `path`. If a file path like
+- [`fs.executable(path) -> boolean`](#executable): Checks if `path` is an executable file.
 - [`fs.glob(pattern) -> matches (table)`](#glob): Match all files based on the provided `pattern`.
 - [`fs.join(...path) -> string`](#join): Takes any list of paths and joins them based on the operating system's path separator.
 - [`fs.mkdir(name, recursive)`](#mkdir): Creates a new directory with the provided `name`.
@@ -91,6 +92,21 @@ Returns the directory part of `path`. If a file path like
 
 `string` _path_  
 Path to get the directory for.
+
+
+
+---
+
+#### executable
+
+fs.executable(path) -> boolean
+
+Checks if `path` is an executable file.  
+
+#### Parameters
+
+`string` _path_  
+
 
 
 
