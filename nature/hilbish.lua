@@ -87,12 +87,12 @@ function hilbish.prompt(p, typ)
 
 	if not typ or typ == 'left' then
 		hilbish.editor:prompt(fmtPrompt(p))
-		if not hilbish.running then
+		if not hilbish.running and hilbish.initialized then
 			hilbish.editor:refreshPrompt()
 		end
 	elseif typ == 'right' then
 		hilbish.editor:rightPrompt(fmtPrompt(p))
-		if not hilbish.running then
+		if not hilbish.running and hilbish.initialized then
 			hilbish.editor:refreshPrompt()
 		end
 	else

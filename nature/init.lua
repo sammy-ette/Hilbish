@@ -4,6 +4,8 @@ local bait = require 'bait'
 local fs = require 'fs'
 local terminal = require 'terminal'
 
+hilbish.initialized = false
+
 local oldOsExit = os.exit
 ---@diagnostic disable-next-line: duplicate-set-field
 function os.exit(code)
@@ -90,6 +92,7 @@ local function runConfig(path)
 		print 'An error has occurred while loading your config!\n'
 		hilbish.prompt '& '
 	else
+		hilbish.initialized = true
 		bait.throw 'hilbish.init'
 	end
 end
