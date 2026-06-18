@@ -8,7 +8,7 @@ import (
 
 // initGrid - Grid display details. Called each time we want to be sure to have
 // a working completion group either immediately, or later on. Generally defered.
-func (g *CompletionGroup) initGrid() {
+func (g *CompletionGroup) initGrid(rl *Readline) {
 
 	// Compute size of each completion item box (visible width, ignoring styling)
 	tcMaxLength := 1
@@ -41,57 +41,97 @@ func (g *CompletionGroup) initGrid() {
 	} else {
 		g.tcMaxY = maxY
 	}
+
+	// Never let the grid fill more than the usable terminal height.
+	// Reserved rows: prompt lines + input span + info line + safety margin.
+	// Count explicit newlines in the prompt, then add wrapping rows for the last line.
+	promptLines := strings.Count(rl.mainPrompt, "\n") + 1
+	termW := GetTermWidth()
+	if termW > 0 && rl.promptLen > termW {
+		promptLines += rl.promptLen / termW
+	}
+	reserved := promptLines + rl.fullY + 2 // info + safety
+	heightLimit := GetTermLength() - reserved
+	// When items exceed the viewport a footer line is also rendered; reserve for it.
+	if maxY > heightLimit {
+		heightLimit--
+	}
+	if heightLimit < 3 {
+		heightLimit = 3
+	}
+	if g.tcMaxY > heightLimit {
+		g.tcMaxY = heightLimit
+	}
 }
 
 // moveTabGridHighlight - Moves the highlighting for currently selected completion item (grid display)
 func (g *CompletionGroup) moveTabGridHighlight(rl *Readline, x, y int) (done bool, next bool) {
 
+	totalRows := len(g.Items) / g.tcMaxX
+	if len(g.Items)%g.tcMaxX != 0 {
+		totalRows++
+	}
+
 	g.tcPosX += x
 	g.tcPosY += y
 
-	// Columns
+	// Columns: wrap left to previous row (or scroll up / cycle to previous group)
 	if g.tcPosX < 1 {
 		if g.tcPosY == 1 && rl.tabCompletionReverse {
-			g.tcPosX = 1
-			g.tcPosY = 0
+			if g.tcOffset > 0 {
+				g.tcOffset--
+				g.tcPosX = g.tcMaxX
+				// tcPosY stays at 1
+			} else {
+				g.tcPosX = 1
+				g.tcPosY = 0 // handled below as "reverse at top"
+			}
 		} else {
-			// This is when multiple ligns, not yet on first one.
 			g.tcPosX = g.tcMaxX
 			g.tcPosY--
 		}
 	}
-	if g.tcPosY > g.tcMaxY {
-		g.tcPosY = 1
-		return true, true
+
+	// Rows: scroll up when going above the visible window
+	if g.tcPosY < 1 {
+		if g.tcOffset > 0 {
+			g.tcOffset--
+			g.tcPosY = 1
+		} else {
+			// At the very top — reverse cycle to previous group
+			if rl.tabCompletionReverse && g.tcPosX == 1 {
+				g.tcPosY = 1
+				return true, false
+			}
+			g.tcPosY = 1
+			return true, false
+		}
 	}
 
-	// If we must move to next line in same group
+	// Columns: wrap right to next row
 	if g.tcPosX > g.tcMaxX {
 		g.tcPosX = 1
 		g.tcPosY++
 	}
 
-	// Real max number of suggestions.
-	max := g.tcMaxX * g.tcMaxY
-	if max > len(g.Items) {
-		max = len(g.Items)
+	// Rows: scroll down when going past the visible window
+	if g.tcPosY > g.tcMaxY {
+		if g.tcOffset+g.tcMaxY < totalRows {
+			g.tcOffset++
+			g.tcPosY = g.tcMaxY
+		} else {
+			// Past the last row — cycle to next group
+			g.tcPosY = 1
+			g.tcOffset = 0
+			return true, true
+		}
 	}
 
-	// We arrived at the end of suggestions. This condition can never be triggered
-	// while going in the reverse order, only forward, so no further checks in it.
-	if (g.tcMaxX*(g.tcPosY-1))+g.tcPosX > max {
+	// Past the last actual item in the final (possibly partial) row
+	if (g.tcMaxX*(g.tcOffset+g.tcPosY-1))+g.tcPosX > len(g.Items) {
 		return true, true
 	}
 
-	// In case we are reverse cycling and currently selecting the first item,
-	// we adjust the coordinates to point to the last item and return
-	// We set g.tcPosY because the printer needs to get the a candidate nonetheless.
-	if rl.tabCompletionReverse && g.tcPosX == 1 && g.tcPosY == 0 {
-		g.tcPosY = 1
-		return true, false
-	}
-
-	// By default, come back to this group for next item.
 	return false, false
 }
 
@@ -104,11 +144,44 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 		rl.tcUsedY++
 	}
 
-	cellWidth := strconv.Itoa((GetTermWidth() / g.tcMaxX) - 4)
+	totalRows := len(g.Items) / g.tcMaxX
+	if len(g.Items)%g.tcMaxX != 0 {
+		totalRows++
+	}
+	needsScrollbar := totalRows > g.tcMaxY
+
+	// Reserve 2 chars on the right for the scrollbar when needed.
+	termW := GetTermWidth()
+	gridWidth := termW
+	if needsScrollbar {
+		gridWidth = termW - 2
+	}
+
+	rawCellWidth := 0
+	if g.tcMaxX > 0 {
+		rawCellWidth = (gridWidth / g.tcMaxX) - 2
+	}
+	if rawCellWidth < 1 {
+		rawCellWidth = 1
+	}
+	cellWidth := strconv.Itoa(rawCellWidth)
+
+	// Scrollbar thumb geometry (0-indexed rows within the visible window).
+	thumbStart := 0
+	thumbH := g.tcMaxY
+	if needsScrollbar && totalRows > 0 {
+		thumbH = g.tcMaxY * g.tcMaxY / totalRows
+		if thumbH < 1 {
+			thumbH = 1
+		}
+		thumbStart = g.tcOffset * g.tcMaxY / totalRows
+	}
+
+	startIdx := g.tcOffset * g.tcMaxX
 	x := 0
 	y := 1
 
-	for i := range g.Items {
+	for i := startIdx; i < len(g.Items); i++ {
 		x++
 		if x > g.tcMaxX {
 			x = 1
@@ -117,6 +190,15 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 				y--
 				break
 			} else {
+				// Append scrollbar character for the completed row before the newline.
+				if needsScrollbar {
+					rowIdx := y - 2 // just finished row y-1 (0-indexed: y-2)
+					if rowIdx >= thumbStart && rowIdx < thumbStart+thumbH {
+						comp += " " + BOLD + "█" + RESET
+					} else {
+						comp += " " + DIM + "░" + RESET
+					}
+				}
 				comp += "\r\n"
 			}
 		}
@@ -126,8 +208,8 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 		}
 
 		sugg := g.Items[i].display()
-		if printWidth(sugg) > GetTermWidth() {
-			sugg = truncateDisplay(sugg, GetTermWidth()-1)
+		if printWidth(sugg) > gridWidth {
+			sugg = truncateDisplay(sugg, gridWidth-1)
 		}
 
 		// Pad to cellWidth with spaces, accounting for visible width
@@ -145,13 +227,33 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 		}
 	}
 
-	// Always add a newline to the group if the end if not punctuated with one
+	// Append scrollbar for the last rendered row.
+	if needsScrollbar {
+		rowIdx := y - 1 // last rendered row, 0-indexed
+		if rowIdx >= thumbStart && rowIdx < thumbStart+thumbH {
+			comp += " " + BOLD + "█" + RESET
+		} else {
+			comp += " " + DIM + "░" + RESET
+		}
+	}
+
+	// Always end with a newline.
 	if !strings.HasSuffix(comp, "\n") {
 		comp += "\n"
 	}
 
+	// Footer: show row range when scrollable.
+	if needsScrollbar {
+		firstItem := g.tcOffset*g.tcMaxX + 1
+		lastItem := (g.tcOffset+y)*g.tcMaxX
+		if lastItem > len(g.Items) {
+			lastItem = len(g.Items)
+		}
+		comp += fmt.Sprintf(DIM+" rows %d-%d of %d"+RESET+"\n", firstItem, lastItem, len(g.Items))
+		rl.tcUsedY++
+	}
+
 	// Add the equivalent of this group's size to final screen clearing.
-	// This is either the max allowed print size for this group, or its actual size if inferior.
 	if g.MaxLength < y {
 		rl.tcUsedY += g.MaxLength
 	} else {

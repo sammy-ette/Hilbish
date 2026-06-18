@@ -98,7 +98,7 @@ func (g *CompletionGroup) init(rl *Readline) {
 	switch g.DisplayType {
 
 	case TabDisplayGrid:
-		g.initGrid()
+		g.initGrid(rl)
 	case TabDisplayMap:
 		g.initMap()
 	case TabDisplayList:
@@ -216,7 +216,7 @@ func (g *CompletionGroup) writeCompletion(rl *Readline) (comp string) {
 func (g *CompletionGroup) currentCellIndex() int {
 	switch g.DisplayType {
 	case TabDisplayGrid:
-		cell := (g.tcMaxX * (g.tcPosY - 1)) + g.tcOffset + g.tcPosX - 1
+		cell := (g.tcMaxX * (g.tcOffset + g.tcPosY - 1)) + g.tcPosX - 1
 		if cell < 0 {
 			cell = 0
 		}
@@ -268,6 +268,7 @@ func (g *CompletionGroup) goFirstCell() {
 	case TabDisplayGrid:
 		g.tcPosX = 1
 		g.tcPosY = 1
+		g.tcOffset = 0
 
 	case TabDisplayList:
 		g.tcPosX = 0
@@ -285,24 +286,21 @@ func (g *CompletionGroup) goFirstCell() {
 func (g *CompletionGroup) goLastCell() {
 	switch g.DisplayType {
 	case TabDisplayGrid:
-		g.tcPosY = g.tcMaxY
-
+		totalRows := len(g.Items) / g.tcMaxX
+		if len(g.Items)%g.tcMaxX != 0 {
+			totalRows++
+		}
+		if totalRows > g.tcMaxY {
+			g.tcOffset = totalRows - g.tcMaxY
+			g.tcPosY = g.tcMaxY
+		} else {
+			g.tcOffset = 0
+			g.tcPosY = totalRows
+		}
 		restX := len(g.Items) % g.tcMaxX
 		if restX != 0 {
 			g.tcPosX = restX
 		} else {
-			g.tcPosX = g.tcMaxX
-		}
-
-		// We need to adjust the X position depending
-		// on the interpretation of the remainder with
-		// respect to the group's MaxLength.
-		restY := len(g.Items) % g.tcMaxY
-		maxY := len(g.Items) / g.tcMaxX
-		if restY == 0 && maxY > g.MaxLength {
-			g.tcPosX = g.tcMaxX
-		}
-		if restY != 0 && maxY > g.MaxLength-1 {
 			g.tcPosX = g.tcMaxX
 		}
 
