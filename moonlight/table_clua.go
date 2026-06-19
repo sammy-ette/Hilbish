@@ -72,6 +72,10 @@ func (t *Table) setInGo(key string, value Value) {
 	t.nativeFields[StringValue(key)] = value
 }
 
+func (t *Table) Len() int64 {
+	return 0
+}
+
 func (t *Table) Set(key Value, value Value) {
 	if t.refIdx != -1 {
 		t.setInLua(key, value)
