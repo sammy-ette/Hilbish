@@ -49,9 +49,9 @@ func New(rtm *moonlight.Runtime) *Commander {
 
 func (c *Commander) Loader(rtm *moonlight.Runtime) moonlight.Value {
 	exports := map[string]moonlight.Export{
-		"register":   {c.cregister, 2, false},
-		"deregister": {c.cderegister, 1, false},
-		"registry":   {c.cregistry, 0, false},
+		"register":   {Function: c.cregister, ArgNum: 2, Variadic: false},
+		"deregister": {Function: c.cderegister, ArgNum: 1, Variadic: false},
+		"registry":   {Function: c.cregistry, ArgNum: 0, Variadic: false},
 	}
 	mod := moonlight.NewTable()
 	rtm.SetExports(mod, exports)
@@ -112,9 +112,7 @@ func (c *Commander) cregistry(mlr *moonlight.Runtime) error {
 	registryLua := moonlight.NewTable()
 	for cmdName, cmd := range c.Commands {
 		cmdTbl := moonlight.NewTable()
-		//cmdTbl.SetField("exec", moonlight.FunctionValue(cmd))
-		print(cmd)
-		cmdTbl.SetField("exec", moonlight.StringValue("placeholder"))
+		cmdTbl.SetField("exec", moonlight.FunctionValue(cmd))
 
 		registryLua.SetField(cmdName, moonlight.TableValue(cmdTbl))
 	}
