@@ -31,6 +31,7 @@ if not hilbish.midnightEdition then
 		return function() return hilbish.module.load(path) end, path
 	end)
 else
+---@diagnostic disable-next-line: undefined-global
 	pcall = unsafe_pcall
 end
 
