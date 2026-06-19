@@ -362,11 +362,12 @@ func hcmpCall(mlr *moonlight.Runtime) error {
 		return errors.New("completer " + completer + " does not exist")
 	}
 
-	_, err = mlr.Call(moonlight.FunctionValue(completecb), moonlight.StringValue(query), moonlight.StringValue(ctx), moonlight.TableValue(fields))
+	results, err := mlr.Call(moonlight.FunctionValue(completecb), moonlight.StringValue(query), moonlight.StringValue(ctx), moonlight.TableValue(fields))
 	if err != nil {
 		return err
 	}
 
+	mlr.PushNext(results...)
 	return nil
 }
 

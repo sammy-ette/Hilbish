@@ -158,7 +158,7 @@ func hllookpath(mlr *moonlight.Runtime) error {
 
 // exec(cmd)
 // Replaces the currently running Hilbish instance with the supplied command.
-// This can be used to do an in-place restamoonlight.
+// This can be used to do an in-place restart.
 // #param cmd string
 func hlexec(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {

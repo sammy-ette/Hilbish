@@ -144,51 +144,47 @@ print(t.running) // true
 func (th *timersModule) loader() *moonlight.Table {
 	timerMethods := moonlight.NewTable()
 	timerFuncs := map[string]moonlight.Export{
-		/*
-			"start": {timerStart, 1, false},
-			"stop": {timerStop, 1, false},
-		*/
+		"start": {Function: timerStart, ArgNum: 1, Variadic: false},
+		"stop":  {Function: timerStop, ArgNum: 1, Variadic: false},
 	}
 	l.SetExports(timerMethods, timerFuncs)
 
-	/*
-		timerMeta := moonlight.NewTable()
-		timerIndex := func(t *moonlight.Thread, c *moonlight.GoCont) (moonlight.Cont, error) {
-			ti, _ := timerArg(c, 0)
+	timerMeta := moonlight.NewTable()
+	timerIndex := func(mlr *moonlight.Runtime) error {
+		ti, _ := timerArg(mlr, 0)
 
-			arg := mlr.Arg(1)
-			val := timerMethods.Get(arg)
+		arg := mlr.Arg(1)
+		val := timerMethods.Get(arg)
 
-			if val != moonlight.NilValue {
-				return mlr.PushingNext1(t.Runtime, val), nil
-			}
-
-			keyStr, _ := arg.TryString()
-
-			switch keyStr {
-			case "type":
-				val = moonlight.IntValue(int64(ti.typ))
-			case "running":
-				ti.mu.Lock()
-				val = moonlight.BoolValue(ti.running)
-				ti.mu.Unlock()
-			case "duration":
-				val = moonlight.IntValue(int64(ti.dur / time.Millisecond))
-			}
-
-			return mlr.PushingNext1(t.Runtime, val), nil
+		if val != moonlight.NilValue {
+			mlr.PushNext1(val)
+			return nil
 		}
 
-		timerMeta.Set(moonlight.StringValue("__index"), moonlight.FunctionValue(moonlight.NewGoFunction(timerIndex, "__index", 2, false)))
-		l.UnderlyingRuntime().SetRegistry(timerMetaKey, moonlight.TableValue(timerMeta))
-	*/
+		keyStr, _ := arg.TryString()
+
+		switch keyStr {
+		case "type":
+			val = moonlight.IntValue(int64(ti.typ))
+		case "running":
+			ti.mu.Lock()
+			val = moonlight.BoolValue(ti.running)
+			ti.mu.Unlock()
+		case "duration":
+			val = moonlight.IntValue(int64(ti.dur / time.Millisecond))
+		}
+
+		mlr.PushNext1(val)
+		return nil
+	}
+
+	timerMeta.Set(moonlight.StringValue("__index"), moonlight.FunctionValue(moonlight.NewGoFunction(l, timerIndex, "__index", 2, false)))
+	l.SetRegistry(timerMetaKey, moonlight.TableValue(timerMeta))
 
 	thExports := map[string]moonlight.Export{
-		/*
-				"create": {th.luaCreate, 3, false},
-				"get": {th.luaGet, 1, false},
-			"wait":   {Function: timerWait, ArgNum: 0, Variadic: false},
-		*/
+		"create": {Function: th.luaCreate, ArgNum: 3, Variadic: false},
+		"get":    {Function: th.luaGet, ArgNum: 1, Variadic: false},
+		"wait":   {Function: th.luaWait, ArgNum: 0, Variadic: false},
 	}
 
 	luaTh := moonlight.NewTable()

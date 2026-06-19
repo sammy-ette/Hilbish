@@ -73,7 +73,14 @@ func (t *Table) setInGo(key string, value Value) {
 }
 
 func (t *Table) Len() int64 {
-	return 0
+	if t.refIdx == -1 {
+		return int64(len(t.nativeFields))
+	}
+
+	t.Push()
+	defer t.mlr.state.Pop(1)
+
+	return int64(t.mlr.state.ObjLen(-1))
 }
 
 func (t *Table) Set(key Value, value Value) {

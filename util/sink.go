@@ -255,7 +255,7 @@ func NewSinkInput(mlr *moonlight.Runtime, r io.Reader) *Sink {
 	s := &Sink{
 		Rw: bufio.NewReadWriter(bufio.NewReader(r), nil),
 	}
-	//s.UserData = sinkUserData(rtm, s)
+	s.UserData = sinkUserData(mlr, s)
 
 	if f, ok := r.(*os.File); ok {
 		s.file = f
@@ -269,7 +269,7 @@ func NewSinkOutput(mlr *moonlight.Runtime, w io.Writer) *Sink {
 		Rw:        bufio.NewReadWriter(nil, bufio.NewWriter(w)),
 		autoFlush: true,
 	}
-	//s.UserData = sinkUserData(rtm, s)
+	s.UserData = sinkUserData(mlr, s)
 
 	if f, ok := w.(*os.File); ok {
 		s.file = f

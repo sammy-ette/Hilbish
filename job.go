@@ -112,7 +112,7 @@ func (j *job) wait() {
 	}
 }
 
-// setHandle sets the exemlr.Cmd for the job. Callers must hold j.mu.
+// setHandle sets the exec.Cmd for the job. Callers must hold j.mu.
 func (j *job) setHandle(handle *exec.Cmd) {
 	j.handle = handle
 	j.args = handle.Args

@@ -172,8 +172,8 @@ func (v Value) TryBool() (n bool, ok bool) {
 	return
 }
 
-func (v Value) TryInt() (n int, ok bool) {
-	n, ok = v.iface.(int)
+func (v Value) TryInt() (n int64, ok bool) {
+	n, ok = v.iface.(int64)
 	return
 }
 

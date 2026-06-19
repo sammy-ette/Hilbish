@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -57,17 +59,15 @@ func (t *timer) start() error {
 		for {
 			select {
 			case <-t.ticker.C:
-				/*
-					_, err := l.Call1(moonlight.FunctionValue(t.fun))
-					if err != nil {
-						fmt.Fprintln(os.Stderr, "Error in function:\n", err)
-						t.stop()
-					}
-					// only run one for timeout
-					if t.typ == timerTimeout {
-						t.stop()
-					}
-				*/
+				_, err := l.Call1(moonlight.FunctionValue(t.fun))
+				if err != nil {
+					fmt.Fprintln(os.Stderr, "Error in function:\n", err)
+					t.stop()
+				}
+				// only run one for timeout
+				if t.typ == timerTimeout {
+					t.stop()
+				}
 			case <-t.channel:
 				t.ticker.Stop()
 				return

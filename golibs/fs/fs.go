@@ -112,7 +112,7 @@ func fcd(mlr *moonlight.Runtime) error {
 
 // dir(path) -> string
 // Returns the directory part of `path`. If a file path like
-// `~/Documents/domlr.txt` then this function will return `~/Documents`.
+// `~/Documents/doc.txt` then this function will return `~/Documents`.
 // #param path string Path to get the directory for.
 // #returns string
 func fdir(mlr *moonlight.Runtime) error {
@@ -163,7 +163,7 @@ func fexecutable(mlr *moonlight.Runtime) error {
 	a.txt
 	init.lua
 	code.lua
-	domlr.pdf
+	doc.pdf
 ]]--
 local matches = fs.glob './*.lua'
 print(matches)
