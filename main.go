@@ -15,7 +15,6 @@ import (
 	"hilbish/moonlight"
 	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/pborman/getopt"
 	"golang.org/x/term"
 )
@@ -23,7 +22,7 @@ import (
 var (
 	l *moonlight.Runtime
 
-	luaCompletions   = map[string]*rt.Closure{}
+	luaCompletions   = map[string]*moonlight.Closure{}
 	luaCompletionsMu sync.RWMutex
 
 	confDir     string
