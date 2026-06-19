@@ -178,10 +178,11 @@ func getVersion() string {
 		v.WriteString("." + gitCommit)
 	}
 
-	v.WriteString(" (" + releaseName + ")")
+	v.WriteString(" (" + releaseName)
 	if moonlight.IsMidnight() {
-		v.WriteString(" (Midnight Edition)")
+		v.WriteString(" - Midnight Edition")
 	}
+	v.WriteString(")")
 
 	return v.String()
 }
