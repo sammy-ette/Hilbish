@@ -6,7 +6,7 @@ local fs = require 'fs'
 -- we will use that to automatically load all commands by reading
 -- all the files in this dir and just requiring it.
 local info = debug.getinfo(1)
-local commandDir = fs.dir(info.source)
+local commandDir = fs.dir(info.source:match './.+')
 if commandDir == '.' then return end
 
 local commands = fs.readdir(commandDir)
