@@ -6,9 +6,21 @@ func (mlr *Runtime) DoString(code string) (Value, error) {
 	// mlr.mu.Lock()
 	// defer mlr.mu.Unlock()
 
-	err := mlr.state.DoString(code)
+	top := mlr.state.GetTop()
 
-	return NilValue, err
+	if err := mlr.state.DoString(code); err != nil {
+		return NilValue, err
+	}
+
+	nres := mlr.state.GetTop() - top
+	if nres == 0 {
+		return NilValue, nil
+	}
+
+	ret := mlr.valueFromState(top + 1)
+	mlr.state.Pop(nres)
+
+	return ret, nil
 }
 
 func (mlr *Runtime) MustDoString(code string) Value {
