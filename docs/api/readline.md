@@ -124,7 +124,7 @@ Sets the hinter function. Called on every key insert to provide inline hint text
 #### setHistory(handler)
 
 Sets the history handler. handler is a table with add, get, size, clear, all functions.
-Use readline.newHistory(path) to get a file-backed handler, or supply your own.
+Use newHistory(path) to get a file-backed handler, or supply your own.
 
 #### setInputMode(mode)
 
