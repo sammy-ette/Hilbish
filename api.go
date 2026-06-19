@@ -75,6 +75,7 @@ func hilbishLoader(mlr *moonlight.Runtime) moonlight.Value {
 	util.SetField(mod, "login", moonlight.BoolValue(login))
 	util.SetField(mod, "vimMode", moonlight.NilValue)
 	util.SetField(mod, "exitCode", moonlight.IntValue(0))
+	util.SetField(mod, "midnightEdition", moonlight.BoolValue(moonlight.IsMidnight()))
 
 	// hilbish.userDir table
 	hshuser := userDirLoader()
