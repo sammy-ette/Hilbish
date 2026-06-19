@@ -7,7 +7,6 @@ local fs = require 'fs'
 -- all the files in this dir and just requiring it.
 local info = debug.getinfo(1)
 local commandDir = fs.dir(info.source:match './.+')
-print(commandDir)
 if commandDir == '.' then return end
 
 local commands = fs.readdir(commandDir)

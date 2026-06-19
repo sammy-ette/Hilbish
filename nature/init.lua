@@ -19,17 +19,17 @@ package.path = package.path .. ';' .. hilbish.dataDir .. '/?/init.lua'
 .. ';' .. hilbish.dataDir .. '/?/?.lua' .. ";" .. hilbish.dataDir .. '/?.lua'
 
 if not hilbish.midnightEdition then
-	-- hilbish.module.paths = '?.so;?/?.so;'
-	-- .. hilbish.userDir.data .. 'hilbish/libs/?/?.so'
-	-- .. ";" .. hilbish.userDir.data .. 'hilbish/libs/?.so'
+	hilbish.module.paths = '?.so;?/?.so;'
+	.. hilbish.userDir.data .. 'hilbish/libs/?/?.so'
+	.. ";" .. hilbish.userDir.data .. 'hilbish/libs/?.so'
 
-	-- table.insert(package.searchers, function(module)
-	-- 	local path = package.searchpath(module, hilbish.module.paths)
-	-- 	if not path then return nil end
+	table.insert(package.searchers, function(module)
+		local path = package.searchpath(module, hilbish.module.paths)
+		if not path then return nil end
 
-	-- 	-- it didnt work normally, idk
-	-- 	return function() return hilbish.module.load(path) end, path
-	-- end)
+		-- it didnt work normally, idk
+		return function() return hilbish.module.load(path) end, path
+	end)
 else
 	pcall = unsafe_pcall
 end
