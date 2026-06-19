@@ -66,6 +66,6 @@ func TryUserData(v Value) (*UserData, bool) {
 	return &UserData{ud: ud}, true
 }
 
-func AsValue(v interface{}) Value {
+func AsValue(v any) Value {
 	return rt.AsValue(v)
 }

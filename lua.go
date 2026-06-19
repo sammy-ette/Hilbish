@@ -26,7 +26,7 @@ func luaInit() {
 	println("hilbish mod init")
 
 	hooks = bait.New(l)
-	hooks.SetRecoverer(func(event string, handler *bait.Listener, err interface{}) {
+	hooks.SetRecoverer(func(event string, handler *bait.Listener, err any) {
 		fmt.Println("Error in `error` hook handler:", err)
 		hooks.Off(event, handler)
 	})

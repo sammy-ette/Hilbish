@@ -77,7 +77,7 @@ func (h *fileHistory) Len() int {
 	return len(h.items)
 }
 
-func (h *fileHistory) Dump() interface{} {
+func (h *fileHistory) Dump() any {
 	return h.items
 }
 
@@ -149,7 +149,7 @@ func (h *luaHistoryWrapper) Len() int {
 	return int(num)
 }
 
-func (h *luaHistoryWrapper) Dump() interface{} {
+func (h *luaHistoryWrapper) Dump() any {
 	return nil
 }
 

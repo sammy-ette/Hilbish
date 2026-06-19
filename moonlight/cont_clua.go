@@ -3,7 +3,7 @@
 package moonlight
 
 type GoCont struct{}
-type Cont interface{}
+type Cont any
 
 func (gc *GoCont) Next() Cont {
 	return gc

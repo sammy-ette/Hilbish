@@ -8,7 +8,7 @@ import (
 )
 
 type Value struct {
-	iface interface{}
+	iface any
 }
 
 var NilValue = Value{nil}
@@ -50,7 +50,7 @@ func FunctionValue(f Callable) Value {
 	return Value{iface: f}
 }
 
-func AsValue(i interface{}) Value {
+func AsValue(i any) Value {
 	if i == nil {
 		return NilValue
 	}

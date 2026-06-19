@@ -38,7 +38,7 @@ const (
 )
 
 // Recoverer is a function which is called when a panic occurs in an event.
-type Recoverer func(event string, handler *Listener, err interface{})
+type Recoverer func(event string, handler *Listener, err any)
 
 // Listener is a struct that holds the handler for an event.
 type Listener struct {
@@ -95,7 +95,7 @@ func (b *Bait) Emit(event string, args ...any) []moonlight.Value {
 // callListener invokes a single listener, recovering from any panic so that
 // one bad listener doesn't prevent the rest of the listeners for this event
 // from running.
-func (b *Bait) callListener(event string, handle *Listener, args ...interface{}) (ret moonlight.Value, called bool) {
+func (b *Bait) callListener(event string, handle *Listener, args ...any) (ret moonlight.Value, called bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			b.callRecoverer(event, handle, err)
@@ -220,7 +220,7 @@ func (b *Bait) removeListener(event string, listener *Listener) {
 	}
 }
 
-func (b *Bait) callRecoverer(event string, handler *Listener, err interface{}) {
+func (b *Bait) callRecoverer(event string, handler *Listener, err any) {
 	if b.recoverer == nil {
 		panic(err)
 	}
@@ -363,7 +363,7 @@ func (b *Bait) bthrow(mlr *moonlight.Runtime) error {
 	if err != nil {
 		return err
 	}
-	ifaceSlice := make([]interface{}, len(mlr.Etc()))
+	ifaceSlice := make([]any, len(mlr.Etc()))
 	for i, v := range mlr.Etc() {
 		ifaceSlice[i] = v
 	}
