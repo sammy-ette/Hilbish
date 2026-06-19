@@ -2,24 +2,20 @@
 
 package moonlight
 
-import (
-	"github.com/aarzilli/golua/lua"
-)
-
 type Loader func(*Runtime) Value
 
 func (mlr *Runtime) LoadLibrary(ldr Loader, name string) {
 	// mlr.mu.Lock()
 	// defer mlr.mu.Unlock()
 
-	cluaLoader := func(L *lua.State) int {
-		mlr.pushToState(ldr(mlr))
+	pkg := ldr(mlr)
 
-		return 1
-	}
+	mlr.pushToState(pkg)
+	mlr.state.SetGlobal(name)
 
 	mlr.state.GetGlobal("package")
-	mlr.state.GetField(-1, "preload")
-	mlr.state.PushGoClosure(cluaLoader)
+	mlr.state.GetField(-1, "loaded")
+	mlr.pushToState(pkg)
 	mlr.state.SetField(-2, name)
+	mlr.state.Pop(2)
 }
