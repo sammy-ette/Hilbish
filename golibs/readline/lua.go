@@ -48,6 +48,11 @@ func luaLoader(rtm *rt.Runtime) (rt.Value, func()) {
 		"setHistory":          {Function: rlSetHistory, ArgNum: 2, Variadic: false},
 		"setRawInputCallback": {Function: rlSetRawInputCallback, ArgNum: 2, Variadic: false},
 		"setSearcher":         {Function: rlSetSearcher, ArgNum: 2, Variadic: false},
+		"bindKey":             {Function: rlBindKey, ArgNum: 3, Variadic: false},
+		"unbindKey":           {Function: rlUnbindKey, ArgNum: 2, Variadic: false},
+		"addAction":           {Function: rlAddAction, ArgNum: 3, Variadic: false},
+		"removeAction":        {Function: rlRemoveAction, ArgNum: 2, Variadic: false},
+		"getBindings":         {Function: rlGetBindings, ArgNum: 1, Variadic: false},
 	}
 	util.SetExports(rtm, rlMethods, rlMethodss)
 
@@ -804,10 +809,149 @@ func rlSetSearcher(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), nil
 }
 
+// #member
+// bindKey(key, action)
+// Binds a key to an action name or a custom function.
+// #param key string key name like "Ctrl-A" or raw sequence
+// #param action string|function action name or custom function
+func rlBindKey(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.CheckNArgs(3); err != nil {
+		return nil, err
+	}
+
+	rl, err := rlArg(c, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	keyName, err := c.StringArg(1)
+	if err != nil {
+		return nil, err
+	}
+
+	keySeq := keyNameToSeq(keyName)
+	arg := c.Arg(2)
+
+	if s, ok := arg.TryString(); ok {
+		rl.bindKey(keySeq, s)
+	} else if fn, ok := arg.TryClosure(); ok {
+		actionName := "__custom_" + keyName
+		rl.customActions[actionName] = fn
+		rl.luaRuntime = t.Runtime
+		rl.bindKey(keySeq, actionName)
+	}
+
+	return c.Next(), nil
+}
+
+// #member
+// unbindKey(key)
+// Unbinds a key from any action.
+// #param key string key name like "Ctrl-A" or raw sequence
+func rlUnbindKey(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.CheckNArgs(2); err != nil {
+		return nil, err
+	}
+
+	rl, err := rlArg(c, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	keyName, err := c.StringArg(1)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert key name to raw sequence
+	keySeq := keyNameToSeq(keyName)
+	rl.unbindKey(keySeq)
+
+	return c.Next(), nil
+}
+
+// #member
+// addAction(name, function)
+// Registers or overrides an action with a custom Lua function.
+// #param name string
+// #param fn function
+func rlAddAction(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.CheckNArgs(3); err != nil {
+		return nil, err
+	}
+
+	rl, err := rlArg(c, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := c.StringArg(1)
+	if err != nil {
+		return nil, err
+	}
+
+	fn, err := c.ClosureArg(2)
+	if err != nil {
+		return nil, err
+	}
+	rl.registerLuaAction(name, fn)
+	rl.luaRuntime = t.Runtime
+
+	return c.Next(), nil
+}
+
+// #member
+// removeAction(name)
+// Removes a keybind action.
+// #param name string
+func rlRemoveAction(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.CheckNArgs(2); err != nil {
+		return nil, err
+	}
+
+	rl, err := rlArg(c, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	name, err := c.StringArg(1)
+	if err != nil {
+		return nil, err
+	}
+
+	rl.removeAction(name)
+	rl.removeLuaAction(name)
+
+	return c.Next(), nil
+}
+
+// #member
+// getBindings() -> table
+// Returns the current key-to-action bindings for this readline instance.
+// #returns table<string,string>
+func rlGetBindings(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
+	}
+
+	rl, err := rlArg(c, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	tbl := rt.NewTable()
+	for keySeq, action := range rl.keymap {
+		keyName := seqToKeyName(keySeq)
+		tbl.Set(rt.StringValue(keyName), rt.StringValue(action))
+	}
+
+	return c.PushingNext1(t.Runtime, rt.TableValue(tbl)), nil
+}
+
 func rlArg(c *rt.GoCont, arg int) (*Readline, error) {
 	j, ok := valueToRl(c.Arg(arg))
 	if !ok {
-		return nil, fmt.Errorf("#%d must be a readline", arg+1)
+		return nil, fmt.Errorf("#%d must be readline", arg+1)
 	}
 
 	return j, nil

@@ -3,8 +3,19 @@
 ---@class Readline
 local Readline = {}
 
+---@param name string
+---@param fn fun(...: any)
+function Readline:addAction(name, fn) end
+
+---@param key string
+---@param action string|fun(...: any)
+function Readline:bindKey(key, action) end
+
 ---@param amount number
 function Readline:deleteByAmount(amount) end
+
+---@return table<string,string>
+function Readline:getBindings() end
 
 ---@return string
 function Readline:getLine() end
@@ -25,6 +36,9 @@ function Readline:read() end
 
 ---@return string
 function Readline:readChar() end
+
+---@param name string
+function Readline:removeAction(name) end
 
 ---@param fn fun(line:string,pos:integer):table,string
 function Readline:setCompleter(fn) end
@@ -56,6 +70,9 @@ function Readline:setViActionCallback(fn) end
 
 ---@param fn fun(...: any)
 function Readline:setViModeCallback(fn) end
+
+---@param key string
+function Readline:unbindKey(key) end
 
 ---@class readline
 ---@field fuzzySearch fun(needle: string, haystack: table): table

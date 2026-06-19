@@ -26,6 +26,128 @@
 	],
 	"docs": [
 		{
+			"name": "AddAction",
+			"description": [
+				"Registers or overrides an action with a custom Lua function."
+			],
+			"signature": "addAction(name, function)",
+			"goFuncName": "rladdaction",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": []
+				},
+				{
+					"Name": "fn",
+					"Type": "function",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "fn",
+						"fields": [
+							"function"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "BindKey",
+			"description": [
+				"Binds a key to an action name or a custom function."
+			],
+			"signature": "bindKey(key, action)",
+			"goFuncName": "rlbindkey",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "key",
+					"Type": "string",
+					"Doc": [
+						"key",
+						"name",
+						"like",
+						"\"Ctrl-A\"",
+						"or",
+						"raw",
+						"sequence"
+					]
+				},
+				{
+					"Name": "action",
+					"Type": "string|function",
+					"Doc": [
+						"action",
+						"name",
+						"or",
+						"custom",
+						"function"
+					]
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "key",
+						"fields": [
+							"string",
+							"key",
+							"name",
+							"like",
+							"\"Ctrl-A\"",
+							"or",
+							"raw",
+							"sequence"
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "action",
+						"fields": [
+							"string|function",
+							"action",
+							"name",
+							"or",
+							"custom",
+							"function"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
 			"name": "DeleteByAmount",
 			"description": [
 				"Deletes characters in the line by the given amount."
@@ -105,6 +227,33 @@
 						"id": "table",
 						"fields": [],
 						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "GetBindings",
+			"description": [
+				"Returns the current key-to-action bindings for this readline instance."
+			],
+			"signature": "getBindings() -\u003e table",
+			"goFuncName": "rlgetbindings",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"returns": [
+					{
+						"id": "table\u003cstring,string\u003e",
+						"fields": [],
+						"startIdx": 3
 					}
 				]
 			}
@@ -330,6 +479,42 @@
 			}
 		},
 		{
+			"name": "RemoveAction",
+			"description": [
+				"Removes a keybind action."
+			],
+			"signature": "removeAction(name)",
+			"goFuncName": "rlremoveaction",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "name",
+						"fields": [
+							"string"
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
 			"name": "SetCompleter",
 			"description": [
 				"Sets the tab completion handler. fn receives (line, pos) and returns (groups, prefix)."
@@ -441,7 +626,7 @@
 			"name": "SetHistory",
 			"description": [
 				"Sets the history handler. handler is a table with add, get, size, clear, all functions.",
-				"Use readline.newHistory(path) to get a file-backed handler, or supply your own."
+				"Use newHistory(path) to get a file-backed handler, or supply your own."
 			],
 			"signature": "setHistory(handler)",
 			"goFuncName": "rlsethistory",
@@ -703,6 +888,57 @@
 							"function"
 						],
 						"startIdx": 4
+					}
+				]
+			}
+		},
+		{
+			"name": "UnbindKey",
+			"description": [
+				"Unbinds a key from any action."
+			],
+			"signature": "unbindKey(key)",
+			"goFuncName": "rlunbindkey",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "key",
+					"Type": "string",
+					"Doc": [
+						"key",
+						"name",
+						"like",
+						"\"Ctrl-A\"",
+						"or",
+						"raw",
+						"sequence"
+					]
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "key",
+						"fields": [
+							"string",
+							"key",
+							"name",
+							"like",
+							"\"Ctrl-A\"",
+							"or",
+							"raw",
+							"sequence"
+						],
+						"startIdx": 3
 					}
 				]
 			}

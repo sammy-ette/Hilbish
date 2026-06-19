@@ -77,9 +77,21 @@ add, get, size, clear, and all functions. Pass it to setHistory.
 
 ### Methods
 
+#### addAction(name, function)
+
+Registers or overrides an action with a custom Lua function.
+
+#### bindKey(key, action)
+
+Binds a key to an action name or a custom function.
+
 #### deleteByAmount(amount)
 
 Deletes characters in the line by the given amount.
+
+#### getBindings() -> table
+
+Returns the current key-to-action bindings for this readline instance.
 
 #### getLine() -> string
 
@@ -109,6 +121,10 @@ Reads input from the user.
 
 Reads a keystroke from the user. This is in a format of something like Ctrl-L.
 
+#### removeAction(name)
+
+Removes a keybind action.
+
 #### setCompleter(fn)
 
 Sets the tab completion handler. fn receives (line, pos) and returns (groups, prefix).
@@ -124,7 +140,7 @@ Sets the hinter function. Called on every key insert to provide inline hint text
 #### setHistory(handler)
 
 Sets the history handler. handler is a table with add, get, size, clear, all functions.
-Use readline.newHistory(path) to get a file-backed handler, or supply your own.
+Use newHistory(path) to get a file-backed handler, or supply your own.
 
 #### setInputMode(mode)
 
@@ -154,4 +170,8 @@ fn receives (action string, args table).
 
 Sets the function called when the Vim mode changes.
 fn receives the mode string: "insert", "normal", "delete", or "replace".
+
+#### unbindKey(key)
+
+Unbinds a key from any action.
 

@@ -5,6 +5,8 @@ import (
 	"os"
 	"regexp"
 	"sync"
+
+	rt "github.com/arnodel/golua/runtime"
 )
 
 // Instance is used to encapsulate the parameter group and run time of any given
@@ -192,6 +194,12 @@ type Readline struct {
 
 	EnableGetCursorPos bool
 
+	// Keybinding system
+	keymap        Keymap
+	actions       map[string]func(*Readline) error
+	customActions map[string]*rt.Closure
+	luaRuntime    *rt.Runtime
+
 	// event
 	evtKeyPress map[string]func(string, []rune, int) *EventReturn
 
@@ -256,6 +264,10 @@ func NewInstance() *Readline {
 	}
 
 	rl.bufferedOut = bufio.NewWriter(os.Stdout)
+
+	// Keybinding system
+	rl.customActions = make(map[string]*rt.Closure)
+	rl.initKeymap()
 
 	// Registers
 	rl.initRegisters()
