@@ -79,16 +79,11 @@ func (mlr *Runtime) GoFunction(fun GoToLuaFunc, argNum int) *GoFunctionFunc {
 		cf: func(L *lua.State) int {
 			mlr.fixedArgs = argNum
 
-			println("RUNNING LUA FUNCTION")
 			err := fun(mlr)
-			println("~~~ done running the function")
-			println(err)
 			if err != nil {
 				L.RaiseError(err.Error())
 				return 0
 			}
-
-			println("cya")
 
 			return mlr.returnNum
 		},
