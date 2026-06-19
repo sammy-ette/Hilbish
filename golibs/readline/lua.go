@@ -77,7 +77,6 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 func rlNew(mlr *moonlight.Runtime) error {
 	rl := NewInstance()
 	ud := rlUserData(mlr, rl)
-	println("got user data")
 
 	mlr.PushNext1(moonlight.UserDataValue(ud))
 	return nil
