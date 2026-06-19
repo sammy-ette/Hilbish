@@ -207,10 +207,6 @@ func matchPath(query string) ([]string, string) {
 			entries = append(entries, entry)
 		}
 	}
-	if !strings.HasPrefix(oldQuery, "\"") {
-		baseName = escapeFilename(baseName)
-	}
-
 	return entries, baseName
 }
 
@@ -246,7 +242,7 @@ func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
 // The documentation for completions, under Features/Completions or `doc completions`
 // provides more details.
 // #param scope string
-// #param cb function
+// #param cb fun(query:string,ctx:string,fields:table<string>):table,string
 /*
 #example
 -- This is a very simple example. Read the full doc for completions for details.
@@ -449,6 +445,8 @@ func hcmpDirs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // This function can be overridden to supply a custom handler. Note that alias resolution is required to be done in this function.
 // #param line string The current Hilbish command line
 // #param pos number Numerical position of the cursor
+// #returns string The common prefix of all completion items
+// #returns table A list of completion groups
 /*
 #example
 -- stripped down version of the default implementation

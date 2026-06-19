@@ -14,8 +14,7 @@ var (
 	.. hilbish.userDir.config	.. '/hilbish/?/?.lua;'
 	.. hilbish.userDir.config	.. '/hilbish/?.lua'`
 
-	prompt          string
-	multilinePrompt = "> "
+	prompt string
 )
 
 // Version info
@@ -32,6 +31,4 @@ var (
 	running     bool // Is a command currently running
 	interactive bool
 	login       bool // Are we the login shell?
-	noexecute   bool // Should we run Lua or only report syntax errors
-	initialized bool
 )

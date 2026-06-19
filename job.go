@@ -10,7 +10,6 @@ import (
 	"sync"
 	"syscall"
 
-	"hilbish/moonlight"
 	"hilbish/util"
 
 	rt "github.com/arnodel/golua/runtime"
@@ -305,7 +304,7 @@ func (j *jobHandler) add(cmd string, args []string, path string) *job {
 		stdout:  &bytes.Buffer{},
 		stderr:  &bytes.Buffer{},
 	}
-	//jb.ud = jobUserData(jb)
+	jb.ud = jobUserData(jb)
 
 	j.jobs[j.latestID] = jb
 	hooks.Emit("job.add", rt.UserDataValue(jb.ud))
@@ -355,70 +354,65 @@ Manage interactive jobs in Hilbish via Lua.
 
 Jobs are the name of background tasks/commands. A job can be started via
 interactive usage or with the functions defined below for use in external runners. */
-func (j *jobHandler) loader() *moonlight.Table {
-	/*
-		jobMethods := rt.NewTable()
-		jFuncs := map[string]util.LuaExport{
-			"stop":       {Function: luaStopJob, ArgNum: 1, Variadic: false},
-			"start":      {Function: luaStartJob, ArgNum: 1, Variadic: false},
-			"foreground": {Function: luaForegroundJob, ArgNum: 1, Variadic: false},
-			"background": {Function: luaBackgroundJob, ArgNum: 1, Variadic: false},
-		}
-		util.SetExports(l, jobMethods, jFuncs)
-	*/
+func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
+	jobMethods := rt.NewTable()
+	jFuncs := map[string]util.LuaExport{
+		"stop":       {Function: luaStopJob, ArgNum: 1, Variadic: false},
+		"start":      {Function: luaStartJob, ArgNum: 1, Variadic: false},
+		"foreground": {Function: luaForegroundJob, ArgNum: 1, Variadic: false},
+		"background": {Function: luaBackgroundJob, ArgNum: 1, Variadic: false},
+	}
+	util.SetExports(l.UnderlyingRuntime(), jobMethods, jFuncs)
 
-	/*
-		jobMeta := rt.NewTable()
-		jobIndex := func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-			j, _ := jobArg(c, 0)
+	jobMeta := rt.NewTable()
+	jobIndex := func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+		j, _ := jobArg(c, 0)
 
-			arg := c.Arg(1)
-			val := jobMethods.Get(arg)
+		arg := c.Arg(1)
+		val := jobMethods.Get(arg)
 
-			if val != rt.NilValue {
-				return c.PushingNext1(t.Runtime, val), nil
-			}
-
-			keyStr, _ := arg.TryString()
-
-			j.mu.RLock()
-			switch keyStr {
-			case "cmd":
-				val = rt.StringValue(j.cmd)
-			case "running":
-				val = rt.BoolValue(j.running)
-			case "id":
-				val = rt.IntValue(int64(j.id))
-			case "pid":
-				val = rt.IntValue(int64(j.pid))
-			case "exitCode":
-				val = rt.IntValue(int64(j.exitCode))
-			case "stdout":
-				val = rt.StringValue(j.stdout.String())
-			case "stderr":
-				val = rt.StringValue(j.stderr.String())
-			}
-			j.mu.RUnlock()
-
+		if val != rt.NilValue {
 			return c.PushingNext1(t.Runtime, val), nil
 		}
 
-		jobMeta.Set(rt.StringValue("__index"), rt.FunctionValue(rt.NewGoFunction(jobIndex, "__index", 2, false)))
-		l.SetRegistry(jobMetaKey, rt.TableValue(jobMeta))
-	*/
+		keyStr, _ := arg.TryString()
 
-	jobFuncs := map[string]moonlight.Export{
-		/*
-			"all": {j.luaAllJobs, 0, false},
-			"last": {j.luaLastJob, 0, false},
-			"get": {j.luaGetJob, 1, false},
-			"add": {j.luaAddJob, 3, false},
-			"disown": {j.luaDisownJob, 1, false},
-		*/
+		j.mu.RLock()
+		switch keyStr {
+		case "cmd":
+			val = rt.StringValue(j.cmd)
+		case "running":
+			val = rt.BoolValue(j.running)
+		case "id":
+			val = rt.IntValue(int64(j.id))
+		case "pid":
+			val = rt.IntValue(int64(j.pid))
+		case "exitCode":
+			val = rt.IntValue(int64(j.exitCode))
+		case "stdout":
+			val = rt.StringValue(j.stdout.String())
+		case "stderr":
+			val = rt.StringValue(j.stderr.String())
+		}
+		j.mu.RUnlock()
+
+		return c.PushingNext1(t.Runtime, val), nil
 	}
 
-	luaJob := moonlight.NewTable()
-	l.SetExports(luaJob, jobFuncs)
+	jobMeta.Set(rt.StringValue("__index"), rt.FunctionValue(rt.NewGoFunction(jobIndex, "__index", 2, false)))
+	l.SetRegistry(jobMetaKey, rt.TableValue(jobMeta))
+
+	jobFuncs := map[string]util.LuaExport{
+		"all":     {Function: j.luaAllJobs, ArgNum: 0, Variadic: false},
+		"last":    {Function: j.luaLastJob, ArgNum: 0, Variadic: false},
+		"get":     {Function: j.luaGetJob, ArgNum: 1, Variadic: false},
+		"add":     {Function: j.luaAddJob, ArgNum: 3, Variadic: false},
+		"disown":  {Function: j.luaDisownJob, ArgNum: 1, Variadic: false},
+		"stopAll": {Function: j.luaStopAll, ArgNum: 0, Variadic: false},
+	}
+
+	luaJob := rt.NewTable()
+	util.SetExports(rtm, luaJob, jobFuncs)
 
 	return luaJob
 }
@@ -442,12 +436,10 @@ func valueToJob(val rt.Value) (*job, bool) {
 	return j, ok
 }
 
-/*
 func jobUserData(j *job) *rt.UserData {
-	jobMeta := l.UnderlyingRuntime().Registry(jobMetaKey)
+	jobMeta := l.Registry(jobMetaKey)
 	return rt.NewUserData(j, jobMeta.AsTable())
 }
-*/
 
 // #interface jobs
 // get(id) -> @Job
@@ -566,4 +558,12 @@ func (j *jobHandler) luaLastJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	}
 
 	return c.PushingNext1(t.Runtime, rt.UserDataValue(job.ud)), nil
+}
+
+// #interface jobs
+// stopAll()
+// Stops all running jobs.
+func (j *jobHandler) luaStopAll(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	j.stopAll()
+	return c.Next(), nil
 }

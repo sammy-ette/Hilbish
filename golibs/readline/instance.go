@@ -5,8 +5,6 @@ import (
 	"os"
 	"regexp"
 	"sync"
-
-	"github.com/arnodel/golua/lib/packagelib"
 )
 
 // Instance is used to encapsulate the parameter group and run time of any given
@@ -15,6 +13,9 @@ import (
 
 // #type
 type Readline struct {
+	// Buffer is the core text-editing model (line []rune, pos int) and its
+	// fields/methods are promoted directly onto Readline.
+	*Buffer
 
 	//
 	// Input Modes  -------------------------------------------------------------------------------
@@ -51,17 +52,10 @@ type Readline struct {
 	PasswordMask rune
 
 	// readline operating parameters
-	line  []rune // This is the input line, with entered text: full line = mlnPrompt + line
-	pos   int
 	posX  int // Cursor position X
 	fullX int // X coordinate of the full input line, including the prompt if needed.
 	posY  int // Cursor position Y (if multiple lines span)
 	fullY int // Y offset to the end of input line.
-
-	// Buffer received from host programms
-	multiline     []byte
-	multisplit    []string
-	skipStdinRead bool
 
 	// SyntaxHighlight is a helper function to provide syntax highlighting.
 	// Once enabled, set to nil to disable again.
@@ -210,13 +204,12 @@ type Readline struct {
 	RawInputCallback func([]rune) // called on all input
 
 	bufferedOut *bufio.Writer
-
-	Loader packagelib.Loader
 }
 
 // NewInstance is used to create a readline instance and initialise it with sane defaults.
 func NewInstance() *Readline {
 	rl := new(Readline)
+	rl.Buffer = &Buffer{line: []rune{}, pos: 0}
 
 	// Prompt
 	rl.Multiline = false
@@ -263,11 +256,6 @@ func NewInstance() *Readline {
 	}
 
 	rl.bufferedOut = bufio.NewWriter(os.Stdout)
-
-	rl.Loader = packagelib.Loader{
-		Name: "readline",
-		Load: rl.luaLoader,
-	}
 
 	// Registers
 	rl.initRegisters()

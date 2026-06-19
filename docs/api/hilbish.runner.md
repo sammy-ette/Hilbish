@@ -1,6 +1,6 @@
 ---
 title: Module hilbish.runner
-description: interactive command runner customization
+description: The runner interface contains functions that allow the user to change
 layout: doc
 menu:
   docs:
@@ -9,48 +9,10 @@ menu:
 
 ## Introduction
 
- The runner interface contains functions that allow the user to change
 how Hilbish interprets interactive input.
 Users can add and change the default runner for interactive input to any
 language or script of their choosing. A good example is using it to
-write command in Fennel.
-
-Runners are functions that evaluate user input. The default runners in
-Hilbish can run shell script and Lua code.
-
-A runner is passed the input and has to return a table with these values.
-All are not required, only the useful ones the runner needs to return.
-(So if there isn't an error, just omit `err`.)
-
-- `exitCode` (number): Exit code of the command
-- `input` (string): The text input of the user. This is used by Hilbish to append extra input, in case
-more is requested.
-- `err` (string): A string that represents an error from the runner.
-This should only be set when, for example, there is a syntax error.
-It can be set to a few special values for Hilbish to throw the right
-hooks and have a better looking message.
-	- `<command>: not-found` will throw a `command.not-found` hook
-	based on what `<command>` is.
-	- `<command>: not-executable` will throw a `command.not-executable` hook.
-- `continue` (boolean): Whether Hilbish should prompt the user for no input
-- `newline` (boolean): Whether a newline should be added at the end of `input`.
-
-Here is a simple example of a fennel runner. It falls back to
-shell script if fennel eval has an error.
-```lua
-local fennel = require 'fennel'
-
-hilbish.runnerMode(function(input)
-	local ok = pcall(fennel.eval, input)
-	if ok then
-		return {
-			input = input
-		}
-	end
-
-	return hilbish.runner.sh(input)
-end)
-```
+write commands in Fennel.
 
 ## Functions
 
@@ -58,11 +20,11 @@ end)
 - [`hilbish.runner.exec(cmd, runnerName) -> table`](#exec): Executes `cmd` with a runner.
 - [`hilbish.runner.get(name) -> table`](#get): Get a runner by name.
 - [`hilbish.runner.getCurrent() -> string`](#getCurrent): Returns the current runner by name.
+- [`hilbish.runner.lua(input) -> table`](#lua): Evaluates `cmd` as Lua input. This is the same as using `dofile`
 - [`hilbish.runner.run(input, priv)`](#run): Runs `input` with the currently set Hilbish runner.
-- [`hilbish.runner.lua(cmd)`](#runner.lua): Evaluates `cmd` as Lua input. This is the same as using `dofile`
 - [`hilbish.runner.set(name, runner)`](#set): *Sets* a runner by name. The difference between this function and
 - [`hilbish.runner.setCurrent(name)`](#setCurrent): Sets Hilbish's runner mode by name.
-- [`hilbish.runner.setMode(mode)`](#setMode): **NOTE: This function is deprecated and will be removed in 3.0**
+- [`hilbish.runner.sh(input) -> table`](#sh): Runs input using Hilbish's snail instance, that is, as shell script.
 
 ---
 
@@ -71,14 +33,14 @@ end)
 hilbish.runner.add(name, runner)
 
 Adds a runner to the table of available runners.  
-If runner is a table, it must have the run function in it.  
+`runner` must be a table with both a `run` and a `validate` function.  
 
 #### Parameters
 
 `string` _name_  
 Name of the runner
 
-`function|table` _runner_  
+`table` _runner_  
 
 
 
@@ -132,6 +94,22 @@ This function has no parameters.
 
 ---
 
+#### lua
+
+hilbish.runner.lua(input) -> table
+
+Evaluates `cmd` as Lua input. This is the same as using `dofile`  
+or `load`, but is appropriated for the runner interface.  
+
+#### Parameters
+
+`string` _input_  
+
+
+
+
+---
+
 #### run
 
 hilbish.runner.run(input, priv)
@@ -145,23 +123,7 @@ This method is how Hilbish executes commands.
 `string` _input_  
 
 
-`bool` _priv_  
-
-
-
-
----
-
-#### runner.lua
-
-hilbish.runner.lua(cmd)
-
-Evaluates `cmd` as Lua input. This is the same as using `dofile`  
-or `load`, but is appropriated for the runner interface.  
-
-#### Parameters
-
-`string` _cmd_  
+`boolean` _priv?_  
 
 
 
@@ -174,7 +136,7 @@ hilbish.runner.set(name, runner)
 
 *Sets* a runner by name. The difference between this function and  
 add, is set will *not* check if the named runner exists.  
-The runner table must have the run function in it.  
+The runner table must have both a `run` and a `validate` function.  
 
 #### Parameters
 
@@ -203,19 +165,15 @@ Sets Hilbish's runner mode by name.
 
 ---
 
-#### setMode
+#### sh
 
-hilbish.runner.setMode(mode)
+hilbish.runner.sh(input) -> table
 
-**NOTE: This function is deprecated and will be removed in 3.0**  
-Use `hilbish.runner.setCurrent` instead.  
-This is the same as the `hilbish.runnerMode` function.  
-It takes a callback, which will be used to execute all interactive input.  
-Or a string which names the runner mode to use.  
+Runs input using Hilbish's snail instance, that is, as shell script.  
 
 #### Parameters
 
-`string|function` _mode_  
+`string` _input_  
 
 
 

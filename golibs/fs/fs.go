@@ -14,36 +14,38 @@ import (
 	"strconv"
 	"strings"
 
-	"hilbish/moonlight"
 	"hilbish/util"
 
 	"github.com/arnodel/golua/lib/iolib"
+	"github.com/arnodel/golua/lib/packagelib"
 	rt "github.com/arnodel/golua/runtime"
 )
 
-func Loader(mlr *moonlight.Runtime) moonlight.Value {
-	exports := map[string]moonlight.Export{
-		/*
-			"cd": util.LuaExport{fcd, 1, false},
-			"mkdir": util.LuaExport{fmkdir, 2, false},
-			"stat": util.LuaExport{fstat, 1, false},
-			"abs": util.LuaExport{fabs, 1, false},
-			"basename": util.LuaExport{fbasename, 1, false},
-			"glob": util.LuaExport{fglob, 1, false},
-			"join": util.LuaExport{fjoin, 0, true},
-			"pipe": util.LuaExport{fpipe, 0, false},
-		*/
-		"dir":     {fdir, 1, false},
-		"readdir": {freaddir, 1, false},
+var Loader = packagelib.Loader{
+	Load: loaderFunc,
+	Name: "fs",
+}
+
+func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
+	exports := map[string]util.LuaExport{
+		"cd":         {Function: fcd, ArgNum: 1, Variadic: false},
+		"executable": {Function: fexecutable, ArgNum: 1, Variadic: false},
+		"mkdir":      {Function: fmkdir, ArgNum: 2, Variadic: false},
+		"stat":       {Function: fstat, ArgNum: 1, Variadic: false},
+		"readdir":    {Function: freaddir, ArgNum: 1, Variadic: false},
+		"abs":        {Function: fabs, ArgNum: 1, Variadic: false},
+		"basename":   {Function: fbasename, ArgNum: 1, Variadic: false},
+		"dir":        {Function: fdir, ArgNum: 1, Variadic: false},
+		"glob":       {Function: fglob, ArgNum: 1, Variadic: false},
+		"join":       {Function: fjoin, ArgNum: 0, Variadic: true},
+		"pipe":       {Function: fpipe, ArgNum: 0, Variadic: false},
 	}
+	mod := rt.NewTable()
+	util.SetExports(rtm, mod, exports)
+	mod.Set(rt.StringValue("pathSep"), rt.StringValue(string(os.PathSeparator)))
+	mod.Set(rt.StringValue("pathListSep"), rt.StringValue(string(os.PathListSeparator)))
 
-	mod := moonlight.NewTable()
-	mlr.SetExports(mod, exports)
-
-	mod.SetField("pathSep", moonlight.StringValue(string(os.PathSeparator)))
-	mod.SetField("pathListSep", moonlight.StringValue(string(os.PathListSeparator)))
-
-	return moonlight.TableValue(mod)
+	return rt.TableValue(mod), nil
 }
 
 // abs(path) -> string
@@ -86,33 +88,32 @@ func fbasename(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // cd(dir)
 // Changes Hilbish's directory to `dir`.
 // #param dir string Path to change directory to.
-func fcd(mlr *moonlight.Runtime) error {
-	if err := mlr.Check1Arg(); err != nil {
-		return err
+func fcd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
 	}
-	path, err := mlr.StringArg(0)
+	path, err := c.StringArg(0)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	path = util.ExpandHome(strings.TrimSpace(path))
 	oldWd, _ := os.Getwd()
 
 	abspath, err := filepath.Abs(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = os.Chdir(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	mlr.DoString(fmt.Sprintf(`
-	local bait = require 'bait'
-	bait.throw('hilbish.cd', '%s', '%s')
-	`, abspath, oldWd))
+	baitMod := util.MustDoString(t.Runtime, "return require 'bait'").AsTable()
+	throw := baitMod.Get(rt.StringValue("throw"))
+	rt.Call1(t, throw, rt.StringValue("hilbish.cd"), rt.StringValue(abspath), rt.StringValue(oldWd))
 
-	return err
+	return c.Next(), err
 }
 
 // dir(path) -> string
@@ -120,17 +121,39 @@ func fcd(mlr *moonlight.Runtime) error {
 // `~/Documents/doc.txt` then this function will return `~/Documents`.
 // #param path string Path to get the directory for.
 // #returns string
-func fdir(mlr *moonlight.Runtime) error {
-	if err := mlr.Check1Arg(); err != nil {
-		return err
+func fdir(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
 	}
-	path, err := mlr.StringArg(0)
+	path, err := c.StringArg(0)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	mlr.PushNext1(moonlight.StringValue(filepath.Dir(path)))
-	return nil
+	return c.PushingNext(t.Runtime, rt.StringValue(filepath.Dir(path))), nil
+}
+
+// executable(path) -> boolean
+// Checks if `path` is an executable file.
+// #param path string
+// #returns boolean
+func fexecutable(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
+	}
+	path, err := c.StringArg(0)
+	if err != nil {
+		return nil, err
+	}
+
+	err = util.FindExecutable(path, true, false)
+	if err != nil {
+		c.Push(t.Runtime, rt.BoolValue(false))
+	} else {
+		c.Push(t.Runtime, rt.BoolValue(true))
+	}
+
+	return c.Next(), nil
 }
 
 // glob(pattern) -> matches (table)
@@ -191,7 +214,7 @@ func fjoin(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	for i, v := range c.Etc() {
 		if v.Type() != rt.StringType {
 			// +2; go indexes of 0 and first arg from above
-			return nil, fmt.Errorf("bad argument #%d to run (expected string, got %s)", i+1, v.TypeName())
+			return nil, fmt.Errorf("bad argument #%d to join (expected string, got %s)", i+1, v.TypeName())
 		}
 		strs[i] = v.AsString()
 	}
@@ -239,11 +262,11 @@ func fmkdir(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	return c.Next(), err
 }
 
-// fpipe() -> File, File
+// pipe() -> file*, file*
 // Returns a pair of connected files, also known as a pipe.
-// The type returned is a Lua file, same as returned from `io` functions.
-// #returns File
-// #returns File
+// The type returned is a Lua file, same as returned from `io` functions, like `io.open`.
+// #returns file*
+// #returns file*
 func fpipe(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	rf, wf, err := os.Pipe()
 	if err != nil {
@@ -260,27 +283,26 @@ func fpipe(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // Returns a list of all files and directories in the provided path.
 // #param dir string
 // #returns table
-func freaddir(mlr *moonlight.Runtime) error {
-	if err := mlr.Check1Arg(); err != nil {
-		return err
+func freaddir(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	if err := c.Check1Arg(); err != nil {
+		return nil, err
 	}
-	dir, err := mlr.StringArg(0)
+	dir, err := c.StringArg(0)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	dir = util.ExpandHome(dir)
-	names := moonlight.NewTable()
+	names := rt.NewTable()
 
 	dirEntries, err := os.ReadDir(dir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for i, entry := range dirEntries {
 		names.Set(rt.IntValue(int64(i+1)), rt.StringValue(entry.Name()))
 	}
 
-	mlr.PushNext1(moonlight.TableValue(names))
-	return nil
+	return c.PushingNext1(t.Runtime, rt.TableValue(names)), nil
 }
 
 // stat(path) -> {}

@@ -645,6 +645,28 @@
 					}
 				]
 			}
+		},
+		{
+			"name": "jobs.stopAll",
+			"description": [
+				"Stops all running jobs."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "stopAll()",
+			"goFuncName": "luastopall",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				]
+			}
 		}
 	]
 }

@@ -55,7 +55,7 @@ Catches an event. This function can be used to act on events.
 `string` _name_  
 The name of the hook.
 
-`function` _cb_  
+`function(...)` _cb_  
 The function that will be called when the hook is thrown.
 
 #### Example
@@ -80,7 +80,7 @@ Catches an event, but only once. This will remove the hook immediately after it 
 `string` _name_  
 The name of the event
 
-`function` _cb_  
+`function(...)` _cb_  
 The function that will be called when the event is thrown.
 
 
@@ -115,7 +115,7 @@ an event, like one saved to a variable.
 `string` _name_  
 Name of the event the hook is on
 
-`function` _catcher_  
+`function(...)` _catcher_  
 Hook function to remove
 
 #### Example

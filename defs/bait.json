@@ -32,7 +32,7 @@
 				},
 				{
 					"Name": "cb",
-					"Type": "function",
+					"Type": "function(...)",
 					"Doc": [
 						"The",
 						"function",
@@ -76,7 +76,7 @@
 					{
 						"id": "cb",
 						"fields": [
-							"function",
+							"function(...)",
 							"The",
 							"function",
 							"that",
@@ -118,7 +118,7 @@
 				},
 				{
 					"Name": "cb",
-					"Type": "function",
+					"Type": "function(...)",
 					"Doc": [
 						"The",
 						"function",
@@ -151,7 +151,7 @@
 					{
 						"id": "cb",
 						"fields": [
-							"function",
+							"function(...)",
 							"The",
 							"function",
 							"that",
@@ -247,7 +247,7 @@
 				},
 				{
 					"Name": "catcher",
-					"Type": "function",
+					"Type": "function(...)",
 					"Doc": [
 						"Hook",
 						"function",
@@ -291,7 +291,7 @@
 					{
 						"id": "catcher",
 						"fields": [
-							"function",
+							"function(...)",
 							"Hook",
 							"function",
 							"to",

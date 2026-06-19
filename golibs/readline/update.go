@@ -2,9 +2,6 @@ package readline
 
 import (
 	"fmt"
-	"strings"
-
-	"golang.org/x/text/width"
 )
 
 // updateHelpers is a key part of the whole refresh process:
@@ -35,73 +32,38 @@ func (rl *Readline) updateHelpers() {
 
 const tabWidth = 4
 
-func getWidth(x []rune) int {
-	var w int
-	for _, j := range x {
-		k := width.LookupRune(j).Kind()
-		if j == '\t' {
-			w += tabWidth
-		} else if k == width.EastAsianWide || k == width.EastAsianFullwidth {
-			w += 2
-		} else {
-			w++
-		}
-	}
-	return w
-}
-
 // Update reference should be called only once in a "loop" (not Readline(), but key control loop)
 func (rl *Readline) updateReferences() {
-
-	// We always need to work with clean data,
-	// since we will have incrementers all around
-	rl.posX = 0
-	rl.fullX = 0
-	rl.posY = 0
-	rl.fullY = 0
-
 	var curLine []rune
 	if len(rl.currentComp) > 0 {
 		curLine = rl.lineComp
 	} else {
 		curLine = rl.line
 	}
-	fullLine := getWidth(curLine)
-	cPosLine := getWidth(curLine[:rl.pos])
 
-	// We need the X offset of the whole line
-	toEndLine := rl.promptLen + fullLine
-	fullOffset := toEndLine / GetTermWidth()
-	rl.fullY = fullOffset + strings.Count(string(curLine), "\n")
-	fullRest := toEndLine % GetTermWidth()
-	rl.fullX = fullRest
+	termWidth := GetTermWidth()
 
-	if fullRest == 0 && fullOffset > 0 {
-		print("\n")
+	cur := &Buffer{line: curLine, pos: rl.pos}
+	rl.posX, rl.posY = cur.ScreenPos(termWidth, rl.promptLen, 0)
+
+	end := &Buffer{line: curLine, pos: len(curLine)}
+	rl.fullX, rl.fullY = end.ScreenPos(termWidth, rl.promptLen, 0)
+
+	// If the final row's content fills exactly to the terminal's last column,
+	// the cursor is in a "pending wrap" state: the terminal hasn't actually
+	// moved to the next row yet. Force the wrap so that posX/posY/fullX/fullY
+	// (which assume row 0/col 0 of a new row) match the terminal's real cursor
+	// position. We must check the final row's own width rather than just
+	// fullX == 0: a buffer ending in a literal '\n' (or with a blank last row)
+	// also lands the cursor at column 0, but there the newline already moved
+	// the terminal down, so an extra '\n' would push the display down a row.
+	lines := end.Lines()
+	lastRowWidth := end.Width(lines[len(lines)-1])
+	if len(lines) == 1 {
+		lastRowWidth += rl.promptLen
 	}
-
-	// Use rl.pos value to get the offset to go TO/FROM the CURRENT POSITION
-	lineToCursorPos := rl.promptLen + cPosLine
-	offsetToCursor := lineToCursorPos / GetTermWidth()
-	cPosRest := lineToCursorPos % GetTermWidth()
-
-	// If we are at the end of line
-	if fullLine == rl.pos {
-		rl.posY = fullOffset
-
-		if fullRest == 0 {
-			rl.posX = 0
-		} else if fullRest > 0 {
-			rl.posX = fullRest
-		}
-	} else if rl.pos < fullLine {
-		// If we are somewhere in the middle of the line
-		rl.posY = offsetToCursor
-
-		if cPosRest == 0 {
-		} else if cPosRest > 0 {
-			rl.posX = cPosRest
-		}
+	if lastRowWidth > 0 && lastRowWidth%termWidth == 0 {
+		print("\n")
 	}
 }
 

@@ -2,23 +2,19 @@ package readline
 
 import (
 	"fmt"
-	"strconv"
+	"strings"
 )
 
 // initMap - Map display details. Called each time we want to be sure to have
 // a working completion group either immediately, or later on. Generally defered.
 func (g *CompletionGroup) initMap(rl *Readline) {
 
-	// We make the map anyway, especially if we need to use it later
-	if g.Descriptions == nil {
-		g.Descriptions = make(map[string]string)
-	}
-
-	// Compute size of each completion item box. Group independent
+	// Compute size of each completion item box. Group independent (display width, not byte length)
 	g.tcMaxLength = 1
-	for i := range g.Suggestions {
-		if len(g.Descriptions[g.Suggestions[i]]) > g.tcMaxLength {
-			g.tcMaxLength = len(g.Descriptions[g.Suggestions[i]])
+	for i := range g.Items {
+		w := printWidth(g.Items[i].Description)
+		if w > g.tcMaxLength {
+			g.tcMaxLength = w
 		}
 	}
 
@@ -27,10 +23,15 @@ func (g *CompletionGroup) initMap(rl *Readline) {
 	g.tcOffset = 0
 
 	// Number of lines allowed to be printed for group
-	if len(g.Suggestions) > g.MaxLength {
+	totalRows := len(g.Items)
+	if totalRows > g.MaxLength {
 		g.tcMaxY = g.MaxLength
 	} else {
-		g.tcMaxY = len(g.Suggestions)
+		g.tcMaxY = totalRows
+	}
+
+	if heightLimit := rl.groupHeightLimit(totalRows); g.tcMaxY > heightLimit {
+		g.tcMaxY = heightLimit
 	}
 }
 
@@ -56,15 +57,15 @@ func (g *CompletionGroup) moveTabMapHighlight(rl *Readline, x, y int) (done bool
 		g.tcOffset++
 	}
 
-	if g.tcOffset+g.tcPosY < 1 && len(g.Suggestions) > 0 {
+	if g.tcOffset+g.tcPosY < 1 && len(g.Items) > 0 {
 		g.tcPosY = g.tcMaxY
-		g.tcOffset = len(g.Suggestions) - g.tcMaxY
+		g.tcOffset = len(g.Items) - g.tcMaxY
 	}
 	if g.tcOffset < 0 {
 		g.tcOffset = 0
 	}
 
-	if g.tcOffset+g.tcPosY > len(g.Suggestions) {
+	if g.tcOffset+g.tcPosY > len(g.Items) {
 		g.tcOffset--
 		return true, true
 	}
@@ -76,7 +77,7 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 
 	if g.Name != "" {
 		// Print group title (changes with line returns depending on type)
-		comp += fmt.Sprintf("%s%s%s %s\n", BOLD, YELLOW, fmtEscape(g.Name), RESET)
+		comp += fmt.Sprintf("%s%s%s %s\n", BOLD, YELLOW, g.Name, RESET)
 		rl.tcUsedY++
 	}
 
@@ -87,15 +88,19 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 		return
 	}
 
+	totalRows := len(g.Items)
+	needsScrollbar := totalRows > g.tcMaxY
+
+	if needsScrollbar {
+		termWidth -= 2
+	}
+
 	// Set all necessary dimensions
 	maxLength := g.tcMaxLength
 	if maxLength > termWidth-9 {
 		maxLength = termWidth - 9
 	}
 	maxDescWidth := termWidth - maxLength - 4
-
-	cellWidth := strconv.Itoa(maxLength)
-	itemWidth := strconv.Itoa(maxDescWidth)
 	y := 0
 
 	// Highlighting function
@@ -106,34 +111,54 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 		return ""
 	}
 
+	thumbStart, thumbH := scrollbarThumb(totalRows, g.tcMaxY, g.tcOffset)
+
 	// String formating
 	var item, description string
-	for i := g.tcOffset; i < len(g.Suggestions); i++ {
+	for i := g.tcOffset; i < len(g.Items); i++ {
 		y++ // Consider new item
 		if y > g.tcMaxY {
+			y--
 			break
 		}
 
-		item = g.Suggestions[i]
+		item = truncateDisplay(g.Items[i].display(), maxDescWidth)
+		description = truncateDisplay(g.Items[i].Description, maxLength)
 
-		if len(item) > maxDescWidth {
-			item = item[:maxDescWidth-3] + "..."
+		// Format with visible-width padding
+		itemPadding := maxDescWidth - printWidth(item)
+		if itemPadding < 0 {
+			itemPadding = 0
 		}
 
-		description = g.Descriptions[g.Suggestions[i]]
-		if len(description) > maxLength {
-			description = description[:maxLength-3] + "..."
+		descPadding := maxLength - printWidth(description)
+		if descPadding < 0 {
+			descPadding = 0
 		}
 
-		comp += fmt.Sprintf("\r%-"+cellWidth+"s %s %-"+itemWidth+"s %s\n",
-			description, highlight(y), fmtEscape(item), seqReset)
+		comp += "\r" + description + strings.Repeat(" ", descPadding) + " " + highlight(y) + item + strings.Repeat(" ", itemPadding) + " " + seqReset
+		if needsScrollbar {
+			comp += scrollbarChar(y-1, thumbStart, thumbH)
+		}
+		comp += "\n"
+	}
+
+	// Footer: show item range when scrollable.
+	if needsScrollbar {
+		firstItem := g.tcOffset + 1
+		lastItem := g.tcOffset + y
+		if lastItem > len(g.Items) {
+			lastItem = len(g.Items)
+		}
+		comp += footerRange("items", firstItem, lastItem, len(g.Items))
+		rl.tcUsedY++
 	}
 
 	// Add the equivalent of this group's size to final screen clearing
-	if len(g.Suggestions) > g.MaxLength {
+	if g.MaxLength < y {
 		rl.tcUsedY += g.MaxLength
 	} else {
-		rl.tcUsedY += len(g.Suggestions)
+		rl.tcUsedY += y
 	}
 
 	return

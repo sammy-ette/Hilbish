@@ -40,10 +40,10 @@ whereas the default behavior is only at the beginning of the line
 `string` _abbr_  
 
 
-`string` _expanded|function_  
+`string|function` _expanded_  
 
 
-`table` _opts_  
+`table` _opts?_  
 
 
 

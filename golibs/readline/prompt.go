@@ -51,7 +51,7 @@ func (rl *Readline) RefreshPromptLog(log string) (err error) {
 	//print("\r\n" + seqClearScreenBelow)
 
 	// Print the log
-	fmt.Printf(log)
+	fmt.Print(log)
 
 	// Add a new line between the message and the prompt, so not overloading the UI
 	print("\n")
@@ -208,7 +208,7 @@ func (rl *Readline) colorizeVimPrompt(p []rune) (cp []rune) {
 // getting its real-printed length.
 func getRealLength(s string) (l int) {
 	stripped := ansi.Strip(s)
-	return getWidth([]rune(stripped))
+	return displayWidth([]rune(stripped))
 }
 
 func (rl *Readline) echoRightPrompt() {

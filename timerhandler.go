@@ -177,8 +177,9 @@ func (th *timersModule) loader() *moonlight.Table {
 
 	thExports := map[string]moonlight.Export{
 		/*
-			"create": {th.luaCreate, 3, false},
-			"get": {th.luaGet, 1, false},
+				"create": {th.luaCreate, 3, false},
+				"get": {th.luaGet, 1, false},
+			"wait":   {Function: timerWait, ArgNum: 0, Variadic: false},
 		*/
 	}
 
@@ -214,5 +215,13 @@ func valueToTimer(val rt.Value) (*timer, bool) {
 func timerUserData(j *timer) *rt.UserData {
 	timerMeta := l.UnderlyingRuntime().Registry(timerMetaKey)
 	return rt.NewUserData(j, timerMeta.AsTable())
+}
+
+// #interface timers
+// wait()
+// Waits for all timers to finish.
+func timerWait(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+	timers.wait()
+	return c.Next(), nil
 }
 */

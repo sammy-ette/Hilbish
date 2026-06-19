@@ -251,7 +251,7 @@ func (b *Bait) Loader(rtm *moonlight.Runtime) moonlight.Value {
 // catch(name, cb)
 // Catches an event. This function can be used to act on events.
 // #param name string The name of the hook.
-// #param cb function The function that will be called when the hook is thrown.
+// #param cb function(...) The function that will be called when the hook is thrown.
 /*
 #example
 bait.catch('hilbish.exit', function()
@@ -274,7 +274,7 @@ func (b *Bait) bcatch(mlr *moonlight.Runtime) error {
 // catchOnce(name, cb)
 // Catches an event, but only once. This will remove the hook immediately after it runs for the first time.
 // #param name string The name of the event
-// #param cb function The function that will be called when the event is thrown.
+// #param cb function(...) The function that will be called when the event is thrown.
 func (b *Bait) bcatchOnce(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	name, catcher, err := util.HandleStrCallback(t, c)
 	if err != nil {
@@ -326,7 +326,7 @@ func (b *Bait) bhooks(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // For this to work, `catcher` has to be the same function used to catch
 // an event, like one saved to a variable.
 // #param name string Name of the event the hook is on
-// #param catcher function Hook function to remove
+// #param catcher function(...) Hook function to remove
 /*
 #example
 local hookCallback = function() print 'hi' end

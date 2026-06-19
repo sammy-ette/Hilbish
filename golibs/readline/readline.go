@@ -5,11 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"regexp"
 	"syscall"
 )
-
-var rxMultiline = regexp.MustCompile(`[\r\n]+`)
 
 // Readline displays the readline prompt.
 // It will return a string (user entered data) or an error.
@@ -52,22 +49,6 @@ func (rl *Readline) Readline() (string, error) {
 	rl.histOffset = 0
 	rl.viUndoHistory = []undoItem{{line: "", pos: 0}}
 
-	// Multisplit
-	if len(rl.multisplit) > 0 {
-		r := []rune(rl.multisplit[0])
-		if len(r) >= 1 {
-			rl.editorInput(r)
-		}
-
-		rl.carridgeReturn()
-		if len(rl.multisplit) > 1 {
-			rl.multisplit = rl.multisplit[1:]
-		} else {
-			rl.multisplit = []string{}
-		}
-		return string(rl.line), nil
-	}
-
 	// Finally, print any info or completions
 	// if the TabCompletion engines so desires
 	rl.renderHelpers()
@@ -76,53 +57,20 @@ func (rl *Readline) Readline() (string, error) {
 	for {
 		rl.viUndoSkipAppend = false
 		b := make([]byte, 1024)
-		var i int
-
-		if !rl.skipStdinRead {
-			var err error
-			i, err = os.Stdin.Read(b)
-			if err != nil {
-				if errors.Is(err, syscall.EAGAIN) {
-					err = syscall.SetNonblock(syscall.Stdin, false)
-					if err == nil {
-						continue
-					}
+		var err error
+		i, err := os.Stdin.Read(b)
+		if err != nil {
+			if errors.Is(err, syscall.EAGAIN) {
+				err = syscall.SetNonblock(syscall.Stdin, false)
+				if err == nil {
+					continue
 				}
-				return "", err
 			}
+			return "", err
 		}
-
-		rl.skipStdinRead = false
 		r := []rune(string(b))
 		if rl.RawInputCallback != nil {
 			rl.RawInputCallback(r[:i])
-		}
-
-		if isMultiline(r[:i]) || len(rl.multiline) > 0 {
-			rl.multiline = append(rl.multiline, b[:i]...)
-			if i == len(b) {
-				continue
-			}
-
-			if !rl.allowMultiline(rl.multiline) {
-				rl.multiline = []byte{}
-				continue
-			}
-
-			s := string(rl.multiline)
-			rl.multisplit = rxMultiline.Split(s, -1)
-
-			r = []rune(rl.multisplit[0])
-			rl.modeViMode = VimInsert
-			rl.editorInput(r)
-			rl.carridgeReturn()
-			rl.multiline = []byte{}
-			if len(rl.multisplit) > 1 {
-				rl.multisplit = rl.multisplit[1:]
-			} else {
-				rl.multisplit = []string{}
-			}
-			return string(rl.line), nil
 		}
 
 		s := string(r[:i])
@@ -161,6 +109,23 @@ func (rl *Readline) Readline() (string, error) {
 		// is a problem (at least, the user has escaped the confirm hint some way).
 		if (rl.modeTabCompletion && rl.searchMode != HistoryFind) && rl.compConfirmWait {
 			rl.compConfirmWait = false
+		}
+
+		// A single read holding more than one rune (and not beginning with ESC)
+		// is a paste burst, not a keystroke. Detect it by rune count so a lone
+		// multi-byte character (CJK, emoji, accented letter) is NOT mistaken for
+		// a paste, and handle it before the per-key `switch b[0]` so a paste
+		// whose first byte is a control char (Tab, newline, …) isn't misrouted to
+		// that key's handler and its remaining bytes dropped. Search/completion
+		// modes keep their own input handling in the switch below.
+		inputRunes := []rune(string(b[:i]))
+		if len(inputRunes) > 1 && b[0] != charEscape &&
+			!rl.modeTabCompletion && !rl.modeAutoFind && !rl.modeTabFind && !rl.compConfirmWait {
+			rl.resetVirtualComp(false)
+			rl.insertPaste(b[:i])
+			rl.clearHelpers()
+			rl.undoAppendHistory()
+			continue
 		}
 
 		switch b[0] {
@@ -271,8 +236,9 @@ func (rl *Readline) Readline() (string, error) {
 			if rl.modeViMode != VimInsert {
 				continue
 			}
-			rl.saveToRegister(rl.viJumpB(tokeniseLine))
-			rl.viDeleteByAdjust(rl.viJumpB(tokeniseLine))
+			adj := rl.Buffer.EmacsWordBackward(rl.pos) - rl.pos
+			rl.saveToRegister(adj)
+			rl.viDeleteByAdjust(adj)
 			rl.updateHelpers()
 
 		case charCtrlY:
@@ -445,7 +411,7 @@ func (rl *Readline) Readline() (string, error) {
 
 				// IF we have a prefix and completions printed, but no candidate
 				// (in which case the completion is ""), we immediately return.
-				completion := cur.getCurrentCell(rl)
+				completion := cur.getCurrentCell()
 				prefix := len(rl.tcPrefix)
 				if prefix > len(completion) {
 					rl.carridgeReturn()
@@ -529,9 +495,15 @@ func (rl *Readline) Readline() (string, error) {
 				continue
 			} else {
 				rl.resetVirtualComp(false)
-				rl.editorInput(r[:i])
-				if len(rl.multiline) > 0 && rl.modeViMode == VimKeys {
-					rl.skipStdinRead = true
+				// Distinguish a paste burst (more than one rune) from a single
+				// keystroke by rune count, so a lone multi-byte character isn't
+				// treated as a paste. (Most pastes are caught before the switch;
+				// this handles the in-completion-mode case that reaches here.)
+				if len(inputRunes) > 1 {
+					rl.insertPaste(b[:i])
+				} else {
+					// Single character: process normally
+					rl.editorInput(r[:i])
 				}
 			}
 
@@ -540,6 +512,15 @@ func (rl *Readline) Readline() (string, error) {
 
 		rl.undoAppendHistory()
 	}
+}
+
+// insertPaste inserts a paste burst as literal content, normalizing embedded
+// \r\n and \r to \n so multi-line pastes land as real newlines in the buffer.
+func (rl *Readline) insertPaste(b []byte) {
+	pasteBytes := bytes.ReplaceAll(b, []byte{'\r', '\n'}, []byte{'\n'})
+	pasteBytes = bytes.ReplaceAll(pasteBytes, []byte{'\r'}, []byte{'\n'})
+	rl.insert([]rune(string(pasteBytes)))
+	rl.writeHintText()
 }
 
 // editorInput is an unexported function used to determine what mode of text
@@ -587,10 +568,7 @@ func (rl *Readline) editorInput(r []rune) {
 	}
 
 	rl.echoRightPrompt()
-
-	if len(rl.multisplit) == 0 {
-		rl.syntaxCompletion()
-	}
+	rl.syntaxCompletion()
 }
 
 // viEscape - In case th user is using Vim input, and the escape sequence has not
@@ -614,7 +592,7 @@ func (rl *Readline) viEscape(r []rune) {
 func (rl *Readline) escapeSeq(r []rune) {
 	switch string(r) {
 	// Vim escape sequences & dispatching --------------------------------------------------------
-	case string(charEscape):
+	case string(rune(charEscape)):
 		switch {
 		case rl.modeAutoFind:
 			rl.resetVirtualComp(true)
@@ -746,16 +724,24 @@ func (rl *Readline) escapeSeq(r []rune) {
 
 	// Movement -------------------------------------------------------------------------------
 	case seqCtrlLeftArrow:
-		rl.moveCursorByAdjust(rl.viJumpB(tokeniseLine))
+		rl.pos = rl.Buffer.EmacsWordBackward(rl.pos)
 		rl.updateHelpers()
 		return
 	case seqCtrlRightArrow:
 		rl.insert(rl.hintText)
-		rl.moveCursorByAdjust(rl.viJumpW(tokeniseLine))
+		rl.pos = rl.Buffer.EmacsWordForward(rl.pos)
 		rl.updateHelpers()
 		return
 
 	case seqDelete, seqDelete2:
+		// In history search (ctrl+r), Delete removes the highlighted entry.
+		if rl.modeAutoFind && rl.searchMode == HistoryFind {
+			rl.deleteHistoryEntry()
+			rl.updateVirtualComp()
+			rl.renderHelpers()
+			rl.viUndoSkipAppend = true
+			return
+		}
 		if rl.modeTabFind {
 			rl.backspaceTabFind()
 		} else {
@@ -790,8 +776,7 @@ func (rl *Readline) escapeSeq(r []rune) {
 			return
 		}
 
-		move := rl.emacsBackwardWord(tokeniseLine)
-		rl.moveCursorByAdjust(-move)
+		rl.pos = rl.Buffer.EmacsWordBackward(rl.pos)
 		rl.updateHelpers()
 
 	case seqAltF:
@@ -804,8 +789,7 @@ func (rl *Readline) escapeSeq(r []rune) {
 			return
 		}
 
-		move := rl.emacsForwardWord(tokeniseLine)
-		rl.moveCursorByAdjust(move)
+		rl.pos = rl.Buffer.EmacsWordForward(rl.pos)
 		rl.updateHelpers()
 
 	case seqAltR:
@@ -835,25 +819,28 @@ func (rl *Readline) escapeSeq(r []rune) {
 			return
 		}
 
-		rl.saveToRegister(rl.viJumpB(tokeniseLine))
-		rl.viDeleteByAdjust(rl.viJumpB(tokeniseLine))
+		adj := rl.Buffer.EmacsWordBackward(rl.pos) - rl.pos
+		rl.saveToRegister(adj)
+		rl.viDeleteByAdjust(adj)
 		rl.updateHelpers()
 
 	case seqCtrlDelete, seqCtrlDelete2, seqAltD:
 		if rl.modeTabCompletion {
 			rl.resetVirtualComp(false)
 		}
-		rl.saveToRegister(rl.emacsForwardWord(tokeniseLine))
+		adj := rl.Buffer.EmacsWordForward(rl.pos) - rl.pos
+		rl.saveToRegister(adj)
 		// vi delete, emacs forward, funny huh
-		rl.viDeleteByAdjust(rl.emacsForwardWord(tokeniseLine))
+		rl.viDeleteByAdjust(adj)
 		rl.updateHelpers()
 
 	case seqAltDelete:
 		if rl.modeTabCompletion {
 			rl.resetVirtualComp(false)
 		}
-		rl.saveToRegister(-rl.emacsBackwardWord(tokeniseLine))
-		rl.viDeleteByAdjust(-rl.emacsBackwardWord(tokeniseLine))
+		adj := rl.Buffer.EmacsWordBackward(rl.pos) - rl.pos
+		rl.saveToRegister(adj)
+		rl.viDeleteByAdjust(adj)
 		rl.updateHelpers()
 
 	default:
@@ -911,53 +898,6 @@ func (rl *Readline) carridgeReturn() {
 			if err != nil {
 				print(err.Error() + "\r\n")
 			}
-		}
-	}
-}
-
-func isMultiline(r []rune) bool {
-	for i := range r {
-		if (r[i] == '\r' || r[i] == '\n') && i != len(r)-1 {
-			return true
-		}
-	}
-	return false
-}
-
-func (rl *Readline) allowMultiline(data []byte) bool {
-	rl.clearHelpers()
-	printf("\r\nWARNING: %d bytes of multiline data was dumped into the shell!", len(data))
-	for {
-		print("\r\nDo you wish to proceed (yes|no|preview)? [y/n/p] ")
-
-		b := make([]byte, 1024)
-
-		i, err := os.Stdin.Read(b)
-		if err != nil {
-			return false
-		}
-
-		s := string(b[:i])
-		print(s)
-
-		switch s {
-		case "y", "Y":
-			print("\r\n" + rl.mainPrompt)
-			return true
-
-		case "n", "N":
-			print("\r\n" + rl.mainPrompt)
-			return false
-
-		case "p", "P":
-			preview := string(bytes.Replace(data, []byte{'\r'}, []byte{'\r', '\n'}, -1))
-			if rl.SyntaxHighlighter != nil {
-				preview = rl.SyntaxHighlighter([]rune(preview))
-			}
-			print("\r\n" + preview)
-
-		default:
-			print("\r\nInvalid response. Please answer `y` (yes), `n` (no) or `p` (preview)")
 		}
 	}
 }

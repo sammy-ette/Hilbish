@@ -17,6 +17,7 @@ Hilbish functions.
 ## Functions
 
 - [`snail.new() -> @Snail`](#new): Creates a new Snail instance.
+- [`snail.validate(input)`](#validate): Checks if input is incomplete. Does not error otherwise.
 
 ---
 
@@ -29,6 +30,21 @@ Creates a new Snail instance.
 #### Parameters
 
 This function has no parameters.  
+
+
+---
+
+#### validate
+
+snail.validate(input)
+
+Checks if input is incomplete. Does not error otherwise.  
+
+#### Parameters
+
+`string` _input_  
+
+
 
 
 ## Types

@@ -28,12 +28,12 @@
 					"Doc": null
 				},
 				{
-					"Name": "expanded|function",
-					"Type": "string",
+					"Name": "expanded",
+					"Type": "string|function",
 					"Doc": null
 				},
 				{
-					"Name": "opts",
+					"Name": "opts?",
 					"Type": "table",
 					"Doc": null
 				}

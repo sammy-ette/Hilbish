@@ -55,32 +55,48 @@ func (rl *Readline) insertCandidateVirtual(candidate []rune) {
 	rl.pos += len(candidate)
 }
 
+// replacePrefixWith deletes the current completion prefix (rl.tcPrefix worth of
+// runes immediately before the cursor) and inserts value in its place.
+//
+// This is the single accept primitive for all menu types, and its behavior falls
+// out of what tcPrefix is set to:
+//   - completions: tcPrefix is the typed word -> the typed word is replaced by the
+//     candidate's real-case Value (fixes #104: "read"+README.md -> README.md).
+//   - history search: tcPrefix is the whole line -> the line is replaced by the
+//     (possibly multi-line) history entry.
+//   - registers: tcPrefix is empty -> value is inserted at the cursor without
+//     deleting anything (vim 'p' paste semantics).
+func (rl *Readline) replacePrefixWith(value string) {
+	prefixLen := len([]rune(rl.tcPrefix))
+	start := rl.pos - prefixLen
+	if start < 0 {
+		start = 0
+	}
+	// Delete the typed prefix [start, rl.pos), then insert the value there.
+	rl.line = append(rl.line[:start], rl.line[rl.pos:]...)
+	rl.pos = start
+	rl.insert([]rune(value))
+}
+
 // Insert the current completion candidate into the input line.
 // This candidate might either be the currently selected one (white frame),
 // or the only candidate available, if the total number of candidates is 1.
 func (rl *Readline) insertCandidate() {
-
 	cur := rl.getCurrentGroup()
-
-	if cur != nil {
-		completion := cur.getCurrentCell(rl)
-		prefix := len(rl.tcPrefix)
-
-		// Special case for the only special escape, which
-		// if not handled, will make us insert the first
-		// character of our actual rl.tcPrefix in the candidate.
-		if strings.HasPrefix(string(rl.tcPrefix), "%") {
-			prefix++
-		}
-
-		// Ensure no indexing error happens with prefix
-		if len(completion) >= prefix {
-			rl.insert([]rune(completion[prefix:]))
-			if !cur.TrimSlash && !cur.NoSpace {
-				rl.insert([]rune(" "))
-			}
-		}
+	if cur == nil {
+		return
 	}
+
+	completion := cur.getCurrentCell()
+	if completion == "" {
+		return
+	}
+
+	value := completion
+	if !cur.TrimSlash && !cur.NoSpace {
+		value += " "
+	}
+	rl.replacePrefixWith(value)
 }
 
 // updateVirtualComp - Either insert the current completion candidate virtually, or on the real line.
@@ -88,8 +104,9 @@ func (rl *Readline) updateVirtualComp() {
 	cur := rl.getCurrentGroup()
 	if cur != nil {
 
-		completion := cur.getCurrentCell(rl)
-		prefix := len(rl.tcPrefix)
+		completion := cur.getCurrentCell()
+		compRunes := []rune(completion)
+		prefix := len([]rune(rl.tcPrefix))
 
 		// If the total number of completions is one, automatically insert it.
 		if rl.hasOneCandidate() {
@@ -104,13 +121,31 @@ func (rl *Readline) updateVirtualComp() {
 			// Special case for the only special escape, which
 			// if not handled, will make us insert the first
 			// character of our actual rl.tcPrefix in the candidate.
-			if strings.HasPrefix(string(rl.tcPrefix), "%") {
+			pctEscape := strings.HasPrefix(string(rl.tcPrefix), "%")
+			if pctEscape {
 				prefix++
 			}
 
-			// Or insert it virtually.
-			if len(completion) >= prefix {
-				rl.insertCandidateVirtual([]rune(completion[prefix:]))
+			// Or insert it virtually. The candidate's tail (everything past the
+			// typed prefix) is shown after the cursor. Slice by runes, not bytes,
+			// so a multibyte prefix doesn't cut the candidate mid-rune.
+			if len(compRunes) >= prefix {
+				rl.insertCandidateVirtual(compRunes[prefix:])
+
+				// insertCandidateVirtual keeps the user's typed prefix verbatim
+				// in the preview, so a real-case candidate (e.g. "README.md" for
+				// typed "read", #104) would otherwise display as "readME.md".
+				// Overwrite the typed-prefix region of the virtual line with the
+				// candidate's own prefix so the inline preview matches the text
+				// committed on accept. Clone first: lineComp may share its backing
+				// array with rl.line, and we must not mutate the real typed line.
+				if !pctEscape {
+					start := rl.pos - len(rl.currentComp) - prefix
+					if start >= 0 && start+prefix <= len(rl.lineComp) {
+						rl.lineComp = append([]rune(nil), rl.lineComp...)
+						copy(rl.lineComp[start:start+prefix], compRunes[:prefix])
+					}
+				}
 			}
 		}
 	}
@@ -128,57 +163,45 @@ func (rl *Readline) resetVirtualComp(drop bool) {
 	}
 
 	// Get the current candidate and its group.
-	//It contains info on how we must process it
+	// It contains info on how we must process it.
 	cur := rl.getCurrentGroup()
 	if cur == nil {
 		return
 	}
-	completion := cur.getCurrentCell(rl)
+	completion := cur.getCurrentCell()
 	// Avoid problems with empty completions
 	if completion == "" {
 		rl.clearVirtualComp()
 		return
 	}
 
-	// We will only insert the net difference between prefix and completion.
-	prefix := len(rl.tcPrefix)
-	// Special case for the only special escape, which
-	// if not handled, will make us insert the first
-	// character of our actual rl.tcPrefix in the candidate.
-	if strings.HasPrefix(string(rl.tcPrefix), "%") {
-		prefix++
-	}
+	// Move the cursor back over the virtual suffix and discard the inline
+	// preview, restoring the line to exactly the user's typed text.
+	rl.pos -= len(rl.currentComp)
+	rl.lineComp = rl.line
+	rl.clearVirtualComp()
 
-	// If we are asked to drop the completion, move it away from the line and return.
+	// If we are asked to drop the completion, we're done: the typed text stands.
 	if drop {
-		rl.pos -= len([]rune(completion[prefix:]))
-		rl.lineComp = rl.line
-		rl.clearVirtualComp()
 		return
 	}
 
-	// Insert the current candidate. A bit of processing happens:
-	// - We trim the trailing slash if needed
-	// - We add a space only if the group has not explicitely specified not to add one.
+	// Commit: replace the typed prefix with the real-case candidate (#104).
+	// A bit of processing happens first:
+	// - We trim the trailing slash if needed.
+	// - We add a space only if the group has not explicitely specified not to.
+	value := completion
 	if cur.TrimSlash {
-		trimmed, hadSlash := trimTrailing(completion)
-		if !hadSlash && rl.compAddSpace {
-			if !cur.NoSpace {
-				trimmed = trimmed + " "
-			}
+		trimmed, hadSlash := trimTrailing(value)
+		value = trimmed
+		if !hadSlash && rl.compAddSpace && !cur.NoSpace {
+			value += " "
 		}
-		rl.insertCandidateVirtual([]rune(trimmed[prefix:]))
-	} else {
-		if rl.compAddSpace {
-			if !cur.NoSpace {
-				completion = completion + " "
-			}
-		}
-		rl.insertCandidateVirtual([]rune(completion[prefix:]))
+	} else if rl.compAddSpace && !cur.NoSpace {
+		value += " "
 	}
 
-	// Reset virtual
-	rl.clearVirtualComp()
+	rl.replacePrefixWith(value)
 }
 
 // trimTrailing - When the group to which the current candidate

@@ -40,6 +40,13 @@ func New(mlr *moonlight.Runtime) *Snail {
 	}
 }
 
+// Checks if input is incomplete. Does not error otherwise.
+func Validate(input string) bool {
+	r := strings.NewReader(input)
+	_, err := syntax.NewParser().Parse(r, "")
+	return !syntax.IsIncomplete(err)
+}
+
 func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer, error) {
 	file, err := syntax.NewParser().Parse(strings.NewReader(cmd), "")
 	if err != nil {
@@ -86,7 +93,7 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 
 		execHandler := func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
 			return func(ctx context.Context, args []string) error {
-				_, argstring := splitInput(strings.Join(args, " "))
+				argstring := strings.Join(args, " ")
 				// i dont really like this but it works
 				aliases := make(map[string]string)
 				aliasesLua, err := rt.Call1(s.runtime.UnderlyingRuntime().MainThread(), aliasesListFn)
@@ -102,7 +109,7 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 							args[i] = fmt.Sprintf("\"%s\"", arg)
 						}
 					}
-					_, argstring = splitInput(strings.Join(args, " "))
+					argstring = strings.Join(args, " ")
 
 					// If alias was found, use command alias
 					resolved, err := rt.Call1(s.runtime.UnderlyingRuntime().MainThread(), aliasesResolveFn, rt.StringValue(argstring))
@@ -286,38 +293,4 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 	}
 
 	return bg, strms.Stdout, strms.Stderr, nil
-}
-
-func splitInput(input string) ([]string, string) {
-	// end my suffering
-	// TODO: refactor this garbage
-	quoted := false
-	cmdArgs := []string{}
-	sb := &strings.Builder{}
-	cmdstr := &strings.Builder{}
-
-	for _, r := range input {
-		if r == '"' {
-			// start quoted input
-			// this determines if other runes are replaced
-			quoted = !quoted
-			// dont add back quotes
-			//sb.WriteRune(r)
-		} else if !quoted && r == '~' {
-			// if not in quotes and ~ is found then make it $HOME
-			sb.WriteString(os.Getenv("HOME"))
-		} else if !quoted && r == ' ' {
-			// if not quoted and there's a space then add to cmdargs
-			cmdArgs = append(cmdArgs, sb.String())
-			sb.Reset()
-		} else {
-			sb.WriteRune(r)
-		}
-		cmdstr.WriteRune(r)
-	}
-	if sb.Len() > 0 {
-		cmdArgs = append(cmdArgs, sb.String())
-	}
-
-	return cmdArgs, cmdstr.String()
 }

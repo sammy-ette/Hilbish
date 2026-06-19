@@ -1,3 +1,4 @@
+local bait = require 'bait'
 local fs = require 'fs'
 
 hilbish.processors.add {

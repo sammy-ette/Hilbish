@@ -42,7 +42,8 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 	mlr.SetRegistry(snailMetaKey, moonlight.TableValue(snailMeta))
 
 	exports := map[string]moonlight.Export{
-		"new": {snailnew, 0, false},
+		"new":      {Function: snailnew, ArgNum: 0, Variadic: false},
+		"validate": {Function: snailvalidate, ArgNum: 1, Variadic: false},
 	}
 
 	mod := moonlight.NewTable()
@@ -60,11 +61,29 @@ func snailnew(mlr *moonlight.Runtime) error {
 	return nil
 }
 
+// validate(input)
+// Checks if input is incomplete. Does not error otherwise.
+// #param input string
+func snailvalidate(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
+	}
+
+	input, err := mlr.StringArg(0)
+	if err != nil {
+		return err
+	}
+
+	mlr.PushNext1(moonlight.BoolValue(Validate(input)))
+	return nil
+}
+
 // #member
 // run(command, streams)
 // Runs a shell command. Works the same as `hilbish.run`, but only accepts a table of streams.
 // #param command string
-// #param streams table
+// #param streams? table
+// #returns table
 func snailrun(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err

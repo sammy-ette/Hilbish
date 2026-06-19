@@ -74,7 +74,7 @@
 				},
 				{
 					"Name": "cb",
-					"Type": "function",
+					"Type": "fun(args:table,sinks:table\u003cstring,Sink\u003e):number?",
 					"Doc": [
 						"Callback",
 						"to",
@@ -116,7 +116,7 @@
 					{
 						"id": "cb",
 						"fields": [
-							"function",
+							"fun(args:table,sinks:table\u003cstring,Sink\u003e):number?",
 							"Callback",
 							"to",
 							"handle",

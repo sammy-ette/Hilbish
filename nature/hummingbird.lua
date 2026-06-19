@@ -24,16 +24,17 @@ M.icons = {
 	ERROR = ''
 }
 
+---@diagnostic disable-next-line: missing-fields
 hilbish.messages = {}
 
 --- Represents a Hilbish message.
 --- @class hilbish.message
---- @field icon string Unicode (preferably standard emoji) icon for the message notification.
+--- @field icon? string Unicode (preferably standard emoji) icon for the message notification.
 --- @field title string Title of the message (like an email subject).
 --- @field text string Contents of the message.
 --- @field channel string Short identifier of the message. `hilbish` and `hilbish.*` is preserved for internal Hilbish messages.
 --- @field summary string A short summary of the message.
---- @field read boolean Whether the full message has been read or not.
+--- @field read? boolean Whether the full message has been read or not.
 
 local function expect(tbl, field)
 	if not tbl[field] or tbl[field] == '' then
@@ -48,6 +49,7 @@ function hilbish.messages.send(message)
 	expect(message, 'title')
 	counter = counter + 1
 	unread = unread + 1
+	---@diagnostic disable-next-line: inject-field
 	message.index = counter
 	message.read = false
 
@@ -73,6 +75,7 @@ function hilbish.messages.readAll()
 end
 
 --- Returns the amount of unread messages.
+--- @return integer
 function hilbish.messages.unreadCount()
 	return unread
 end
@@ -96,6 +99,7 @@ function hilbish.messages.clear()
 end
 
 --- Returns all messages.
+--- @return table<hilbish.message>
 function hilbish.messages.all()
 	return M._messages
 end

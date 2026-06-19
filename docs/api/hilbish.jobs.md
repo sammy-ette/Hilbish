@@ -22,6 +22,7 @@ interactive usage or with the functions defined below for use in external runner
 - [`hilbish.jobs.disown(id)`](#jobs.disown): Disowns a job. This simply deletes it from the list of jobs without stopping it.
 - [`hilbish.jobs.get(id) -> @Job`](#jobs.get): Get a job object via its ID.
 - [`hilbish.jobs.last() -> @Job`](#jobs.last): Returns the last added job to the table.
+- [`hilbish.jobs.stopAll()`](#jobs.stopAll): Stops all running jobs.
 
 ---
 
@@ -98,6 +99,19 @@ This function has no parameters.
 hilbish.jobs.last() -> @Job
 
 Returns the last added job to the table.  
+
+#### Parameters
+
+This function has no parameters.  
+
+
+---
+
+#### jobs.stopAll
+
+hilbish.jobs.stopAll()
+
+Stops all running jobs.  
 
 #### Parameters
 

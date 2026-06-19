@@ -270,26 +270,29 @@ func (rl *Readline) completeRegisters() (groups []*CompletionGroup) {
 	info := BLUE + "-- registers --" + RESET
 	rl.infoText = []rune(info)
 
+	// Register paste inserts at the cursor without replacing anything: an empty
+	// prefix means replacePrefixWith deletes nothing before inserting (vim 'p').
+	rl.tcPrefix = ""
+
 	// Make the groups
 	anonRegs := &CompletionGroup{
-		DisplayType:  TabDisplayMap,
-		MaxLength:    20,
-		Descriptions: map[string]string{},
+		DisplayType: TabDisplayMap,
+		MaxLength:   20,
 	}
 
-	// Unnamed (the added space is because we must have a unique key.
-	// This space is trimmed when the buffer is being passed to users)
-	anonRegs.Suggestions = append(anonRegs.Suggestions, string(rl.registers.unnamed))
-	anonRegs.Descriptions[string(rl.registers.unnamed)] = DIM + "\"" + "\"" + RESET
+	// Unnamed register
+	anonRegs.Items = append(anonRegs.Items, MenuItem{
+		Value:       string(rl.registers.unnamed),
+		Description: DIM + "\"" + "\"" + RESET,
+	})
 
 	groups = append(groups, anonRegs)
 
 	// Numbered registers
 	numRegs := &CompletionGroup{
-		Name:         tui.DIM + "num ([0-9])" + tui.RESET,
-		DisplayType:  TabDisplayMap,
-		MaxLength:    20,
-		Descriptions: map[string]string{},
+		Name:        tui.DIM + "num ([0-9])" + tui.RESET,
+		DisplayType: TabDisplayMap,
+		MaxLength:   20,
 	}
 	var nums []int
 	for reg := range rl.registers.num {
@@ -298,20 +301,21 @@ func (rl *Readline) completeRegisters() (groups []*CompletionGroup) {
 	sort.Ints(nums)
 	for _, val := range nums {
 		buf := rl.registers.num[val]
-		numRegs.Suggestions = append(numRegs.Suggestions, string(buf))
-		numRegs.Descriptions[string(buf)] = fmt.Sprintf("%s\"%d%s", DIM, val, RESET)
+		numRegs.Items = append(numRegs.Items, MenuItem{
+			Value:       string(buf),
+			Description: fmt.Sprintf("%s\"%d%s", DIM, val, RESET),
+		})
 	}
 
-	if len(numRegs.Suggestions) > 0 {
+	if len(numRegs.Items) > 0 {
 		groups = append(groups, numRegs)
 	}
 
 	// Letter registers
 	alphaRegs := &CompletionGroup{
-		Name:         tui.DIM + "alpha ([a-z], [A-Z])" + tui.RESET,
-		DisplayType:  TabDisplayMap,
-		MaxLength:    20,
-		Descriptions: map[string]string{},
+		Name:        tui.DIM + "alpha ([a-z], [A-Z])" + tui.RESET,
+		DisplayType: TabDisplayMap,
+		MaxLength:   20,
 	}
 	var lett []string
 	for reg := range rl.registers.alpha {
@@ -320,11 +324,13 @@ func (rl *Readline) completeRegisters() (groups []*CompletionGroup) {
 	sort.Strings(lett)
 	for _, reg := range lett {
 		buf := rl.registers.alpha[reg]
-		alphaRegs.Suggestions = append(alphaRegs.Suggestions, string(buf))
-		alphaRegs.Descriptions[string(buf)] = DIM + "\"" + reg + RESET
+		alphaRegs.Items = append(alphaRegs.Items, MenuItem{
+			Value:       string(buf),
+			Description: DIM + "\"" + reg + RESET,
+		})
 	}
 
-	if len(alphaRegs.Suggestions) > 0 {
+	if len(alphaRegs.Items) > 0 {
 		groups = append(groups, alphaRegs)
 	}
 

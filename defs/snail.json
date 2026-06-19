@@ -106,7 +106,7 @@
 					"Doc": []
 				},
 				{
-					"Name": "streams",
+					"Name": "streams?",
 					"Type": "table",
 					"Doc": []
 				}
@@ -128,11 +128,47 @@
 						"startIdx": 3
 					},
 					{
-						"id": "streams",
+						"id": "streams?",
 						"fields": [
 							"table"
 						],
 						"startIdx": 0
+					}
+				],
+				"returns": [
+					{
+						"id": "table",
+						"fields": [],
+						"startIdx": 5
+					}
+				]
+			}
+		},
+		{
+			"name": "validate",
+			"description": [
+				"Checks if input is incomplete. Does not error otherwise."
+			],
+			"signature": "validate(input)",
+			"goFuncName": "snailvalidate",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "input",
+					"Type": "string",
+					"Doc": []
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "input",
+						"fields": [
+							"string"
+						],
+						"startIdx": 2
 					}
 				]
 			}
