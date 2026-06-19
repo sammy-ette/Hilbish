@@ -103,15 +103,13 @@ func snailrun(mlr *moonlight.Runtime) error {
 	thirdArg := mlr.Arg(2)
 	switch thirdArg.Type() {
 	case moonlight.TableType:
-		/*
-			args := thirdArg.AsTable()
+		args := thirdArg.AsTable()
 
-			if luastreams, ok := args.Get(moonlight.StringValue("sinks")).TryTable(); ok {
-				handleStream(luastreams.Get(moonlight.StringValue("out")), streams, false, false)
-				handleStream(luastreams.Get(moonlight.StringValue("err")), streams, true, false)
-				handleStream(luastreams.Get(moonlight.StringValue("input")), streams, false, true)
-			}
-		*/
+		if luastreams, ok := args.Get(moonlight.StringValue("sinks")).TryTable(); ok {
+			handleStream(luastreams.Get(moonlight.StringValue("out")), streams, false, false)
+			handleStream(luastreams.Get(moonlight.StringValue("err")), streams, true, false)
+			handleStream(luastreams.Get(moonlight.StringValue("input")), streams, false, true)
+		}
 	case moonlight.NilType: // noop
 	default:
 		return errors.New("expected 3rd arg to be a table")
@@ -144,16 +142,15 @@ func snailrun(mlr *moonlight.Runtime) error {
 			}
 		}
 	}
-
 	runnerRet := moonlight.NewTable()
-	runnerRet.SetField("input", moonlight.StringValue(cmd))
-	runnerRet.SetField("exitCode", moonlight.IntValue(int64(exitCode)))
-	runnerRet.SetField("continue", moonlight.BoolValue(cont))
-	runnerRet.SetField("newline", moonlight.BoolValue(newline))
-	runnerRet.SetField("err", luaErr)
-	runnerRet.SetField("bg", moonlight.BoolValue(bg))
+	runnerRet.Set(moonlight.StringValue("input"), moonlight.StringValue(cmd))
+	runnerRet.Set(moonlight.StringValue("exitCode"), moonlight.IntValue(int64(exitCode)))
+	runnerRet.Set(moonlight.StringValue("continue"), moonlight.BoolValue(cont))
+	runnerRet.Set(moonlight.StringValue("newline"), moonlight.BoolValue(newline))
+	runnerRet.Set(moonlight.StringValue("err"), luaErr)
 
-	mlr.PushNext1(moonlight.TableValue(runnerRet))
+	runnerRet.Set(moonlight.StringValue("bg"), moonlight.BoolValue(bg))
+	mlr.PushNext(moonlight.TableValue(runnerRet))
 	return nil
 }
 
