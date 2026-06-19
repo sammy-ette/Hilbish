@@ -58,11 +58,11 @@ func (y *Yarn) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
 	rtm.SetRegistry(yarnMetaKey, rt.TableValue(yarnMeta))
 
 	exports := map[string]util.LuaExport{
-		"thread": {
-			Function: yarnthread,
-			ArgNum:   1,
-			Variadic: false,
-		},
+		// "thread": {
+		// 	Function: yarnthread,
+		// 	ArgNum:   1,
+		// 	Variadic: false,
+		// },
 	}
 
 	mod := rt.NewTable()

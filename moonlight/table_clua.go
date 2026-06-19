@@ -31,8 +31,19 @@ func (t *Table) SetRuntime(mlr *Runtime) {
 	}
 }
 
-func (t *Table) Get(val Value) Value {
-	return NilValue
+func (t *Table) Get(key Value) Value {
+	if t.refIdx == -1 {
+		return t.nativeFields[key]
+	}
+
+	t.Push()
+	t.mlr.pushToState(key)
+	t.mlr.state.GetTable(-2)
+
+	ret := t.mlr.valueFromState(-1)
+	t.mlr.state.Pop(2)
+
+	return ret
 }
 
 func (t *Table) Push() {
@@ -52,9 +63,8 @@ func (t *Table) setInLua(key Value, value Value) {
 	t.Push()
 	defer t.mlr.state.Pop(1)
 
-	t.mlr.pushToState(value)
 	t.mlr.pushToState(key)
-	t.mlr.state.Insert(-2)
+	t.mlr.pushToState(value)
 	t.mlr.state.SetTable(-3)
 }
 
@@ -63,6 +73,11 @@ func (t *Table) setInGo(key string, value Value) {
 }
 
 func (t *Table) Set(key Value, value Value) {
+	if t.refIdx != -1 {
+		t.setInLua(key, value)
+		return
+	}
+
 	t.nativeFields[key] = value
 }
 
@@ -73,25 +88,40 @@ func (t *Table) syncToLua() {
 }
 
 func ForEach(tbl *Table, cb func(key Value, val Value)) {
+	if tbl.refIdx == -1 {
+		for k, v := range tbl.nativeFields {
+			cb(k, v)
+		}
+		return
+	}
+
+	tbl.Push()
+	tbl.mlr.state.PushNil()
+
+	for tbl.mlr.state.Next(-2) != 0 {
+		cb(tbl.mlr.valueFromState(-2), tbl.mlr.valueFromState(-1))
+		tbl.mlr.state.Pop(1)
+	}
+
+	tbl.mlr.state.Pop(1)
 }
 
 func (mlr *Runtime) GlobalTable() *Table {
+	// mlr.mu.Lock()
+	// defer mlr.mu.Unlock()
+
 	mlr.state.GetGlobal("_G")
 	return &Table{
-		refIdx: mlr.state.Ref(lua.LUA_REGISTRYINDEX),
+		refIdx:       mlr.state.Ref(lua.LUA_REGISTRYINDEX),
+		mlr:          mlr,
+		nativeFields: map[Value]Value{},
 	}
 }
 
 func ToTable(v Value) *Table {
-	return &Table{
-		refIdx: -1,
-	}
+	return v.AsTable()
 }
 
 func TryTable(v Value) (*Table, bool) {
-	return nil, false
-}
-
-func (t *Table) setRefIdx(mlr *Runtime, i int) {
-	t.refIdx = mlr.state.Ref(i)
+	return v.TryTable()
 }

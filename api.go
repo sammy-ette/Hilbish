@@ -30,7 +30,6 @@ import (
 	"hilbish/moonlight"
 	"hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"mvdan.cc/sh/v3/shell"
 )
 
@@ -62,54 +61,54 @@ func hilbishLoader(mlr *moonlight.Runtime) moonlight.Value {
 		}
 	}
 
-	util.SetField(mod, "ver", rt.StringValue(getVersion()))
-	util.SetField(mod, "goVersion", rt.StringValue(runtime.Version()))
-	util.SetField(mod, "user", rt.StringValue(username))
-	util.SetField(mod, "host", rt.StringValue(host))
-	util.SetField(mod, "home", rt.StringValue(curuser.HomeDir))
-	util.SetField(mod, "dataDir", rt.StringValue(dataDir))
-	util.SetField(mod, "defaultConfDir", rt.StringValue(defaultConfDir))
-	util.SetField(mod, "confFile", rt.StringValue(confPath))
-	util.SetField(mod, "command", rt.StringValue(cmdString))
-	util.SetField(mod, "interactive", rt.BoolValue(interactive))
-	util.SetField(mod, "login", rt.BoolValue(login))
-	util.SetField(mod, "vimMode", rt.NilValue)
-	util.SetField(mod, "exitCode", rt.IntValue(0))
+	util.SetField(mod, "ver", moonlight.StringValue(getVersion()))
+	util.SetField(mod, "goVersion", moonlight.StringValue(runtime.Version()))
+	util.SetField(mod, "user", moonlight.StringValue(username))
+	util.SetField(mod, "host", moonlight.StringValue(host))
+	util.SetField(mod, "home", moonlight.StringValue(curuser.HomeDir))
+	util.SetField(mod, "dataDir", moonlight.StringValue(dataDir))
+	util.SetField(mod, "defaultConfDir", moonlight.StringValue(defaultConfDir))
+	util.SetField(mod, "confFile", moonlight.StringValue(confPath))
+	util.SetField(mod, "command", moonlight.StringValue(cmdString))
+	util.SetField(mod, "interactive", moonlight.BoolValue(interactive))
+	util.SetField(mod, "login", moonlight.BoolValue(login))
+	util.SetField(mod, "vimMode", moonlight.NilValue)
+	util.SetField(mod, "exitCode", moonlight.IntValue(0))
 
 	// hilbish.userDir table
 	hshuser := userDirLoader()
-	mod.Set(rt.StringValue("userDir"), moonlight.TableValue(hshuser))
+	mod.Set(moonlight.StringValue("userDir"), moonlight.TableValue(hshuser))
 
 	// hilbish.os table
 	hshos := hshosLoader()
-	mod.Set(rt.StringValue("os"), moonlight.TableValue(hshos))
+	mod.Set(moonlight.StringValue("os"), moonlight.TableValue(hshos))
 
 	// hilbish.completions table
 	hshcomp := completionLoader(mlr)
-	mod.Set(rt.StringValue("completions"), moonlight.TableValue(hshcomp))
+	mod.Set(moonlight.StringValue("completions"), moonlight.TableValue(hshcomp))
 
 	// hilbish.jobs table
 	jobs = newJobHandler()
-	jobModule := jobs.loader(mlr.UnderlyingRuntime())
-	mod.Set(rt.StringValue("jobs"), rt.TableValue(jobModule))
+	jobModule := jobs.loader(mlr)
+	mod.Set(moonlight.StringValue("jobs"), moonlight.TableValue(jobModule))
 
 	// hilbish.timers table
 	timers = newTimersModule()
 	timersModule := timers.loader()
-	mod.Set(rt.StringValue("timers"), moonlight.TableValue(timersModule))
+	mod.Set(moonlight.StringValue("timers"), moonlight.TableValue(timersModule))
 
 	versionModule := moonlight.NewTable()
-	util.SetField(versionModule, "branch", rt.StringValue(gitBranch))
-	util.SetField(versionModule, "full", rt.StringValue(getVersion()))
-	util.SetField(versionModule, "commit", rt.StringValue(gitCommit))
-	util.SetField(versionModule, "release", rt.StringValue(releaseName))
-	mod.Set(rt.StringValue("version"), moonlight.TableValue(versionModule))
+	util.SetField(versionModule, "branch", moonlight.StringValue(gitBranch))
+	util.SetField(versionModule, "full", moonlight.StringValue(getVersion()))
+	util.SetField(versionModule, "commit", moonlight.StringValue(gitCommit))
+	util.SetField(versionModule, "release", moonlight.StringValue(releaseName))
+	mod.Set(moonlight.StringValue("version"), moonlight.TableValue(versionModule))
 
 	pluginModule := moduleLoader(mlr)
-	mod.Set(rt.StringValue("module"), moonlight.TableValue(pluginModule))
+	mod.Set(moonlight.StringValue("module"), moonlight.TableValue(pluginModule))
 
 	sinkModule := util.SinkLoader(mlr)
-	mod.Set(rt.StringValue("sink"), moonlight.TableValue(sinkModule))
+	mod.Set(moonlight.StringValue("sink"), moonlight.TableValue(sinkModule))
 
 	return moonlight.TableValue(mod)
 }
@@ -157,7 +156,7 @@ func hllookpath(mlr *moonlight.Runtime) error {
 
 // exec(cmd)
 // Replaces the currently running Hilbish instance with the supplied command.
-// This can be used to do an in-place restart.
+// This can be used to do an in-place restamoonlight.
 // #param cmd string
 func hlexec(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
@@ -220,7 +219,7 @@ func hltimeout(mlr *moonlight.Runtime) error {
 	timer := timers.create(timerTimeout, interval, cb)
 	timer.start()
 
-	mlr.PushNext1(rt.UserDataValue(timer.ud))
+	mlr.PushNext1(moonlight.UserDataValue(timer.ud))
 	return nil
 }
 
@@ -247,6 +246,6 @@ func hlinterval(mlr *moonlight.Runtime) error {
 	timer := timers.create(timerInterval, interval, cb)
 	timer.start()
 
-	mlr.PushNext1(rt.UserDataValue(timer.ud))
+	mlr.PushNext1(moonlight.UserDataValue(timer.ud))
 	return nil
 }

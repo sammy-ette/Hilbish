@@ -5,17 +5,13 @@ package moonlight
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/aarzilli/golua/lua"
 )
 
 type Value struct {
-	iface  interface{}
-	relIdx int
-	refIdx int
+	iface interface{}
 }
 
-var NilValue = Value{nil, -1, -1}
+var NilValue = Value{nil}
 
 type ValueType uint8
 
@@ -26,6 +22,7 @@ const (
 	StringType
 	TableType
 	FunctionType
+	UserDataType
 	UnknownType
 )
 
@@ -88,8 +85,10 @@ func (v Value) Type() ValueType {
 		return StringType
 	case *Table:
 		return TableType
-	case *GoFunctionFunc:
+	case *GoFunctionFunc, *Closure:
 		return FunctionType
+	case *UserData:
+		return UserDataType
 	default:
 		return UnknownType
 	}
@@ -119,8 +118,12 @@ func (v Value) AsTable() *Table {
 	return v.iface.(*Table)
 }
 
-func (v Value) AsLuaFunction() lua.LuaGoFunction {
-	return v.iface.(*GoFunctionFunc).cf
+func (v Value) AsClosure() *Closure {
+	return v.iface.(*Closure)
+}
+
+func (v Value) AsUserData() *UserData {
+	return v.iface.(*UserData)
 }
 
 func ToString(v Value) string {
@@ -177,4 +180,22 @@ func (v Value) TryInt() (n int, ok bool) {
 func (v Value) TryString() (n string, ok bool) {
 	n, ok = v.iface.(string)
 	return
+}
+
+func (v Value) TryTable() (n *Table, ok bool) {
+	n, ok = v.iface.(*Table)
+	return
+}
+
+func (v Value) TryUserData() (n *UserData, ok bool) {
+	n, ok = v.iface.(*UserData)
+	return
+}
+
+func AsUserData(v Value) *UserData {
+	return v.AsUserData()
+}
+
+func TryUserData(v Value) (*UserData, bool) {
+	return v.TryUserData()
 }

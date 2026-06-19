@@ -2,12 +2,11 @@ package readline
 
 import (
 	"errors"
+	"hilbish/moonlight"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
-
-	rt "github.com/arnodel/golua/runtime"
 )
 
 type fileHistory struct {
@@ -116,35 +115,35 @@ func (h *fileHistory) rewrite() error {
 // luaHistoryWrapper wraps any Lua table with add/get/size/clear/all methods
 // as a readline History interface. This lets users supply custom history handlers.
 type luaHistoryWrapper struct {
-	handler rt.Value
-	rtm     *rt.Runtime
+	handler moonlight.Value
+	mlr     *moonlight.Runtime
 }
 
 func (h *luaHistoryWrapper) Write(line string) (int, error) {
-	addFn := h.handler.AsTable().Get(rt.StringValue("add"))
-	ln, err := rt.Call1(h.rtm.MainThread(), addFn, rt.StringValue(line))
+	addFn := h.handler.AsTable().Get(moonlight.StringValue("add"))
+	ln, err := h.mlr.Call1(addFn, moonlight.StringValue(line))
 	var num int64
-	if ln.Type() == rt.IntType {
+	if ln.Type() == moonlight.IntType {
 		num = ln.AsInt()
 	}
 	return int(num), err
 }
 
 func (h *luaHistoryWrapper) GetLine(idx int) (string, error) {
-	getFn := h.handler.AsTable().Get(rt.StringValue("get"))
-	lcmd, err := rt.Call1(h.rtm.MainThread(), getFn, rt.IntValue(int64(idx)))
+	getFn := h.handler.AsTable().Get(moonlight.StringValue("get"))
+	lcmd, err := h.mlr.Call1(getFn, moonlight.IntValue(int64(idx)))
 	var cmd string
-	if lcmd.Type() == rt.StringType {
+	if lcmd.Type() == moonlight.StringType {
 		cmd = lcmd.AsString()
 	}
 	return cmd, err
 }
 
 func (h *luaHistoryWrapper) Len() int {
-	sizeFn := h.handler.AsTable().Get(rt.StringValue("size"))
-	ln, _ := rt.Call1(h.rtm.MainThread(), sizeFn)
+	sizeFn := h.handler.AsTable().Get(moonlight.StringValue("size"))
+	ln, _ := h.mlr.Call1(sizeFn)
 	var num int64
-	if ln.Type() == rt.IntType {
+	if ln.Type() == moonlight.IntType {
 		num = ln.AsInt()
 	}
 	return int(num)
@@ -157,10 +156,10 @@ func (h *luaHistoryWrapper) Dump() interface{} {
 // Delete implements DeletableHistory for a Lua-backed history that exposes a
 // "delete" function in its handler table.
 func (h *luaHistoryWrapper) Delete(index int) error {
-	deleteFn := h.handler.AsTable().Get(rt.StringValue("delete"))
-	if deleteFn.IsNil() {
+	deleteFn := h.handler.AsTable().Get(moonlight.StringValue("delete"))
+	if deleteFn == moonlight.NilValue {
 		return nil
 	}
-	_, err := rt.Call1(h.rtm.MainThread(), deleteFn, rt.IntValue(int64(index)))
+	_, err := h.mlr.Call1(deleteFn, moonlight.IntValue(int64(index)))
 	return err
 }

@@ -219,7 +219,7 @@ func escapeFilename(fname string) string {
 // The completions interface deals with tab completions.
 func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
 	exports := map[string]moonlight.Export{
-		"bins": {hcmpBins, 3, false},
+		"bins": {Function: hcmpBins, ArgNum: 3, Variadic: false},
 		//"call":    {hcmpCall, 4, false},
 		//		"files":   {hcmpFiles, 3, false},
 		//		"handler": {hcmpHandler, 2, false},
@@ -461,7 +461,7 @@ function hilbish.completions.handler(line, pos)
 end
 #example
 */
-func hcmpHandler(mlr *moonlight.Runtime) error {
+func hcmpHandler() error {
 	return nil
 }
 

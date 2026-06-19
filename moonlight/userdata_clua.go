@@ -1,25 +1,25 @@
-//go:build !midnight
+//go:build midnight
 
 package moonlight
 
-import (
-	rt "github.com/arnodel/golua/runtime"
-)
-
 type UserData struct {
-	ud *rt.UserData
+	ud        any
+	metatable *Table
+	ref       int
 }
 
 func NewUserData(v any, meta *Table) *UserData {
 	return &UserData{
-		ud: rt.NewUserData(v, meta.lt),
+		ud:        v,
+		metatable: meta,
+		ref:       -1, // not yet pushed to Lua
 	}
 }
 
 func UserDataValue(u *UserData) Value {
-	return rt.UserDataValue(u.ud)
+	return Value{iface: u}
 }
 
 func (u *UserData) Value() any {
-	return u.ud.Value()
+	return u.ud
 }

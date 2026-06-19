@@ -3,7 +3,6 @@
 package moonlight
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/aarzilli/golua/lua"
@@ -13,11 +12,8 @@ type GoFunctionFunc struct {
 	cf lua.LuaGoFunction
 }
 
-func (gf GoFunctionFunc) Continuation(mlr *Runtime, c Cont) Cont {
-	return &GoCont{
-		f:    gf,
-		vals: []Value{},
-	}
+func (gf GoFunctionFunc) isLuaFunction() bool {
+	return false
 }
 
 func (mlr *Runtime) CheckNArgs(num int) error {
@@ -37,35 +33,68 @@ func (mlr *Runtime) StringArg(num int) (string, error) {
 	return mlr.state.CheckString(num + 1), nil
 }
 
+func (mlr *Runtime) IntArg(num int) (int, error) {
+	return mlr.state.CheckInteger(num + 1), nil
+}
+
+func (mlr *Runtime) BoolArg(num int) (bool, error) {
+	idx := num + 1
+	if !mlr.state.IsBoolean(idx) {
+		return false, fmt.Errorf("bad argument #%d (boolean expected)", num+1)
+	}
+
+	return mlr.state.ToBoolean(idx), nil
+}
+
 func (mlr *Runtime) TableArg(num int) (*Table, error) {
-	//return mlr.state.CheckType(num+1, lua.LUA_TTABLE)
-	return nil, errors.New("TableArg unimplemented")
+	idx := num + 1
+	if !mlr.state.IsTable(idx) {
+		return nil, fmt.Errorf("bad argument #%d (table expected)", num+1)
+	}
+
+	return mlr.valueFromState(idx).AsTable(), nil
 }
 
 func (mlr *Runtime) Arg(num int) Value {
-	return NilValue
+	return mlr.valueFromState(num + 1)
 }
 
-func (mlr *Runtime) GoFunction(fun GoToLuaFunc) *GoFunctionFunc {
+// Etc returns the args beyond the calling GoFunction's declared fixed arg count
+// (set via GoFunction's argNum param), mirroring golua's Cont.Etc().
+func (mlr *Runtime) Etc() []Value {
+	top := mlr.state.GetTop()
+
+	etc := make([]Value, 0, top-mlr.fixedArgs)
+	for i := mlr.fixedArgs + 1; i <= top; i++ {
+		etc = append(etc, mlr.valueFromState(i))
+	}
+
+	return etc
+}
+
+func (mlr *Runtime) GoFunction(fun GoToLuaFunc, argNum int) *GoFunctionFunc {
 	mlr.returnNum = 0
 
 	return &GoFunctionFunc{
 		cf: func(L *lua.State) int {
+			mlr.fixedArgs = argNum
+
+			println("RUNNING LUA FUNCTION")
 			err := fun(mlr)
+			println("~~~ done running the function")
+			println(err)
 			if err != nil {
 				L.RaiseError(err.Error())
 				return 0
 			}
 
-			/*for _, val := range cont.(*GoCont).vals {
-				switch Type(val) {
-				case StringType:
-					L.PushString(val.AsString())
-				}
-			}*/
+			println("cya")
 
-			//return len(cont.(*GoCont).vals)
 			return mlr.returnNum
 		},
 	}
+}
+
+func NewGoFunction(mlr *Runtime, fun GoToLuaFunc, name string, argNum int, variadic bool) *GoFunctionFunc {
+	return mlr.GoFunction(fun, argNum)
 }

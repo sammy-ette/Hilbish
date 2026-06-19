@@ -2,9 +2,7 @@
 
 package moonlight
 
-type Callable interface {
-	Continuation(*Runtime, Cont) Cont
-}
+import "fmt"
 
 type Closure struct {
 	refIdx int // so since we cant store the actual lua closure,
@@ -12,12 +10,14 @@ type Closure struct {
 }
 
 func (mlr *Runtime) ClosureArg(num int) (*Closure, error) {
-	return &Closure{
-		refIdx: -1,
-	}, nil
+	idx := num + 1
+	if !mlr.state.IsFunction(idx) {
+		return nil, fmt.Errorf("bad argument #%d (function expected)", num+1)
+	}
+
+	return mlr.valueFromState(idx).AsClosure(), nil
 }
 
-/*
-func (c *Closure) Continuation(mlr *Runtime, c Cont) Cont {
+func (c *Closure) isLuaFunction() bool {
+	return true
 }
-*/

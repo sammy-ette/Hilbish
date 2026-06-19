@@ -1,4 +1,5 @@
 //go:build midnight
+
 package moonlight
 
 import (
@@ -8,7 +9,10 @@ import (
 type Loader func(*Runtime) Value
 
 func (mlr *Runtime) LoadLibrary(ldr Loader, name string) {
-	cluaLoader := func (L *lua.State) int {
+	// mlr.mu.Lock()
+	// defer mlr.mu.Unlock()
+
+	cluaLoader := func(L *lua.State) int {
 		mlr.pushToState(ldr(mlr))
 
 		return 1

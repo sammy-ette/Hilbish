@@ -234,7 +234,7 @@ func (b *Bait) callRecoverer(event string, handler *Listener, err interface{}) {
 
 func (b *Bait) Loader(rtm *moonlight.Runtime) moonlight.Value {
 	exports := map[string]moonlight.Export{
-		"catch": {b.bcatch, 2, false},
+		"catch": {Function: b.bcatch, ArgNum: 2, Variadic: false},
 		/*
 			"catchOnce": util.LuaExport{b.bcatchOnce, 2, false},
 			"throw": util.LuaExport{b.bthrow, 1, true},

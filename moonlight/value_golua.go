@@ -13,10 +13,12 @@ type ValueType = rt.ValueType
 
 const (
 	NilType      = rt.NilType
+	BoolType     = rt.BoolType
 	IntType      = rt.IntType
 	StringType   = rt.StringType
 	FunctionType = rt.FunctionType
 	TableType    = rt.TableType
+	UserDataType = rt.UserDataType
 )
 
 func Type(v Value) ValueType {
@@ -43,8 +45,25 @@ func ToString(v Value) string {
 	return v.AsString()
 }
 
-func ToTable(mlr *Runtime, v Value) *Table {
+func ToTable(v Value) *Table {
 	return convertToMoonlightTable(v.AsTable())
+}
+
+func FunctionValue(c rt.Callable) Value {
+	return rt.FunctionValue(c)
+}
+
+func AsUserData(v Value) *UserData {
+	return &UserData{ud: v.AsUserData()}
+}
+
+func TryUserData(v Value) (*UserData, bool) {
+	ud, ok := v.TryUserData()
+	if !ok {
+		return nil, false
+	}
+
+	return &UserData{ud: ud}, true
 }
 
 func AsValue(v interface{}) Value {

@@ -9,19 +9,28 @@ import (
 type GoFunctionFunc = rt.GoFunctionFunc
 
 func (mlr *Runtime) CheckNArgs(num int) error {
-	return mlr.rt.MainThread().CurrentCont().(*rt.GoCont).CheckNArgs(num)
+	return mlr.curCont.CheckNArgs(num)
 }
 
 func (mlr *Runtime) Check1Arg() error {
-	return mlr.rt.MainThread().CurrentCont().(*rt.GoCont).Check1Arg()
+	return mlr.curCont.Check1Arg()
 }
 
 func (mlr *Runtime) StringArg(num int) (string, error) {
-	return mlr.rt.MainThread().CurrentCont().(*rt.GoCont).StringArg(num)
+	return mlr.curCont.StringArg(num)
+}
+
+func (mlr *Runtime) BoolArg(num int) (bool, error) {
+	return mlr.curCont.BoolArg(num)
+}
+
+func (mlr *Runtime) IntArg(num int) (int, error) {
+	n, err := mlr.curCont.IntArg(num)
+	return int(n), err
 }
 
 func (mlr *Runtime) TableArg(num int) (*Table, error) {
-	tbl, err := mlr.rt.MainThread().CurrentCont().(*rt.GoCont).TableArg(num)
+	tbl, err := mlr.curCont.TableArg(num)
 	if err != nil {
 		return nil, err
 	}
@@ -32,15 +41,28 @@ func (mlr *Runtime) TableArg(num int) (*Table, error) {
 }
 
 func (mlr *Runtime) ClosureArg(num int) (*Closure, error) {
-	return mlr.rt.MainThread().CurrentCont().(*rt.GoCont).ClosureArg(num)
+	return mlr.curCont.ClosureArg(num)
 }
 
 func (mlr *Runtime) Arg(num int) Value {
-	return mlr.rt.MainThread().CurrentCont().(*rt.GoCont).Arg(num)
+	return mlr.curCont.Arg(num)
+}
+
+func (mlr *Runtime) Etc() []Value {
+	return mlr.curCont.Etc()
 }
 
 func (mlr *Runtime) GoFunction(fun GoToLuaFunc) GoFunctionFunc {
 	return func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		return c.Next(), fun(mlr)
+		prevCont := mlr.curCont
+		mlr.curCont = c
+		err := fun(mlr)
+		mlr.curCont = prevCont
+
+		return c.Next(), err
 	}
+}
+
+func NewGoFunction(mlr *Runtime, fun GoToLuaFunc, name string, argNum int, variadic bool) *rt.GoFunction {
+	return rt.NewGoFunction(mlr.GoFunction(fun), name, argNum, variadic)
 }

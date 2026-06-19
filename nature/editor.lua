@@ -1,5 +1,7 @@
 local readline = require 'readline'
+print 'required readline'
 local bait = require 'bait'
+print 'required bait'
 
 hilbish.editor = readline.new()
 

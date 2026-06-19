@@ -6,12 +6,10 @@ import (
 	"time"
 
 	"hilbish/moonlight"
-
-	rt "github.com/arnodel/golua/runtime"
 )
 
 var timers *timersModule
-var timerMetaKey = rt.StringValue("hshtimer")
+var timerMetaKey = moonlight.StringValue("hshtimer")
 
 type timersModule struct {
 	mu       *sync.RWMutex
@@ -34,7 +32,7 @@ func (th *timersModule) wait() {
 	th.wg.Wait()
 }
 
-func (th *timersModule) create(typ timerType, dur time.Duration, fun *rt.Closure) *timer {
+func (th *timersModule) create(typ timerType, dur time.Duration, fun *moonlight.Closure) *timer {
 	th.mu.Lock()
 	defer th.mu.Unlock()
 
@@ -47,7 +45,7 @@ func (th *timersModule) create(typ timerType, dur time.Duration, fun *rt.Closure
 		th:      th,
 		id:      th.latestID,
 	}
-	//t.ud = timerUserData(t)
+	t.ud = timerUserData(t)
 
 	th.timers[th.latestID] = t
 
@@ -67,26 +65,27 @@ func (th *timersModule) get(id int) *timer {
 // #param type number What kind of timer to create, can either be `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`
 // #param time number The amount of time the function should run in milliseconds.
 // #param callback function The function to run for the timer.
-func (th *timersModule) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(3); err != nil {
-		return nil, err
+func (th *timersModule) luaCreate(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(3); err != nil {
+		return err
 	}
-	timerTypInt, err := c.IntArg(0)
+	timerTypInt, err := mlr.IntArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	ms, err := c.IntArg(1)
+	ms, err := mlr.IntArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	cb, err := c.ClosureArg(2)
+	cb, err := mlr.ClosureArg(2)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	timerTyp := timerType(timerTypInt)
 	tmr := th.create(timerTyp, time.Duration(ms)*time.Millisecond, cb)
-	return c.PushingNext1(t.Runtime, rt.UserDataValue(tmr.ud)), nil
+	mlr.PushNext1(moonlight.UserDataValue(tmr.ud))
+	return nil
 }
 
 // #interface timers
@@ -94,21 +93,30 @@ func (th *timersModule) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // Retrieves a timer via its ID.
 // #param id number
 // #returns Timer
-func (th *timersModule) luaGet(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func (th *timersModule) luaGet(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
-	id, err := c.IntArg(0)
+	id, err := mlr.IntArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	t := th.get(int(id))
 	if t != nil {
-		return c.PushingNext1(thr.Runtime, rt.UserDataValue(t.ud)), nil
+		mlr.PushNext1(moonlight.UserDataValue(t.ud))
+		return nil
 	}
 
-	return c.Next(), nil
+	return nil
+}
+
+// #interface timers
+// wait()
+// Waits for all timers to finish.
+func (th *timersModule) luaWait(mlr *moonlight.Runtime) error {
+	th.wait()
+	return nil
 }
 
 // #interface timers
@@ -144,35 +152,35 @@ func (th *timersModule) loader() *moonlight.Table {
 	l.SetExports(timerMethods, timerFuncs)
 
 	/*
-		timerMeta := rt.NewTable()
-		timerIndex := func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+		timerMeta := moonlight.NewTable()
+		timerIndex := func(t *moonlight.Thread, c *moonlight.GoCont) (moonlight.Cont, error) {
 			ti, _ := timerArg(c, 0)
 
-			arg := c.Arg(1)
+			arg := mlr.Arg(1)
 			val := timerMethods.Get(arg)
 
-			if val != rt.NilValue {
-				return c.PushingNext1(t.Runtime, val), nil
+			if val != moonlight.NilValue {
+				return mlr.PushingNext1(t.Runtime, val), nil
 			}
 
 			keyStr, _ := arg.TryString()
 
 			switch keyStr {
 			case "type":
-				val = rt.IntValue(int64(ti.typ))
+				val = moonlight.IntValue(int64(ti.typ))
 			case "running":
 				ti.mu.Lock()
-				val = rt.BoolValue(ti.running)
+				val = moonlight.BoolValue(ti.running)
 				ti.mu.Unlock()
 			case "duration":
-				val = rt.IntValue(int64(ti.dur / time.Millisecond))
+				val = moonlight.IntValue(int64(ti.dur / time.Millisecond))
 			}
 
-			return c.PushingNext1(t.Runtime, val), nil
+			return mlr.PushingNext1(t.Runtime, val), nil
 		}
 
-		timerMeta.Set(rt.StringValue("__index"), rt.FunctionValue(rt.NewGoFunction(timerIndex, "__index", 2, false)))
-		l.UnderlyingRuntime().SetRegistry(timerMetaKey, rt.TableValue(timerMeta))
+		timerMeta.Set(moonlight.StringValue("__index"), moonlight.FunctionValue(moonlight.NewGoFunction(timerIndex, "__index", 2, false)))
+		l.UnderlyingRuntime().SetRegistry(timerMetaKey, moonlight.TableValue(timerMeta))
 	*/
 
 	thExports := map[string]moonlight.Export{
@@ -192,8 +200,8 @@ func (th *timersModule) loader() *moonlight.Table {
 	return luaTh
 }
 
-func timerArg(c *rt.GoCont, arg int) (*timer, error) {
-	j, ok := valueToTimer(c.Arg(arg))
+func timerArg(mlr *moonlight.Runtime, arg int) (*timer, error) {
+	j, ok := valueToTimer(mlr.Arg(arg))
 	if !ok {
 		return nil, fmt.Errorf("#%d must be a timer", arg+1)
 	}
@@ -201,7 +209,7 @@ func timerArg(c *rt.GoCont, arg int) (*timer, error) {
 	return j, nil
 }
 
-func valueToTimer(val rt.Value) (*timer, bool) {
+func valueToTimer(val moonlight.Value) (*timer, bool) {
 	u, ok := val.TryUserData()
 	if !ok {
 		return nil, false
@@ -211,17 +219,7 @@ func valueToTimer(val rt.Value) (*timer, bool) {
 	return j, ok
 }
 
-/*
-func timerUserData(j *timer) *rt.UserData {
-	timerMeta := l.UnderlyingRuntime().Registry(timerMetaKey)
-	return rt.NewUserData(j, timerMeta.AsTable())
+func timerUserData(j *timer) *moonlight.UserData {
+	timerMeta := l.Registry(timerMetaKey)
+	return moonlight.NewUserData(j, moonlight.ToTable(timerMeta))
 }
-
-// #interface timers
-// wait()
-// Waits for all timers to finish.
-func timerWait(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	timers.wait()
-	return c.Next(), nil
-}
-*/
