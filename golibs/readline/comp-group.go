@@ -100,7 +100,7 @@ func (g *CompletionGroup) init(rl *Readline) {
 	case TabDisplayGrid:
 		g.initGrid(rl)
 	case TabDisplayMap:
-		g.initMap()
+		g.initMap(rl)
 	case TabDisplayList:
 		g.initList(rl)
 	}
@@ -308,9 +308,9 @@ func (g *CompletionGroup) goLastCell() {
 		// By default, the last item is at maxY
 		g.tcPosY = g.tcMaxY
 
-		// If the max length is smaller than the number
+		// If the visible window is smaller than the number
 		// of suggestions, we need to adjust the offset.
-		if len(g.Items) > g.MaxLength {
+		if len(g.Items) > g.tcMaxY {
 			g.tcOffset = len(g.Items) - g.tcMaxY
 		}
 
@@ -321,9 +321,9 @@ func (g *CompletionGroup) goLastCell() {
 		// By default, the last item is at maxY
 		g.tcPosY = g.tcMaxY
 
-		// If the max length is smaller than the number
+		// If the visible window is smaller than the number
 		// of suggestions, we need to adjust the offset.
-		if len(g.Items) > g.MaxLength {
+		if len(g.Items) > g.tcMaxY {
 			g.tcOffset = len(g.Items) - g.tcMaxY
 		}
 

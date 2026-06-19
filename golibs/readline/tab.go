@@ -290,14 +290,7 @@ func (rl *Readline) writeTabCompletion() {
 // completions never cover the entire screen.
 func (rl *Readline) effectiveMaxRows() int {
 	max := rl.MaxTabCompleterRows
-	// Count explicit newlines in the prompt + wrapping of the last line.
-	promptLines := strings.Count(rl.mainPrompt, "\n") + 1
-	if termW := GetTermWidth(); termW > 0 && rl.promptLen > termW {
-		promptLines += rl.promptLen / termW
-	}
-	// Reserve: prompt + input span + info line + safety margin.
-	reserved := promptLines + rl.fullY + 2
-	if limited := GetTermLength() - reserved; limited < max {
+	if limited := GetTermLength() - rl.reservedScreenRows(); limited < max {
 		max = limited
 	}
 	if max < 3 {

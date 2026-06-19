@@ -43,23 +43,7 @@ func (g *CompletionGroup) initGrid(rl *Readline) {
 	}
 
 	// Never let the grid fill more than the usable terminal height.
-	// Reserved rows: prompt lines + input span + info line + safety margin.
-	// Count explicit newlines in the prompt, then add wrapping rows for the last line.
-	promptLines := strings.Count(rl.mainPrompt, "\n") + 1
-	termW := GetTermWidth()
-	if termW > 0 && rl.promptLen > termW {
-		promptLines += rl.promptLen / termW
-	}
-	reserved := promptLines + rl.fullY + 2 // info + safety
-	heightLimit := GetTermLength() - reserved
-	// When items exceed the viewport a footer line is also rendered; reserve for it.
-	if maxY > heightLimit {
-		heightLimit--
-	}
-	if heightLimit < 3 {
-		heightLimit = 3
-	}
-	if g.tcMaxY > heightLimit {
+	if heightLimit := rl.groupHeightLimit(maxY); g.tcMaxY > heightLimit {
 		g.tcMaxY = heightLimit
 	}
 }
@@ -167,15 +151,7 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 	cellWidth := strconv.Itoa(rawCellWidth)
 
 	// Scrollbar thumb geometry (0-indexed rows within the visible window).
-	thumbStart := 0
-	thumbH := g.tcMaxY
-	if needsScrollbar && totalRows > 0 {
-		thumbH = g.tcMaxY * g.tcMaxY / totalRows
-		if thumbH < 1 {
-			thumbH = 1
-		}
-		thumbStart = g.tcOffset * g.tcMaxY / totalRows
-	}
+	thumbStart, thumbH := scrollbarThumb(totalRows, g.tcMaxY, g.tcOffset)
 
 	startIdx := g.tcOffset * g.tcMaxX
 	x := 0
@@ -193,11 +169,7 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 				// Append scrollbar character for the completed row before the newline.
 				if needsScrollbar {
 					rowIdx := y - 2 // just finished row y-1 (0-indexed: y-2)
-					if rowIdx >= thumbStart && rowIdx < thumbStart+thumbH {
-						comp += " " + BOLD + "█" + RESET
-					} else {
-						comp += " " + DIM + "░" + RESET
-					}
+					comp += scrollbarChar(rowIdx, thumbStart, thumbH)
 				}
 				comp += "\r\n"
 			}
@@ -230,11 +202,7 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 	// Append scrollbar for the last rendered row.
 	if needsScrollbar {
 		rowIdx := y - 1 // last rendered row, 0-indexed
-		if rowIdx >= thumbStart && rowIdx < thumbStart+thumbH {
-			comp += " " + BOLD + "█" + RESET
-		} else {
-			comp += " " + DIM + "░" + RESET
-		}
+		comp += scrollbarChar(rowIdx, thumbStart, thumbH)
 	}
 
 	// Always end with a newline.
@@ -249,7 +217,7 @@ func (g *CompletionGroup) writeGrid(rl *Readline) (comp string) {
 		if lastItem > len(g.Items) {
 			lastItem = len(g.Items)
 		}
-		comp += fmt.Sprintf(DIM+" rows %d-%d of %d"+RESET+"\n", firstItem, lastItem, len(g.Items))
+		comp += footerRange("rows", firstItem, lastItem, len(g.Items))
 		rl.tcUsedY++
 	}
 
