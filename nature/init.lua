@@ -1,11 +1,9 @@
 -- Prelude initializes everything else for our shell
-print 'welcome to nature!'
 local _ = require 'succulent' -- Function additions
 local bait = require 'bait'
 local fs = require 'fs'
 
 hilbish.initialized = false
-print 'initialization started'
 
 local oldOsExit = os.exit
 ---@diagnostic disable-next-line: duplicate-set-field
@@ -36,9 +34,7 @@ else
 	pcall = unsafe_pcall
 end
 
-print 'setting up editor'
 require 'nature.editor'
-print 'setting up aliases'
 require 'nature.aliases'
 require 'nature.hilbish'
 
