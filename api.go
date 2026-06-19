@@ -33,18 +33,19 @@ import (
 	"mvdan.cc/sh/v3/shell"
 )
 
+var exports = map[string]moonlight.Export{
+	"cwd":      {Function: hlcwd, ArgNum: 0, Variadic: false},
+	"exec":     {Function: hlexec, ArgNum: 1, Variadic: false},
+	"interval": {Function: hlinterval, ArgNum: 2, Variadic: false},
+	"lookpath": {Function: hllookpath, ArgNum: 1, Variadic: false},
+	"timeout":  {Function: hltimeout, ArgNum: 2, Variadic: false},
+}
+
 var hshMod *moonlight.Table
 
 func hilbishLoader(mlr *moonlight.Runtime) moonlight.Value {
-	exports := map[string]moonlight.Export{
-		"cwd":      {Function: hlcwd, ArgNum: 0, Variadic: false},
-		"exec":     {Function: hlexec, ArgNum: 1, Variadic: false},
-		"interval": {Function: hlinterval, ArgNum: 2, Variadic: false},
-		"lookpath": {Function: hllookpath, ArgNum: 1, Variadic: false},
-		"timeout":  {Function: hltimeout, ArgNum: 2, Variadic: false},
-	}
-
 	mod := moonlight.NewTable()
+
 	mlr.SetExports(mod, exports)
 	if hshMod == nil {
 		hshMod = mod
@@ -210,9 +211,9 @@ func hltimeout(mlr *moonlight.Runtime) error {
 	if err != nil {
 		return err
 	}
-	ms, ok := mlr.Arg(1).TryInt()
-	if !ok {
-		return errors.New("expected #2 to be an integer")
+	ms, err := mlr.IntArg(1)
+	if err != nil {
+		return err
 	}
 
 	interval := time.Duration(ms) * time.Millisecond
@@ -237,9 +238,9 @@ func hlinterval(mlr *moonlight.Runtime) error {
 	if err != nil {
 		return err
 	}
-	ms, ok := mlr.Arg(1).TryInt()
-	if !ok {
-		return errors.New("expected #2 to be an integer")
+	ms, err := mlr.IntArg(1)
+	if err != nil {
+		return err
 	}
 
 	interval := time.Duration(ms) * time.Millisecond
