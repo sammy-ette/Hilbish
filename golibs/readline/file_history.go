@@ -88,6 +88,31 @@ func (h *fileHistory) clear() {
 	h.f.Sync()
 }
 
+// Delete removes the history entry at index and rewrites the backing file.
+func (h *fileHistory) Delete(index int) error {
+	if index < 0 || index >= len(h.items) {
+		return nil
+	}
+	h.items = append(h.items[:index:index], h.items[index+1:]...)
+	return h.rewrite()
+}
+
+// rewrite truncates the backing file and writes all current items.
+func (h *fileHistory) rewrite() error {
+	if err := h.f.Truncate(0); err != nil {
+		return err
+	}
+	if _, err := h.f.Seek(0, 0); err != nil {
+		return err
+	}
+	for _, item := range h.items {
+		if _, err := h.f.WriteString(item + "\n"); err != nil {
+			return err
+		}
+	}
+	return h.f.Sync()
+}
+
 // luaHistoryWrapper wraps any Lua table with add/get/size/clear/all methods
 // as a readline History interface. This lets users supply custom history handlers.
 type luaHistoryWrapper struct {
@@ -127,4 +152,15 @@ func (h *luaHistoryWrapper) Len() int {
 
 func (h *luaHistoryWrapper) Dump() interface{} {
 	return nil
+}
+
+// Delete implements DeletableHistory for a Lua-backed history that exposes a
+// "delete" function in its handler table.
+func (h *luaHistoryWrapper) Delete(index int) error {
+	deleteFn := h.handler.AsTable().Get(rt.StringValue("delete"))
+	if deleteFn.IsNil() {
+		return nil
+	}
+	_, err := rt.Call1(h.rtm.MainThread(), deleteFn, rt.IntValue(int64(index)))
+	return err
 }

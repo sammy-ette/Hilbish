@@ -141,6 +141,20 @@ func rlNewHistory(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return c.Next(), nil
 	}, 0, false)
 
+	rtm.SetEnvGoFunc(tbl, "delete", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+		if err := c.Check1Arg(); err != nil {
+			return nil, err
+		}
+		idx, err := c.IntArg(0)
+		if err != nil {
+			return nil, err
+		}
+		if err := hist.Delete(int(idx)); err != nil {
+			return nil, err
+		}
+		return c.Next(), nil
+	}, 1, false)
+
 	rtm.SetEnvGoFunc(tbl, "all", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		allTbl := rt.NewTable()
 		size := hist.Len()
@@ -493,10 +507,7 @@ func rlSetCompleter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 				return
 			}
 
-			items := []string{}
-			itemDescriptions := make(map[string]string)
-			itemDisplays := make(map[string]string)
-			itemAliases := make(map[string]string)
+			menuItems := []MenuItem{}
 
 			util.ForEach(luaCompItems.AsTable(), func(lkey rt.Value, lval rt.Value) {
 				if keytyp := lkey.Type(); keytyp == rt.StringType {
@@ -504,34 +515,45 @@ func rlSetCompleter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 					// ['--flag'] = {'description', '--flag-alias'}
 					// OR
 					// ['--flag'] = {description = '', alias = '', display = ''}
-					itemName, _ := lkey.TryString()
+					itemName, ok := lkey.TryString()
 					vlTbl, okk := lval.TryTable()
-					if !okk {
+					if !ok && !okk {
+						// TODO: error
 						return
 					}
 
-					items = append(items, itemName)
+					item := MenuItem{Value: itemName}
+
 					itemDescription, ok := vlTbl.Get(rt.IntValue(1)).TryString()
 					if !ok {
+						// if we can't get it by number index, try by string key
 						itemDescription, _ = vlTbl.Get(rt.StringValue("description")).TryString()
 					}
-					itemDescriptions[itemName] = itemDescription
+					item.Description = itemDescription
 
+					// display
 					if itemDisplay, ok := vlTbl.Get(rt.StringValue("display")).TryString(); ok {
-						itemDisplays[itemName] = itemDisplay
+						item.Display = itemDisplay
 					}
 
 					itemAlias, ok := vlTbl.Get(rt.IntValue(2)).TryString()
 					if !ok {
+						// if we can't get it by number index, try by string key
 						itemAlias, _ = vlTbl.Get(rt.StringValue("alias")).TryString()
 					}
-					itemAliases[itemName] = itemAlias
+					item.Alias = itemAlias
+
+					menuItems = append(menuItems, item)
 				} else if keytyp == rt.IntType {
 					vlStr, ok := lval.TryString()
 					if !ok {
+						// TODO: error
 						return
 					}
-					items = append(items, vlStr)
+					menuItems = append(menuItems, MenuItem{Value: vlStr})
+				} else {
+					// TODO: error
+					return
 				}
 			})
 
@@ -541,16 +563,15 @@ func rlSetCompleter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 				dispType = TabDisplayGrid
 			case "list":
 				dispType = TabDisplayList
+				// need special cases, will implement later
+				//case "map": dispType = TabDisplayMap
 			}
 
 			compGroups = append(compGroups, &CompletionGroup{
-				DisplayType:  dispType,
-				Aliases:      itemAliases,
-				Descriptions: itemDescriptions,
-				ItemDisplays: itemDisplays,
-				Suggestions:  items,
-				TrimSlash:    false,
-				NoSpace:      true,
+				DisplayType: dispType,
+				Items:       menuItems,
+				TrimSlash:   false,
+				NoSpace:     true,
 			})
 		})
 
@@ -683,7 +704,7 @@ func rlSetRawInputCallback(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #member
 // setHistory(handler)
 // Sets the history handler. handler is a table with add, get, size, clear, all functions.
-// Use readline.newHistory(path) to get a file-backed handler, or supply your own.
+// Use newHistory(path) to get a file-backed handler, or supply your own.
 // #param handler table
 func rlSetHistory(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	if err := c.CheckNArgs(2); err != nil {

@@ -208,7 +208,7 @@ func (rl *Readline) colorizeVimPrompt(p []rune) (cp []rune) {
 // getting its real-printed length.
 func getRealLength(s string) (l int) {
 	stripped := ansi.Strip(s)
-	return getWidth([]rune(stripped))
+	return displayWidth([]rune(stripped))
 }
 
 func (rl *Readline) echoRightPrompt() {

@@ -67,20 +67,11 @@ func (dtc DelayedTabContext) AppendGroupSuggestions(groupName string, suggestion
 			return
 
 		default:
-			// Drop duplicates
-			for _, actual := range grp.Suggestions {
-				if actual == suggestions[i] {
-					continue
-				}
-			}
-
+			item := grp.upsertItem(suggestions[i])
 			// Descriptions might be used by tabdisplay maps or grids, but not lists.
 			if grp.DisplayType != TabDisplayList {
-				grp.Descriptions[suggestions[i]] = suggestions[i]
+				item.Description = suggestions[i]
 			}
-
-			// Suggestions are used by all groups no matter their display type
-			grp.Suggestions = append(grp.Suggestions, suggestions[i])
 		}
 	}
 
@@ -115,19 +106,7 @@ func (dtc DelayedTabContext) AppendGroupAliases(groupName string, aliases map[st
 			return
 
 		default:
-			// Add to suggestions list if not existing yet
-			var found bool
-			for _, actual := range grp.Suggestions {
-				if actual == sugg {
-					found = true
-				}
-			}
-			if !found {
-				grp.Suggestions = append(grp.Suggestions, sugg)
-			}
-
-			// Map the new description anyway
-			grp.Aliases[sugg] = alias
+			grp.upsertItem(sugg).Alias = alias
 		}
 	}
 
@@ -165,19 +144,7 @@ func (dtc DelayedTabContext) AppendGroupDescriptions(groupName string, descripti
 			return
 
 		default:
-			// Add to suggestions list if not existing yet
-			var found bool
-			for _, actual := range grp.Suggestions {
-				if actual == sugg {
-					found = true
-				}
-			}
-			if !found {
-				grp.Suggestions = append(grp.Suggestions, sugg)
-			}
-
-			// Map the new description anyway
-			grp.Descriptions[sugg] = desc
+			grp.upsertItem(sugg).Description = desc
 		}
 	}
 

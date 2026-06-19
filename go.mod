@@ -24,7 +24,7 @@ require (
 	golang.org/x/sync v0.21.0 // indirect
 )
 
-replace mvdan.cc/sh/v3 => github.com/Rosettea/sh/v3 v3.4.0-0.dev.0.20240815163633-562273e09b73
+replace mvdan.cc/sh/v3 => github.com/Rosettea/sh/v3 v3.4.0-0.dev.0.20260619122443-000cc3933aaf
 
 replace layeh.com/gopher-luar => github.com/layeh/gopher-luar v1.0.10
 

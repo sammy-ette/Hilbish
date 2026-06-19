@@ -2,7 +2,6 @@ package readline
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -14,36 +13,34 @@ func (g *CompletionGroup) initList(rl *Readline) {
 	// columns: (suggestions, and alternatives)
 	g.tcMaxX = 2
 
-	// We make the list anyway, especially if we need to use it later
-	if g.Descriptions == nil {
-		g.Descriptions = make(map[string]string)
-	}
-	if g.Aliases == nil {
-		g.Aliases = make(map[string]string)
-	}
-
-	// Compute size of each completion item box. Group independent
+	// Compute size of each completion item box. Group independent (display width, not byte length)
 	g.tcMaxLength = rl.getListPad()
 
 	// Same for suggestions alt
 	g.tcMaxLengthAlt = 0
-	for i := range g.Suggestions {
-		if len(g.Suggestions[i]) > g.tcMaxLength {
-			g.tcMaxLength = len([]rune(g.Suggestions[i]))
+	for i := range g.Items {
+		w := printWidth(g.Items[i].display())
+		if w > g.tcMaxLength {
+			g.tcMaxLength = w
 		}
 	}
 
 	// Max values depend on if we have alternative suggestions
-	if len(g.Aliases) == 0 {
+	if !g.hasAliases() {
 		g.tcMaxX = 1
 	} else {
 		g.tcMaxX = 2
 	}
 
-	if len(g.Suggestions) > g.MaxLength {
+	totalRows := len(g.Items)
+	if totalRows > g.MaxLength {
 		g.tcMaxY = g.MaxLength
 	} else {
-		g.tcMaxY = len(g.Suggestions)
+		g.tcMaxY = totalRows
+	}
+
+	if heightLimit := rl.groupHeightLimit(totalRows); g.tcMaxY > heightLimit {
+		g.tcMaxY = heightLimit
 	}
 
 	g.tcPosX = 0
@@ -76,10 +73,10 @@ func (g *CompletionGroup) moveTabListHighlight(rl *Readline, x, y int) (done boo
 	}
 
 	// Once we get to the end of choices: check which column we were selecting.
-	if g.tcOffset+g.tcPosY > len(g.Suggestions) {
+	if g.tcOffset+g.tcPosY > len(g.Items) {
 		// If we have alternative options and that we are not yet
 		// completing them, start on top of their column
-		if g.tcPosX == 0 && len(g.Aliases) > 0 {
+		if g.tcPosX == 0 && g.hasAliases() {
 			g.tcPosX++
 			g.tcPosY = 1
 			g.tcOffset = 0
@@ -96,14 +93,12 @@ func (g *CompletionGroup) moveTabListHighlight(rl *Readline, x, y int) (done boo
 
 	// Here we must check, in x == 1, that the current choice
 	// is not empty. Handle for both reverse and forward movements.
-	sugg := g.Suggestions[g.tcPosY-1]
-	_, ok := g.Aliases[sugg]
-	if !ok && g.tcPosX == 1 {
+	hasAlias := g.tcPosY-1 < len(g.Items) && g.Items[g.tcPosY-1].Alias != ""
+	if !hasAlias && g.tcPosX == 1 {
 		if rl.tabCompletionReverse {
-			for i := len(g.Suggestions[:g.tcPosY-1]); i > 0; i-- {
-				su := g.Suggestions[i]
-				if _, ok := g.Aliases[su]; ok {
-					g.tcPosY -= (len(g.Suggestions[:g.tcPosY-1])) - i
+			for i := g.tcPosY - 1; i > 0; i-- {
+				if g.Items[i].Alias != "" {
+					g.tcPosY -= (g.tcPosY - 1) - i
 					return false, false
 				}
 			}
@@ -111,9 +106,9 @@ func (g *CompletionGroup) moveTabListHighlight(rl *Readline, x, y int) (done boo
 			g.tcPosY = g.tcMaxY
 
 		} else {
-			for i, su := range g.Suggestions[g.tcPosY-1:] {
-				if _, ok := g.Aliases[su]; ok {
-					g.tcPosY += i
+			for i := g.tcPosY - 1; i < len(g.Items); i++ {
+				if g.Items[i].Alias != "" {
+					g.tcPosY += i - (g.tcPosY - 1)
 					return false, false
 				}
 			}
@@ -122,9 +117,9 @@ func (g *CompletionGroup) moveTabListHighlight(rl *Readline, x, y int) (done boo
 
 	// Setup offset if needs to be.
 	// TODO: should be rewrited to conditionally process rolling menus with alternatives
-	if g.tcOffset+g.tcPosY < 1 && len(g.Suggestions) > 0 {
+	if g.tcOffset+g.tcPosY < 1 && len(g.Items) > 0 {
 		g.tcPosY = g.tcMaxY
-		g.tcOffset = len(g.Suggestions) - g.tcMaxY
+		g.tcOffset = len(g.Items) - g.tcMaxY
 	}
 	if g.tcOffset < 0 {
 		g.tcOffset = 0
@@ -168,19 +163,24 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 		return
 	}
 
+	totalRows := len(g.Items)
+	needsScrollbar := totalRows > g.tcMaxY
+
+	if needsScrollbar {
+		termWidth -= 2
+	}
+
 	// Suggestion cells dimensions
 	maxLength := g.tcMaxLength
 	if maxLength > termWidth-9 {
 		maxLength = termWidth - 9
 	}
-	cellWidth := strconv.Itoa(maxLength)
 
 	// Alternative suggestion cells dimensions
 	maxLengthAlt := g.tcMaxLengthAlt + 2
 	if maxLengthAlt > termWidth-9 {
 		maxLengthAlt = termWidth - 9
 	}
-	cellWidthAlt := strconv.Itoa(maxLengthAlt)
 
 	// Descriptions cells dimensions
 	maxDescWidth := termWidth - maxLength - maxLengthAlt - 4
@@ -193,57 +193,74 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 		return ""
 	}
 
+	thumbStart, thumbH := scrollbarThumb(totalRows, g.tcMaxY, g.tcOffset)
+
 	// For each line in completions
 	y := 0
-	for i := g.tcOffset; i < len(g.Suggestions); i++ {
+	for i := g.tcOffset; i < len(g.Items); i++ {
 		y++ // Consider next item
 		if y > g.tcMaxY {
+			y--
 			break
 		}
 
-		// Main suggestion
-		item := g.Suggestions[i]
-		if len(item) > maxLength {
-			item = item[:maxLength-3] + "..."
+		// Main suggestion (use visible width, ignoring styling). display()
+		// already returns the styled Display string if one was set.
+		item := truncateDisplay(g.Items[i].display(), maxLength)
+		// Manual width-based padding
+		padding := maxLength - printWidth(item)
+		if padding < 0 {
+			padding = 0
 		}
-		sugg := fmt.Sprintf("\r%s%-"+cellWidth+"s", highlight(y, 0), fmtEscape(item))
+		sugg := "\r" + highlight(y, 0) + item + strings.Repeat(" ", padding)
 
-		// Alt suggestion
-		alt, ok := g.Aliases[item]
-		if ok {
-			alt = fmt.Sprintf(" %s%"+cellWidthAlt+"s", highlight(y, 1), fmtEscape(alt))
+		// Alt suggestion (with visible-width padding)
+		alt := g.Items[i].Alias
+		if alt != "" {
+			altPadding := maxLengthAlt - printWidth(alt)
+			if altPadding < 0 {
+				altPadding = 0
+			}
+			alt = " " + highlight(y, 1) + alt + strings.Repeat(" ", altPadding)
 		} else {
 			// Else, make an empty cell
 			alt = strings.Repeat(" ", maxLengthAlt+1) // + 2 to keep account of spaces
 		}
 
-		styledSugg, ok := g.ItemDisplays[item]
-		if ok {
-			sugg = fmt.Sprintf("\r%s%-"+cellWidth+"s", highlight(y, 0), fmtEscape(styledSugg))
-		}
-
-		// Description
-		description := g.Descriptions[g.Suggestions[i]]
-		if len(description) > maxDescWidth {
-			description = description[:maxDescWidth-3] + "..." + RESET + "\n"
-		} else {
-			description += "\n"
+		// Description (use visible width, ignoring styling)
+		description := g.Items[i].Description
+		if printWidth(description) > maxDescWidth {
+			description = truncateDisplay(description, maxDescWidth) + RESET
 		}
 
 		// Total completion line
 		comp += sugg + seqReset + alt + " " + seqReset + description
+		if needsScrollbar {
+			comp += scrollbarChar(y-1, thumbStart, thumbH)
+		}
+		comp += "\n"
+	}
+
+	if needsScrollbar {
+		firstItem := g.tcOffset + 1
+		lastItem := g.tcOffset + y
+		if lastItem > len(g.Items) {
+			lastItem = len(g.Items)
+		}
+		comp += footerRange("items", firstItem, lastItem, len(g.Items))
+		rl.tcUsedY++
 	}
 
 	// Add the equivalent of this group's size to final screen clearing
 	// Can be set and used only if no alterative completions have been given.
-	if len(g.Aliases) == 0 {
-		if len(g.Suggestions) > g.MaxLength {
+	if !g.hasAliases() {
+		if g.MaxLength < y {
 			rl.tcUsedY += g.MaxLength
 		} else {
-			rl.tcUsedY += len(g.Suggestions)
+			rl.tcUsedY += y
 		}
 	} else {
-		rl.tcUsedY += len(g.Suggestions)
+		rl.tcUsedY += y
 	}
 
 	return
@@ -252,9 +269,10 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 func (rl *Readline) getListPad() (pad int) {
 	for _, group := range rl.tcGroups {
 		if group.DisplayType == TabDisplayList {
-			for i := range group.Suggestions {
-				if len(group.Suggestions[i]) > pad {
-					pad = len([]rune(group.Suggestions[i]))
+			for i := range group.Items {
+				w := printWidth(group.Items[i].display())
+				if w > pad {
+					pad = w
 				}
 			}
 		}
