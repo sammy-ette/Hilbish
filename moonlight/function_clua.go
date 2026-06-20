@@ -55,6 +55,15 @@ func (mlr *Runtime) TableArg(num int) (*Table, error) {
 	return mlr.valueFromState(idx).AsTable(), nil
 }
 
+func (mlr *Runtime) CallableArg(num int) (Callable, error) {
+	c, err := mlr.ClosureArg(num)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
 func (mlr *Runtime) Arg(num int) Value {
 	return mlr.valueFromState(num + 1)
 }

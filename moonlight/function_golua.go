@@ -44,6 +44,10 @@ func (mlr *Runtime) ClosureArg(num int) (*Closure, error) {
 	return mlr.curCont.ClosureArg(num)
 }
 
+func (mlr *Runtime) CallableArg(num int) (Callable, error) {
+	return mlr.curCont.CallableArg(num)
+}
+
 func (mlr *Runtime) Arg(num int) Value {
 	return mlr.curCont.Arg(num)
 }

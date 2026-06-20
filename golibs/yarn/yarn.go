@@ -17,34 +17,26 @@ package yarn
 
 import (
 	"fmt"
-	"hilbish/util"
+	"hilbish/moonlight"
 	"os"
-
-	"github.com/arnodel/golua/lib/packagelib"
-	rt "github.com/arnodel/golua/runtime"
 )
 
-var yarnMetaKey = rt.StringValue("hshyarn")
+var yarnMetaKey = moonlight.StringValue("hshyarn")
 var globalSpool *Yarn
 
 type Yarn struct {
-	initializer func(*rt.Runtime)
-	Loader      packagelib.Loader
+	initializer func(*moonlight.Runtime)
 }
 
 // #type
 type Thread struct {
-	rtm *rt.Runtime
-	f   rt.Callable
+	mlr *moonlight.Runtime
+	f   moonlight.Callable
 }
 
-func New(init func(*rt.Runtime)) *Yarn {
+func New(init func(*moonlight.Runtime)) *Yarn {
 	yrn := &Yarn{
 		initializer: init,
-	}
-	yrn.Loader = packagelib.Loader{
-		Load: yrn.loaderFunc,
-		Name: "yarn",
 	}
 
 	globalSpool = yrn
@@ -52,78 +44,74 @@ func New(init func(*rt.Runtime)) *Yarn {
 	return yrn
 }
 
-func (y *Yarn) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
-	yarnMeta := rt.NewTable()
-	yarnMeta.Set(rt.StringValue("__call"), rt.FunctionValue(rt.NewGoFunction(yarnrun, "__call", 1, true)))
-	rtm.SetRegistry(yarnMetaKey, rt.TableValue(yarnMeta))
+func (y *Yarn) Loader(mlr *moonlight.Runtime) moonlight.Value {
+	yarnMeta := moonlight.NewTable()
+	yarnMeta.Set(moonlight.StringValue("__call"), moonlight.FunctionValue(moonlight.NewGoFunction(mlr, yarnrun, "__call", 1, true)))
+	mlr.SetRegistry(yarnMetaKey, moonlight.TableValue(yarnMeta))
 
-	exports := map[string]util.LuaExport{
-		// "thread": {
-		// 	Function: yarnthread,
-		// 	ArgNum:   1,
-		// 	Variadic: false,
-		// },
+	exports := map[string]moonlight.Export{
+		"thread": {Function: yarnthread, ArgNum: 1, Variadic: false},
 	}
 
-	mod := rt.NewTable()
-	util.SetExports(rtm, mod, exports)
+	mod := moonlight.NewTable()
+	mlr.SetExports(mod, exports)
 
-	return rt.TableValue(mod), nil
+	return moonlight.TableValue(mod)
 }
 
 func (y *Yarn) init(th *Thread) {
-	y.initializer(th.rtm)
+	y.initializer(th.mlr)
 }
 
 // thread(fun) -> @Thread
 // Creates a new, fresh Yarn thread.
 // `fun` is the function that will run in the thread.
-func yarnthread(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func yarnthread(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return nil
 	}
 
-	fun, err := c.CallableArg(0)
+	fun, err := mlr.CallableArg(0)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	yrn := &Thread{
-		rtm: rt.New(os.Stdout),
+		mlr: moonlight.NewRuntime(),
 		f:   fun,
 	}
 	globalSpool.init(yrn)
 
-	return c.PushingNext(t.Runtime, rt.UserDataValue(yarnUserData(t.Runtime, yrn))), nil
+	mlr.PushNext1(moonlight.UserDataValue(yarnUserData(mlr, yrn)))
+	return nil
 }
 
-func yarnrun(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func yarnrun(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return nil
 	}
 
-	yrn, err := yarnArg(c, 0)
+	yrn, err := yarnArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
-	yrn.Run(c.Etc())
+	yrn.Run(mlr.Etc())
 
-	return c.Next(), nil
+	return nil
 }
 
-func (y *Thread) Run(args []rt.Value) {
+func (y *Thread) Run(args []moonlight.Value) {
 	go func() {
-		term := rt.NewTerminationWith(y.rtm.MainThread().CurrentCont(), 0, true)
-		err := rt.Call(y.rtm.MainThread(), rt.FunctionValue(y.f), args, term)
+		_, err := y.mlr.Call(moonlight.FunctionValue(y.f), args...)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "yarn thread error:", err)
 		}
 	}()
 }
 
-func yarnArg(c *rt.GoCont, arg int) (*Thread, error) {
-	j, ok := valueToYarn(c.Arg(arg))
+func yarnArg(mlr *moonlight.Runtime, arg int) (*Thread, error) {
+	j, ok := valueToYarn(mlr.Arg(arg))
 	if !ok {
 		return nil, fmt.Errorf("#%d must be a yarn thread", arg+1)
 	}
@@ -131,7 +119,7 @@ func yarnArg(c *rt.GoCont, arg int) (*Thread, error) {
 	return j, nil
 }
 
-func valueToYarn(val rt.Value) (*Thread, bool) {
+func valueToYarn(val moonlight.Value) (*Thread, bool) {
 	u, ok := val.TryUserData()
 	if !ok {
 		return nil, false
@@ -141,7 +129,7 @@ func valueToYarn(val rt.Value) (*Thread, bool) {
 	return j, ok
 }
 
-func yarnUserData(rtm *rt.Runtime, t *Thread) *rt.UserData {
-	yarnMeta := rtm.Registry(yarnMetaKey)
-	return rt.NewUserData(t, yarnMeta.AsTable())
+func yarnUserData(mlr *moonlight.Runtime, t *Thread) *moonlight.UserData {
+	yarnMeta := mlr.Registry(yarnMetaKey)
+	return moonlight.NewUserData(t, moonlight.ToTable(yarnMeta))
 }

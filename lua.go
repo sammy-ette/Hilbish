@@ -11,6 +11,7 @@ import (
 	"hilbish/golibs/readline"
 	"hilbish/golibs/snail"
 	"hilbish/golibs/terminal"
+	"hilbish/golibs/yarn"
 	"hilbish/moonlight"
 
 	"github.com/pborman/getopt"
@@ -27,8 +28,8 @@ func luaInit() {
 
 	l.GlobalTable().Set(moonlight.StringValue("args"), moonlight.TableValue(luaArgs))
 
-	// yarnPool := yarn.New(yarnloadLibs)
-	// l.LoadLibrary(yarnPool.Loader, "yarn")
+	yarnPool := yarn.New(yarnloadLibs)
+	l.LoadLibrary(yarnPool.Loader, "yarn")
 
 	// Add more paths that Lua can require from
 	_, err := l.DoString("package.path = package.path .. " + requirePaths)

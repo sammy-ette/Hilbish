@@ -12,6 +12,7 @@ type GoCont struct{
 
 type Cont = rt.Cont
 type Closure = rt.Closure
+type Callable = rt.Callable
 
 func (gc *GoCont) Next() Cont {
 	return gc.cont.Next()
