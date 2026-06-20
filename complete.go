@@ -92,7 +92,7 @@ func dirComplete(query, ctx string) ([]string, string) {
 
 	fileCompletions, filePref := matchPath(path)
 	for _, f := range fileCompletions {
-		fullPath, _ := filepath.Abs(util.ExpandHome(query + strings.TrimPrefix(f, filePref)))
+		fullPath, _ := filepath.Abs(util.ExpandHome(path + strings.TrimPrefix(f, filePref)))
 		fi, err := os.Stat(fullPath)
 		if err != nil {
 			continue
@@ -103,7 +103,7 @@ func dirComplete(query, ctx string) ([]string, string) {
 		}
 	}
 
-	return completions, query
+	return completions, filePref
 }
 
 func binaryComplete(query, ctx string) ([]string, string) {
