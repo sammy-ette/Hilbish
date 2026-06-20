@@ -18,7 +18,7 @@ type fileHistory struct {
 func newFileHistory(path string) *fileHistory {
 	dir := filepath.Dir(path)
 
-	err := os.MkdirAll(dir, 0o644)
+	err := os.MkdirAll(dir, 0o755)
 	if err != nil {
 		panic(err)
 	}
