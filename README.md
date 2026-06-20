@@ -1,6 +1,3 @@
-> [!TIP]
-> Check out [Hilbish: Midnight Edition](https://github.com/sammy-ette/Hilbish/tree/midnight-edition) if you want to use C Lua, LuaJIT or anything related!
-
 <img src="./assets/hilbish-logo-and-text.png" width=512><br>
 <blockquote>
 🌓 The Moon-powered shell! A comfy and extensible shell for Lua fans! 🌺 ✨
