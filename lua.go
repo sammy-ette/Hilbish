@@ -61,7 +61,7 @@ func loadLibs(r *moonlight.Runtime) {
 	l.LoadLibrary(hooks.Loader, "bait")
 
 	// Add Ctrl-C handler
-	hooks.On("signal.sigint", func(...interface{}) moonlight.Value {
+	hooks.On("signal.sigint", func(...any) moonlight.Value {
 		if !interactive {
 			os.Exit(0)
 		}
