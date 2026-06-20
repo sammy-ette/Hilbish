@@ -1,4 +1,7 @@
-<img src="./assets/hilbish-logo-and-text-midnight-edition.png" width=512><br>
+> [!TIP]
+> Check out [Hilbish: Midnight Edition](https://github.com/sammy-ette/Hilbish/tree/midnight-edition) if you want to use C Lua, LuaJIT or anything related!
+
+<img src="./assets/hilbish-logo-and-text.png" width=512><br>
 <blockquote>
 🌓 The Moon-powered shell! A comfy and extensible shell for Lua fans! 🌺 ✨
 </blockquote>
@@ -8,27 +11,6 @@
 <a href="https://github.com/sammy-ette/Hilbish/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/sammy-ette/Hilbish?style=flat-square"></a>
 <a href="https://discord.gg/3PDdcQz"><img alt="Discord" src="https://img.shields.io/discord/732357621503229962?color=blue&style=flat-square"></a>
 <br>
-
-# Midnight Edition
-
-> [!CAUTION]
-> This is a **HEAVILY** WORK IN PROGRESS branch which makes a lot of internal changes.
-Functionality **will** be missing if you use this branch,
-and you may see crashes too. Tread lightly.
-
-Build instructions and progress on Midnight Edition is tracked in this PR:
-[#314](https://github.com/Rosettea/Hilbish/pull/314)
-
-Hilbish: Midinight Edition is a version of Hilbish meant to be compatible with
-the original C implementation of Lua by using a Go library binding. The end goal
-is to offer Midnight Edition as a separate, "not as supported" build for users
-that *really* want to access a certain library made for C Lua or want the
-most performance with their Lua code.
-
-**The standard edition, which is all native Go,
-will always be more supported than Midnight Edition.**
-
-# Back the original README
 
 Hilbish is an extensible shell designed to be highly customizable.
 
@@ -75,13 +57,13 @@ go get -d ./...
 
 To build, run:
 ```
-go-task
+task
 ```  
 
 Or, if you want a stable branch, run these commands:
 ```
 git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
-go-task build
+task build
 ```  
 
 After you did all that, run `sudo task install` to install Hilbish globally.
