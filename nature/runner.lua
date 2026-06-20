@@ -260,20 +260,6 @@ function hilbish.runner.lua(input)
 	}
 end
 
-hilbish.runner.add('hybrid', {
-	run = function(input)
-		local cmdStr = hilbish.aliases.resolve(input)
-
-		local res = hilbish.runner.lua(cmdStr)
-		if not res.err then
-			return res
-		end
-
-		return hilbish.runner.sh(input)
-	end,
-	validate = snail.validate
-})
-
 local function luaValidate(input)
 	local f, err = load(input)
 	if f then
@@ -285,6 +271,22 @@ local function luaValidate(input)
 	end
 end
 
+hilbish.runner.add('hybrid', {
+	run = function(input)
+		local cmdStr = hilbish.aliases.resolve(input)
+
+		local res = hilbish.runner.lua(cmdStr)
+		if not res.err then
+			return res
+		end
+
+		return hilbish.runner.sh(input)
+	end,
+	validate = function(input)
+		return luaValidate(input) or snail.validate(input)
+	end
+})
+
 hilbish.runner.add('hybridRev', {
 	run = function(input)
 		local res = hilbish.runner.sh(input)
@@ -295,7 +297,9 @@ hilbish.runner.add('hybridRev', {
 		local cmdStr = hilbish.aliases.resolve(input)
 		return hilbish.runner.lua(cmdStr)
 	end,
-	validate = luaValidate
+	validate = function(input)
+		return snail.validate(input) or luaValidate(input)
+	end
 })
 
 hilbish.runner.add('lua', {
