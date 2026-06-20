@@ -90,8 +90,11 @@ func (mlr *Runtime) GoFunction(fun GoToLuaFunc, argNum int) *GoFunctionFunc {
 
 			err := fun(mlr)
 			if err != nil {
-				L.RaiseError(err.Error())
-				return 0
+				// This pushes the error properly
+				// to Lua because we return with a negative number.
+				// See the commit (done by clanker) done on the aarzilli/golua fork
+				L.PushString(err.Error())
+				return -1
 			}
 
 			return mlr.returnNum

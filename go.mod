@@ -30,3 +30,5 @@ replace mvdan.cc/sh/v3 => github.com/Rosettea/sh/v3 v3.4.0-0.dev.0.2026061912244
 replace layeh.com/gopher-luar => github.com/layeh/gopher-luar v1.0.10
 
 replace github.com/arnodel/golua => github.com/Rosettea/golua v0.0.0-20241104031959-5551ea280f23
+
+replace github.com/aarzilli/golua => github.com/sammy-ette/golua v0.0.0-20260620013038-128040905a10
