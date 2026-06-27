@@ -21,13 +21,13 @@ type History interface {
 	// Len returns the number of history lines
 	Len() int
 
-	// Dump returns everything in readline. The return is an interface{} because
+	// Dump returns everything in readline. The return is an any because
 	// not all LineHistory implementations will want to structure the history in
 	// the same way. And since Dump() is not actually used by the readline API
 	// internally, this methods return can be structured in whichever way is most
 	// convenient for your own applications (or even just create an empty
 	//function which returns `nil` if you don't require Dump() either)
-	Dump() interface{}
+	Dump() any
 }
 
 // DeletableHistory is an optional extension of History that supports removing
@@ -83,7 +83,7 @@ func (h *ExampleHistory) Len() int {
 }
 
 // Dump returns the entire history
-func (h *ExampleHistory) Dump() interface{} {
+func (h *ExampleHistory) Dump() any {
 	return h.items
 }
 
@@ -107,7 +107,7 @@ func (h *NullHistory) Len() int {
 }
 
 // Dump returns the entire history
-func (h *NullHistory) Dump() interface{} {
+func (h *NullHistory) Dump() any {
 	return []string{}
 }
 

@@ -27,10 +27,8 @@ package bait
 import (
 	"errors"
 
-	"hilbish/util"
-
-	"github.com/arnodel/golua/lib/packagelib"
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 )
 
 type listenerType int
@@ -41,40 +39,35 @@ const (
 )
 
 // Recoverer is a function which is called when a panic occurs in an event.
-type Recoverer func(event string, handler *Listener, err interface{})
+type Recoverer func(event string, handler *Listener, err any)
 
 // Listener is a struct that holds the handler for an event.
 type Listener struct {
 	typ       listenerType
 	once      bool
-	caller    func(...interface{}) rt.Value
-	luaCaller *rt.Closure
+	caller    func(...any) moonlight.Value
+	luaCaller *moonlight.Closure
 }
 
 type Bait struct {
-	Loader    packagelib.Loader
 	recoverer Recoverer
 	handlers  map[string][]*Listener
-	rtm       *rt.Runtime
+	rtm       *moonlight.Runtime
 }
 
 // New creates a new Bait instance.
-func New(rtm *rt.Runtime) *Bait {
+func New(rtm *moonlight.Runtime) *Bait {
 	b := &Bait{
 		handlers: make(map[string][]*Listener),
 		rtm:      rtm,
-	}
-	b.Loader = packagelib.Loader{
-		Load: b.loaderFunc,
-		Name: "bait",
 	}
 
 	return b
 }
 
 // Emit throws an event.
-func (b *Bait) Emit(event string, args ...interface{}) []rt.Value {
-	var returns []rt.Value
+func (b *Bait) Emit(event string, args ...any) []moonlight.Value {
+	var returns []moonlight.Value
 	handles := b.handlers[event]
 	if handles == nil {
 		return nil
@@ -88,7 +81,7 @@ func (b *Bait) Emit(event string, args ...interface{}) []rt.Value {
 
 	for _, handle := range snapshot {
 		ret, called := b.callListener(event, handle, args...)
-		if called && ret != rt.NilValue {
+		if called && ret != moonlight.NilValue {
 			returns = append(returns, ret)
 		}
 
@@ -103,7 +96,7 @@ func (b *Bait) Emit(event string, args ...interface{}) []rt.Value {
 // callListener invokes a single listener, recovering from any panic so that
 // one bad listener doesn't prevent the rest of the listeners for this event
 // from running.
-func (b *Bait) callListener(event string, handle *Listener, args ...interface{}) (ret rt.Value, called bool) {
+func (b *Bait) callListener(event string, handle *Listener, args ...any) (ret moonlight.Value, called bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			b.callRecoverer(event, handle, err)
@@ -111,23 +104,23 @@ func (b *Bait) callListener(event string, handle *Listener, args ...interface{})
 	}()
 
 	if handle.typ == luaListener {
-		funcVal := rt.FunctionValue(handle.luaCaller)
-		var luaArgs []rt.Value
+		funcVal := moonlight.FunctionValue(handle.luaCaller)
+		var luaArgs []moonlight.Value
 		for _, arg := range args {
-			var luarg rt.Value
+			var luarg moonlight.Value
 			switch arg := arg.(type) {
-			case rt.Value:
+			case moonlight.Value:
 				luarg = arg
 			default:
-				luarg = rt.AsValue(arg)
+				luarg = moonlight.AsValue(arg)
 			}
 			luaArgs = append(luaArgs, luarg)
 		}
-		luaRet, err := rt.Call1(b.rtm.MainThread(), funcVal, luaArgs...)
+		luaRet, err := b.rtm.Call1(funcVal, luaArgs...)
 		if err != nil {
 			if event != "error" {
 				b.Emit("error", event, handle.luaCaller, err.Error())
-				return rt.NilValue, false
+				return moonlight.NilValue, false
 			}
 			// if there is an error in an error event handler, panic instead
 			// (calls the go recoverer function)
@@ -141,7 +134,7 @@ func (b *Bait) callListener(event string, handle *Listener, args ...interface{})
 }
 
 // On adds a Go function handler for an event.
-func (b *Bait) On(event string, handler func(...interface{}) rt.Value) *Listener {
+func (b *Bait) On(event string, handler func(...any) moonlight.Value) *Listener {
 	listener := &Listener{
 		typ:    goListener,
 		caller: handler,
@@ -152,7 +145,7 @@ func (b *Bait) On(event string, handler func(...interface{}) rt.Value) *Listener
 }
 
 // OnLua adds a Lua function handler for an event.
-func (b *Bait) OnLua(event string, handler *rt.Closure) *Listener {
+func (b *Bait) OnLua(event string, handler *moonlight.Closure) *Listener {
 	listener := &Listener{
 		typ:       luaListener,
 		luaCaller: handler,
@@ -168,7 +161,7 @@ func (b *Bait) Off(event string, listener *Listener) {
 }
 
 // OffLua removes a Lua function handler for an event.
-func (b *Bait) OffLua(event string, handler *rt.Closure) {
+func (b *Bait) OffLua(event string, handler *moonlight.Closure) {
 	handles := b.handlers[event]
 
 	for _, handle := range handles {
@@ -180,7 +173,7 @@ func (b *Bait) OffLua(event string, handler *rt.Closure) {
 }
 
 // Once adds a Go function listener for an event that only runs once.
-func (b *Bait) Once(event string, handler func(...interface{}) rt.Value) *Listener {
+func (b *Bait) Once(event string, handler func(...any) moonlight.Value) *Listener {
 	listener := &Listener{
 		typ:    goListener,
 		once:   true,
@@ -192,7 +185,7 @@ func (b *Bait) Once(event string, handler func(...interface{}) rt.Value) *Listen
 }
 
 // OnceLua adds a Lua function listener for an event that only runs once.
-func (b *Bait) OnceLua(event string, handler *rt.Closure) *Listener {
+func (b *Bait) OnceLua(event string, handler *moonlight.Closure) *Listener {
 	listener := &Listener{
 		typ:       luaListener,
 		once:      true,
@@ -228,25 +221,25 @@ func (b *Bait) removeListener(event string, listener *Listener) {
 	}
 }
 
-func (b *Bait) callRecoverer(event string, handler *Listener, err interface{}) {
+func (b *Bait) callRecoverer(event string, handler *Listener, err any) {
 	if b.recoverer == nil {
 		panic(err)
 	}
 	b.recoverer(event, handler, err)
 }
 
-func (b *Bait) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
-	exports := map[string]util.LuaExport{
-		"catch":     util.LuaExport{Function: b.bcatch, ArgNum: 2, Variadic: false},
-		"catchOnce": util.LuaExport{Function: b.bcatchOnce, ArgNum: 2, Variadic: false},
-		"throw":     util.LuaExport{Function: b.bthrow, ArgNum: 1, Variadic: true},
-		"release":   util.LuaExport{Function: b.brelease, ArgNum: 2, Variadic: false},
-		"hooks":     util.LuaExport{Function: b.bhooks, ArgNum: 1, Variadic: false},
+func (b *Bait) Loader(rtm *moonlight.Runtime) moonlight.Value {
+	exports := map[string]moonlight.Export{
+		"catch":     {Function: b.bcatch, ArgNum: 2, Variadic: false},
+		"catchOnce": {Function: b.bcatchOnce, ArgNum: 2, Variadic: false},
+		"throw":     {Function: b.bthrow, ArgNum: 1, Variadic: true},
+		"release":   {Function: b.brelease, ArgNum: 2, Variadic: false},
+		"hooks":     {Function: b.bhooks, ArgNum: 1, Variadic: false},
 	}
-	mod := rt.NewTable()
-	util.SetExports(rtm, mod, exports)
+	mod := moonlight.NewTable()
+	rtm.SetExports(mod, exports)
 
-	return rt.TableValue(mod), nil
+	return moonlight.TableValue(mod)
 }
 
 // catch(name, cb)
@@ -260,64 +253,65 @@ bait.catch('hilbish.exit', function()
 end)
 #example
 */
-func (b *Bait) bcatch(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	name, catcher, err := util.HandleStrCallback(t, c)
+func (b *Bait) bcatch(mlr *moonlight.Runtime) error {
+	name, catcher, err := util.HandleStrCallback(mlr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	b.OnLua(name, catcher)
 
-	return c.Next(), nil
+	return nil
 }
 
 // catchOnce(name, cb)
 // Catches an event, but only once. This will remove the hook immediately after it runs for the first time.
 // #param name string The name of the event
 // #param cb function(...) The function that will be called when the event is thrown.
-func (b *Bait) bcatchOnce(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	name, catcher, err := util.HandleStrCallback(t, c)
+func (b *Bait) bcatchOnce(mlr *moonlight.Runtime) error {
+	name, catcher, err := util.HandleStrCallback(mlr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	b.OnceLua(name, catcher)
 
-	return c.Next(), nil
+	return nil
 }
 
 // hooks(name) -> table
 // Returns a table of functions that are hooked on an event with the corresponding `name`.
 // #param name string The name of the hook
 // #returns table<function>
-func (b *Bait) bhooks(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func (b *Bait) bhooks(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
-	evName, err := c.StringArg(0)
+	evName, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	noHooks := errors.New("no hooks for event " + evName)
 
 	handlers := b.handlers[evName]
 	if handlers == nil {
-		return nil, noHooks
+		return noHooks
 	}
 
-	luaHandlers := rt.NewTable()
+	luaHandlers := moonlight.NewTable()
 	for _, handler := range handlers {
 		if handler.typ != luaListener {
 			continue
 		}
-		luaHandlers.Set(rt.IntValue(luaHandlers.Len()+1), rt.FunctionValue(handler.luaCaller))
+		luaHandlers.Set(moonlight.IntValue(luaHandlers.Len()+1), moonlight.FunctionValue(handler.luaCaller))
 	}
 
 	if luaHandlers.Len() == 0 {
-		return nil, noHooks
+		return noHooks
 	}
 
-	return c.PushingNext1(t.Runtime, rt.TableValue(luaHandlers)), nil
+	mlr.PushNext1(moonlight.TableValue(luaHandlers))
+	return nil
 }
 
 // release(name, catcher)
@@ -337,15 +331,15 @@ bait.release('event', hookCallback)
 -- and now hookCallback will no longer be ran for the event.
 #example
 */
-func (b *Bait) brelease(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	name, catcher, err := util.HandleStrCallback(t, c)
+func (b *Bait) brelease(mlr *moonlight.Runtime) error {
+	name, catcher, err := util.HandleStrCallback(mlr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	b.OffLua(name, catcher)
 
-	return c.Next(), nil
+	return nil
 }
 
 // throw(name, ...args)
@@ -362,19 +356,20 @@ bait.catch('gretting', function(greetTo)
 end)
 #example
 */
-func (b *Bait) bthrow(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func (b *Bait) bthrow(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
-	name, err := c.StringArg(0)
+	name, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	ifaceSlice := make([]interface{}, len(c.Etc()))
-	for i, v := range c.Etc() {
+	ifaceSlice := make([]any, len(mlr.Etc()))
+	for i, v := range mlr.Etc() {
 		ifaceSlice[i] = v
 	}
 	ret := b.Emit(name, ifaceSlice...)
 
-	return c.PushingNext(t.Runtime, ret...), nil
+	mlr.PushNext(ret...)
+	return nil
 }

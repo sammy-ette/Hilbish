@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"plugin"
 
-	"hilbish/util"
-
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // #interface module
@@ -23,37 +21,31 @@ modules can be loaded with a `require` call like Lua C modules, and the
 search paths can be changed with the `paths` property here.
 
 To make a valid native module, the Go plugin has to export a Loader function
-with a signature like so: `func(*rt.Runtime) rt.Value`.
-
-`rt` in this case refers to the Runtime type at
-https://pkg.go.dev/github.com/arnodel/golua@master/runtime#Runtime
-
-Hilbish uses this package as its Lua runtime. You will need to read
-it to use it for a native plugin.
+with a signature like so: `func(*moonlight.Runtime) moonlight.Value`.
 
 Here is some code for an example plugin:
 ```go
 package main
 
 import (
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
-func Loader(rtm *rt.Runtime) rt.Value {
-	return rt.StringValue("hello world!")
+func Loader(rtm *moonlight.Runtime) moonlight.Value {
+	return moonlight.StringValue("hello world!")
 }
 ```
 
 This can be compiled with `go build -buildmode=plugin plugin.go`.
 If you attempt to require and print the result (`print(require 'plugin')`), it will show "hello world!"
 */
-func moduleLoader(rtm *rt.Runtime) *rt.Table {
-	exports := map[string]util.LuaExport{
+func moduleLoader(mlr *moonlight.Runtime) *moonlight.Table {
+	exports := map[string]moonlight.Export{
 		"load": {Function: moduleLoad, ArgNum: 2, Variadic: false},
 	}
 
-	mod := rt.NewTable()
-	util.SetExports(rtm, mod, exports)
+	mod := moonlight.NewTable()
+	mlr.SetExports(mod, exports)
 
 	return mod
 }
@@ -63,32 +55,33 @@ func moduleLoader(rtm *rt.Runtime) *rt.Table {
 // Loads a module at the designated `path`.
 // It will throw if any error occurs.
 // #param path string
-func moduleLoad(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(1); err != nil {
-		return nil, err
+func moduleLoad(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	path, err := c.StringArg(0)
+	path, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	p, err := plugin.Open(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	value, err := p.Lookup("Loader")
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	loader, ok := value.(func(*rt.Runtime) rt.Value)
+	loader, ok := value.(func(*moonlight.Runtime) moonlight.Value)
 	if !ok {
-		return nil, fmt.Errorf("module has wrong function signature: should be func(*rt.Runtime) rt.Value")
+		return fmt.Errorf("module has wrong function signature: should be func(*moonlight.Runtime) moonlight.Value")
 	}
 
-	val := loader(t.Runtime)
+	val := loader(mlr)
+	mlr.PushNext(val)
 
-	return c.PushingNext1(t.Runtime, val), nil
+	return nil
 }

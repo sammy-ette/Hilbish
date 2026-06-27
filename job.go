@@ -10,13 +10,12 @@ import (
 	"sync"
 	"syscall"
 
-	"hilbish/util"
-
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 )
 
 var jobs *jobHandler
-var jobMetaKey = rt.StringValue("hshjob")
+var jobMetaKey = moonlight.StringValue("hshjob")
 
 // #type
 // #interface jobs
@@ -45,7 +44,7 @@ type job struct {
 	cmderr io.Writer
 	stdout *bytes.Buffer
 	stderr *bytes.Buffer
-	ud     *rt.UserData
+	ud     *moonlight.UserData
 }
 
 func (j *job) start() error {
@@ -82,7 +81,7 @@ func (j *job) start() error {
 
 	j.mu.Unlock()
 
-	hooks.Emit("job.start", rt.UserDataValue(j.ud))
+	hooks.Emit("job.start", moonlight.UserDataValue(j.ud))
 
 	return err
 }
@@ -100,7 +99,7 @@ func (j *job) finish() {
 	j.running = false
 	j.mu.Unlock()
 
-	hooks.Emit("job.done", rt.UserDataValue(j.ud))
+	hooks.Emit("job.done", moonlight.UserDataValue(j.ud))
 }
 
 func (j *job) wait() {
@@ -141,14 +140,14 @@ func (j *job) getProc() *os.Process {
 // #member
 // start()
 // Starts running the job.
-func luaStartJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func luaStartJob(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	j, err := jobArg(c, 0)
+	j, err := jobArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	j.mu.RLock()
@@ -166,21 +165,21 @@ func luaStartJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		j.finish()
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
 // #interface jobs
 // #member
 // stop()
 // Stops the job from running.
-func luaStopJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func luaStopJob(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	j, err := jobArg(c, 0)
+	j, err := jobArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	j.mu.RLock()
@@ -192,7 +191,7 @@ func luaStopJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		j.finish()
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
 // #interface jobs
@@ -200,14 +199,14 @@ func luaStopJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // foreground()
 // Puts a job in the foreground. This will cause it to run like it was
 // executed normally and wait for it to complete.
-func luaForegroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func luaForegroundJob(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	j, err := jobArg(c, 0)
+	j, err := jobArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	j.mu.RLock()
@@ -215,12 +214,12 @@ func luaForegroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	j.mu.RUnlock()
 
 	if !running {
-		return nil, errors.New("job not running")
+		return errors.New("job not running")
 	}
 
 	// lua code can run in other threads and goroutines, so this exists
 	if jobs.foreground {
-		return nil, errors.New("(another) job already foregrounded")
+		return errors.New("(another) job already foregrounded")
 	}
 
 	jobs.foreground = true
@@ -232,29 +231,29 @@ func luaForegroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	// background continues the process incase it got suspended
 	err = j.background()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = j.foreground()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
 // #interface jobs
 // #member
 // background()
 // Puts a job in the background. This acts the same as initially running a job.
-func luaBackgroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func luaBackgroundJob(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	j, err := jobArg(c, 0)
+	j, err := jobArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	j.mu.RLock()
@@ -262,15 +261,15 @@ func luaBackgroundJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	j.mu.RUnlock()
 
 	if !running {
-		return nil, errors.New("job not running")
+		return errors.New("job not running")
 	}
 
 	err = j.background()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
 type jobHandler struct {
@@ -307,7 +306,7 @@ func (j *jobHandler) add(cmd string, args []string, path string) *job {
 	jb.ud = jobUserData(jb)
 
 	j.jobs[j.latestID] = jb
-	hooks.Emit("job.add", rt.UserDataValue(jb.ud))
+	hooks.Emit("job.add", moonlight.UserDataValue(jb.ud))
 
 	return jb
 }
@@ -354,25 +353,26 @@ Manage interactive jobs in Hilbish via Lua.
 
 Jobs are the name of background tasks/commands. A job can be started via
 interactive usage or with the functions defined below for use in external runners. */
-func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
-	jobMethods := rt.NewTable()
-	jFuncs := map[string]util.LuaExport{
+func (j *jobHandler) loader(mlr *moonlight.Runtime) *moonlight.Table {
+	jobMethods := moonlight.NewTable()
+	jFuncs := map[string]moonlight.Export{
 		"stop":       {Function: luaStopJob, ArgNum: 1, Variadic: false},
 		"start":      {Function: luaStartJob, ArgNum: 1, Variadic: false},
 		"foreground": {Function: luaForegroundJob, ArgNum: 1, Variadic: false},
 		"background": {Function: luaBackgroundJob, ArgNum: 1, Variadic: false},
 	}
-	util.SetExports(l, jobMethods, jFuncs)
+	mlr.SetExports(jobMethods, jFuncs)
 
-	jobMeta := rt.NewTable()
-	jobIndex := func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		j, _ := jobArg(c, 0)
+	jobMeta := moonlight.NewTable()
+	jobIndex := func(mlr *moonlight.Runtime) error {
+		j, _ := jobArg(mlr, 0)
 
-		arg := c.Arg(1)
+		arg := mlr.Arg(1)
 		val := jobMethods.Get(arg)
 
-		if val != rt.NilValue {
-			return c.PushingNext1(t.Runtime, val), nil
+		if val != moonlight.NilValue {
+			mlr.PushNext1(val)
+			return nil
 		}
 
 		keyStr, _ := arg.TryString()
@@ -380,29 +380,30 @@ func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 		j.mu.RLock()
 		switch keyStr {
 		case "cmd":
-			val = rt.StringValue(j.cmd)
+			val = moonlight.StringValue(j.cmd)
 		case "running":
-			val = rt.BoolValue(j.running)
+			val = moonlight.BoolValue(j.running)
 		case "id":
-			val = rt.IntValue(int64(j.id))
+			val = moonlight.IntValue(int64(j.id))
 		case "pid":
-			val = rt.IntValue(int64(j.pid))
+			val = moonlight.IntValue(int64(j.pid))
 		case "exitCode":
-			val = rt.IntValue(int64(j.exitCode))
+			val = moonlight.IntValue(int64(j.exitCode))
 		case "stdout":
-			val = rt.StringValue(j.stdout.String())
+			val = moonlight.StringValue(j.stdout.String())
 		case "stderr":
-			val = rt.StringValue(j.stderr.String())
+			val = moonlight.StringValue(j.stderr.String())
 		}
 		j.mu.RUnlock()
 
-		return c.PushingNext1(t.Runtime, val), nil
+		mlr.PushNext(val)
+		return nil
 	}
 
-	jobMeta.Set(rt.StringValue("__index"), rt.FunctionValue(rt.NewGoFunction(jobIndex, "__index", 2, false)))
-	l.SetRegistry(jobMetaKey, rt.TableValue(jobMeta))
+	jobMeta.Set(moonlight.StringValue("__index"), moonlight.FunctionValue(moonlight.NewGoFunction(mlr, jobIndex, "__index", 2, false)))
+	l.SetRegistry(jobMetaKey, moonlight.TableValue(jobMeta))
 
-	jobFuncs := map[string]util.LuaExport{
+	jobFuncs := map[string]moonlight.Export{
 		"all":     {Function: j.luaAllJobs, ArgNum: 0, Variadic: false},
 		"last":    {Function: j.luaLastJob, ArgNum: 0, Variadic: false},
 		"get":     {Function: j.luaGetJob, ArgNum: 1, Variadic: false},
@@ -411,14 +412,14 @@ func (j *jobHandler) loader(rtm *rt.Runtime) *rt.Table {
 		"stopAll": {Function: j.luaStopAll, ArgNum: 0, Variadic: false},
 	}
 
-	luaJob := rt.NewTable()
-	util.SetExports(rtm, luaJob, jobFuncs)
+	luaJob := moonlight.NewTable()
+	mlr.SetExports(luaJob, jobFuncs)
 
 	return luaJob
 }
 
-func jobArg(c *rt.GoCont, arg int) (*job, error) {
-	j, ok := valueToJob(c.Arg(arg))
+func jobArg(mlr *moonlight.Runtime, arg int) (*job, error) {
+	j, ok := valueToJob(mlr.Arg(arg))
 	if !ok {
 		return nil, fmt.Errorf("#%d must be a job", arg+1)
 	}
@@ -426,7 +427,7 @@ func jobArg(c *rt.GoCont, arg int) (*job, error) {
 	return j, nil
 }
 
-func valueToJob(val rt.Value) (*job, bool) {
+func valueToJob(val moonlight.Value) (*job, bool) {
 	u, ok := val.TryUserData()
 	if !ok {
 		return nil, false
@@ -436,9 +437,9 @@ func valueToJob(val rt.Value) (*job, bool) {
 	return j, ok
 }
 
-func jobUserData(j *job) *rt.UserData {
+func jobUserData(j *job) *moonlight.UserData {
 	jobMeta := l.Registry(jobMetaKey)
-	return rt.NewUserData(j, jobMeta.AsTable())
+	return moonlight.NewUserData(j, moonlight.ToTable(jobMeta))
 }
 
 // #interface jobs
@@ -446,24 +447,25 @@ func jobUserData(j *job) *rt.UserData {
 // Get a job object via its ID.
 // --- @param id number
 // --- @returns Job
-func (j *jobHandler) luaGetJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func (j *jobHandler) luaGetJob(mlr *moonlight.Runtime) error {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
 
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
-	jobID, err := c.IntArg(0)
+	jobID, err := mlr.IntArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	job := j.jobs[int(jobID)]
 	if job == nil {
-		return c.Next(), nil
+		return nil
 	}
 
-	return c.PushingNext(t.Runtime, rt.UserDataValue(job.ud)), nil
+	mlr.PushNext1(moonlight.UserDataValue(job.ud))
+	return nil
 }
 
 // #interface jobs
@@ -478,92 +480,95 @@ func (j *jobHandler) luaGetJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')
 #example
 */
-func (j *jobHandler) luaAddJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(3); err != nil {
-		return nil, err
+func (j *jobHandler) luaAddJob(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(3); err != nil {
+		return err
 	}
-	cmd, err := c.StringArg(0)
+	cmd, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	largs, err := c.TableArg(1)
+	largs, err := mlr.TableArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	execPath, err := c.StringArg(2)
+	execPath, err := mlr.StringArg(2)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var args []string
-	util.ForEach(largs, func(k rt.Value, v rt.Value) {
-		if v.Type() == rt.StringType {
+	moonlight.ForEach(largs, func(k moonlight.Value, v moonlight.Value) {
+		if v.Type() == moonlight.StringType {
 			args = append(args, v.AsString())
 		}
 	})
 
 	jb := j.add(cmd, args, execPath)
 
-	return c.PushingNext1(t.Runtime, rt.UserDataValue(jb.ud)), nil
+	mlr.PushNext1(moonlight.UserDataValue(jb.ud))
+	return nil
 }
 
 // #interface jobs
 // all() -> table[@Job]
 // Returns a table of all job objects.
 // #returns table[Job]
-func (j *jobHandler) luaAllJobs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func (j *jobHandler) luaAllJobs(mlr *moonlight.Runtime) error {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
 
-	jobTbl := rt.NewTable()
+	jobTbl := moonlight.NewTable()
 	for id, job := range j.jobs {
-		jobTbl.Set(rt.IntValue(int64(id)), rt.UserDataValue(job.ud))
+		jobTbl.Set(moonlight.IntValue(int64(id)), moonlight.UserDataValue(job.ud))
 	}
 
-	return c.PushingNext1(t.Runtime, rt.TableValue(jobTbl)), nil
+	mlr.PushNext1(moonlight.TableValue(jobTbl))
+	return nil
 }
 
 // #interface jobs
 // disown(id)
 // Disowns a job. This simply deletes it from the list of jobs without stopping it.
 // #param id number
-func (j *jobHandler) luaDisownJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+func (j *jobHandler) luaDisownJob(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
-	jobID, err := c.IntArg(0)
+	jobID, err := mlr.IntArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = j.disown(int(jobID))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
 // #interface jobs
 // last() -> @Job
 // Returns the last added job to the table.
 // #returns Job
-func (j *jobHandler) luaLastJob(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func (j *jobHandler) luaLastJob(mlr *moonlight.Runtime) error {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
 
 	job := j.jobs[j.latestID]
 	if job == nil { // incase we dont have any jobs yet
-		return c.Next(), nil
+		return nil
 	}
 
-	return c.PushingNext1(t.Runtime, rt.UserDataValue(job.ud)), nil
+	mlr.PushNext1(moonlight.UserDataValue(job.ud))
+	return nil
 }
 
 // #interface jobs
 // stopAll()
 // Stops all running jobs.
-func (j *jobHandler) luaStopAll(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func (j *jobHandler) luaStopAll(mlr *moonlight.Runtime) error {
 	j.stopAll()
-	return c.Next(), nil
+	return nil
 }

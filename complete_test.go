@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // TestMatchPathPrefixNotEscaped verifies that matchPath returns the raw
@@ -47,6 +49,40 @@ func TestMatchPathPrefixNotEscaped(t *testing.T) {
 			"eating the character before the typed text.",
 			pfx, len([]rune(pfx)), wantPfx, len([]rune(wantPfx)),
 			len([]rune(pfx)), len([]rune(wantPfx)))
+	}
+}
+
+// TestHcmpCallReturnsCallbackResults verifies that hilbish.completions.call
+// (hcmpCall) propagates the return values of the delegated-to completer back
+// to its own Lua caller. hcmpCall used to discard the results of mlr.Call
+// (assigning them to `_`) and return nil, which meant
+// hilbish.completions.call always returned nothing -- breaking completion
+// delegation, e.g. nature/completions/sudo.lua calling
+// hilbish.completions.call('command.'..subcmd, ...) and expecting back the
+// completion groups and prefix.
+func TestHcmpCallReturnsCallbackResults(t *testing.T) {
+	mlr := moonlight.NewRuntime()
+	compTbl := completionLoader(mlr)
+	mlr.GlobalTable().Set(moonlight.StringValue("comp"), moonlight.TableValue(compTbl))
+
+	if _, err := mlr.DoString(`
+		comp.add('test.case', function(query, ctx, fields)
+			return {1, 2, 3}, 'thepfx'
+		end)
+	`); err != nil {
+		t.Fatalf("registering completer: %v", err)
+	}
+
+	result, err := mlr.DoString(`
+		local groups, pfx = comp.call('test.case', 'q', 'c', {})
+		return tostring(#groups) .. ':' .. pfx
+	`)
+	if err != nil {
+		t.Fatalf("comp.call: %v", err)
+	}
+
+	if want := "3:thepfx"; result.AsString() != want {
+		t.Errorf("comp.call(...) = %q, want %q", result.AsString(), want)
 	}
 }
 

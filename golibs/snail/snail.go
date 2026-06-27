@@ -12,12 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"mvdan.cc/sh/v3/shell"
 
-	//"github.com/yuin/gopher-lua/parse"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -27,15 +26,15 @@ import (
 // A Snail is a shell script interpreter instance.
 type Snail struct {
 	runner  *interp.Runner
-	runtime *rt.Runtime
+	runtime *moonlight.Runtime
 }
 
-func New(rtm *rt.Runtime) *Snail {
+func New(mlr *moonlight.Runtime) *Snail {
 	runner, _ := interp.New()
 
 	return &Snail{
 		runner:  runner,
-		runtime: rtm,
+		runtime: mlr,
 	}
 }
 
@@ -74,9 +73,9 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 	buf := new(bytes.Buffer)
 	//printer := syntax.NewPrinter()
 
-	aliasesMod := util.MustDoString(s.runtime, "return hilbish.aliases").AsTable()
-	aliasesListFn := aliasesMod.Get(rt.StringValue("list"))
-	aliasesResolveFn := aliasesMod.Get(rt.StringValue("resolve"))
+	aliasesMod := s.runtime.MustDoString("return hilbish.aliases").AsTable()
+	aliasesListFn := aliasesMod.Get(moonlight.StringValue("list"))
+	aliasesResolveFn := aliasesMod.Get(moonlight.StringValue("resolve"))
 
 	var bg bool
 	for _, stmt := range file.Stmts {
@@ -95,11 +94,11 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 				argstring := strings.Join(args, " ")
 				// i dont really like this but it works
 				aliases := make(map[string]string)
-				aliasesLua, err := rt.Call1(s.runtime.MainThread(), aliasesListFn)
+				aliasesLua, err := s.runtime.Call1(aliasesListFn)
 				if err != nil {
 					return err
 				}
-				util.ForEach(aliasesLua.AsTable(), func(k, v rt.Value) {
+				moonlight.ForEach(moonlight.ToTable(aliasesLua), func(k, v moonlight.Value) {
 					aliases[k.AsString()] = v.AsString()
 				})
 				if aliases[args[0]] != "" {
@@ -111,7 +110,7 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 					argstring = strings.Join(args, " ")
 
 					// If alias was found, use command alias
-					resolved, err := rt.Call1(s.runtime.MainThread(), aliasesResolveFn, rt.StringValue(argstring))
+					resolved, err := s.runtime.Call1(aliasesResolveFn, moonlight.StringValue(argstring))
 					if err != nil {
 						return err
 					}
@@ -124,53 +123,48 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 				}
 
 				// If command is defined in Lua then run it
-				luacmdArgs := rt.NewTable()
+				luacmdArgs := moonlight.NewTable()
 				for i, str := range args[1:] {
-					luacmdArgs.Set(rt.IntValue(int64(i+1)), rt.StringValue(str))
+					luacmdArgs.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(str))
 				}
 
 				hc := interp.HandlerCtx(ctx)
 
-				cmds := make(map[string]*rt.Closure)
-				luaCmds := util.MustDoString(s.runtime, "local commander = require 'commander'; return commander.registry()").AsTable()
-				util.ForEach(luaCmds, func(k, v rt.Value) {
-					cmds[k.AsString()] = v.AsTable().Get(rt.StringValue("exec")).AsClosure()
+				cmds := make(map[string]*moonlight.Closure)
+				luaCmds := moonlight.ToTable(s.runtime.MustDoString("local commander = require 'commander'; return commander.registry()"))
+				moonlight.ForEach(luaCmds, func(k, v moonlight.Value) {
+					cmds[k.AsString()] = v.AsTable().Get(moonlight.StringValue("exec")).AsClosure()
 				})
 				if cmd := cmds[args[0]]; cmd != nil {
 					stdin := util.NewSinkInput(s.runtime, hc.Stdin)
 					stdout := util.NewSinkOutput(s.runtime, hc.Stdout)
 					stderr := util.NewSinkOutput(s.runtime, hc.Stderr)
 
-					sinks := rt.NewTable()
-					sinks.Set(rt.StringValue("in"), rt.UserDataValue(stdin.UserData))
-					sinks.Set(rt.StringValue("input"), rt.UserDataValue(stdin.UserData))
-					sinks.Set(rt.StringValue("out"), rt.UserDataValue(stdout.UserData))
-					sinks.Set(rt.StringValue("err"), rt.UserDataValue(stderr.UserData))
+					sinks := moonlight.NewTable()
+					sinks.Set(moonlight.StringValue("in"), moonlight.UserDataValue(stdin.UserData))
+					sinks.Set(moonlight.StringValue("input"), moonlight.UserDataValue(stdin.UserData))
+					sinks.Set(moonlight.StringValue("out"), moonlight.UserDataValue(stdout.UserData))
+					sinks.Set(moonlight.StringValue("err"), moonlight.UserDataValue(stderr.UserData))
 
-					t := rt.NewThread(s.runtime)
+					t := moonlight.NewThread(s.runtime)
 					sig := make(chan os.Signal, 1)
 					exit := make(chan bool, 1)
 					done := make(chan struct{})
 
-					luaexitcode := rt.IntValue(63)
+					luaexitcode := moonlight.IntValue(63)
 					var err error
 
 					signal.Notify(sig, os.Interrupt)
 					go func() {
-						// KillContext panics, so recover is required
-						defer func() {
-							recover()
-						}()
-
 						select {
 						case <-sig:
-							t.KillContext()
+							t.Kill()
 						case <-done: // branch allows the goroutine to go away
 						}
 					}()
 
 					go func() {
-						luaexitcode, err = rt.Call1(t, rt.FunctionValue(cmd), rt.TableValue(luacmdArgs), rt.TableValue(sinks))
+						luaexitcode, err = t.Call1(moonlight.FunctionValue(cmd), moonlight.TableValue(luacmdArgs), moonlight.TableValue(sinks))
 						exit <- true
 					}()
 
@@ -186,10 +180,10 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 
 					if code, ok := luaexitcode.TryInt(); ok {
 						exitcode = uint8(code)
-					} else if luaexitcode != rt.NilValue {
-						commanderMod := util.MustDoString(s.runtime, "return require 'commander'").AsTable()
-						deregister := commanderMod.Get(rt.StringValue("deregister"))
-						rt.Call1(s.runtime.MainThread(), deregister, rt.StringValue(args[0]))
+					} else if luaexitcode != moonlight.NilValue {
+						commanderMod := s.runtime.MustDoString("return require 'commander'").AsTable()
+						deregister := commanderMod.Get(moonlight.StringValue("deregister"))
+						s.runtime.Call1(deregister, moonlight.StringValue(args[0]))
 						fmt.Fprintf(os.Stderr, "Commander did not return number for exit code. %s, you're fired.\n", args[0])
 					}
 

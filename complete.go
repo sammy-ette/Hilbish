@@ -6,9 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"hilbish/util"
-
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 )
 
 var charEscapeMap = []string{
@@ -218,8 +217,8 @@ func escapeFilename(fname string) string {
 // #interface completions
 // tab completions
 // The completions interface deals with tab completions.
-func completionLoader(rtm *rt.Runtime) *rt.Table {
-	exports := map[string]util.LuaExport{
+func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
+	exports := map[string]moonlight.Export{
 		"bins":    {Function: hcmpBins, ArgNum: 3, Variadic: false},
 		"call":    {Function: hcmpCall, ArgNum: 4, Variadic: false},
 		"files":   {Function: hcmpFiles, ArgNum: 3, Variadic: false},
@@ -228,8 +227,8 @@ func completionLoader(rtm *rt.Runtime) *rt.Table {
 		"handler": {Function: hcmpHandler, ArgNum: 2, Variadic: false},
 	}
 
-	mod := rt.NewTable()
-	util.SetExports(rtm, mod, exports)
+	mod := moonlight.NewTable()
+	mlr.SetExports(mod, exports)
 
 	return mod
 }
@@ -270,16 +269,16 @@ hilbish.completions.add('command.sudo', function(query, ctx, fields)
 end)
 #example
 */
-func hcmpAdd(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	scope, cb, err := util.HandleStrCallback(t, c)
+func hcmpAdd(mlr *moonlight.Runtime) error {
+	scope, cb, err := util.HandleStrCallback(mlr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	luaCompletionsMu.Lock()
 	luaCompletions[scope] = cb
 	luaCompletionsMu.Unlock()
 
-	return c.Next(), nil
+	return nil
 }
 
 // #interface completions
@@ -308,21 +307,22 @@ hilbish.completions.add('command.sudo', function(query, ctx, fields)
 end)
 #example
 */
-func hcmpBins(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(c)
+func hcmpBins(mlr *moonlight.Runtime) error {
+	query, ctx, fds, err := getCompleteParams(mlr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var _ []string = fds
 	completions, pfx := binaryComplete(query, ctx)
-	luaComps := rt.NewTable()
+	luaComps := moonlight.NewTable()
 
 	for i, comp := range completions {
-		luaComps.Set(rt.IntValue(int64(i+1)), rt.StringValue(comp))
+		luaComps.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(comp))
 	}
 
-	return c.PushingNext(t.Runtime, rt.TableValue(luaComps), rt.StringValue(pfx)), nil
+	mlr.PushNext(moonlight.TableValue(luaComps), moonlight.StringValue(pfx))
+	return nil
 }
 
 // #interface completions
@@ -334,45 +334,41 @@ func hcmpBins(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #param query string
 // #param ctx string
 // #param fields table
-func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(4); err != nil {
-		return nil, err
+func hcmpCall(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(4); err != nil {
+		return err
 	}
-	completer, err := c.StringArg(0)
+	completer, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	query, err := c.StringArg(1)
+	query, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	ctx, err := c.StringArg(2)
+	ctx, err := mlr.StringArg(2)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	fields, err := c.TableArg(3)
+	fields, err := mlr.TableArg(3)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	luaCompletionsMu.RLock()
 	completecb, ok := luaCompletions[completer]
 	luaCompletionsMu.RUnlock()
 	if !ok {
-		return nil, errors.New("completer " + completer + " does not exist")
+		return errors.New("completer " + completer + " does not exist")
 	}
 
-	// we must keep the holy 80 cols
-	cont := c.Next()
-	err = rt.Call(l.MainThread(), rt.FunctionValue(completecb),
-		[]rt.Value{rt.StringValue(query), rt.StringValue(ctx), rt.TableValue(fields)},
-		cont)
-
+	results, err := mlr.Call(moonlight.FunctionValue(completecb), moonlight.StringValue(query), moonlight.StringValue(ctx), moonlight.TableValue(fields))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return cont, nil
+	mlr.PushNext(results...)
+	return nil
 }
 
 // #interface completions
@@ -382,22 +378,23 @@ func hcmpCall(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #param query string
 // #param ctx string
 // #param fields table
-func hcmpFiles(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(c)
+func hcmpFiles(mlr *moonlight.Runtime) error {
+	query, ctx, fds, err := getCompleteParams(mlr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var _ []string = fds
 	var _ string = query
 	completions, pfx := fileComplete(ctx)
-	luaComps := rt.NewTable()
+	luaComps := moonlight.NewTable()
 
 	for i, comp := range completions {
-		luaComps.Set(rt.IntValue(int64(i+1)), rt.StringValue(comp))
+		luaComps.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(comp))
 	}
 
-	return c.PushingNext(t.Runtime, rt.TableValue(luaComps), rt.StringValue(pfx)), nil
+	mlr.PushNext(moonlight.TableValue(luaComps), moonlight.StringValue(pfx))
+	return nil
 }
 
 // #interface completions
@@ -407,21 +404,22 @@ func hcmpFiles(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 // #param query string
 // #param ctx string
 // #param fields table
-func hcmpDirs(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	query, ctx, fds, err := getCompleteParams(c)
+func hcmpDirs(mlr *moonlight.Runtime) error {
+	query, ctx, fds, err := getCompleteParams(mlr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var _ []string = fds
 	completions, pfx := dirComplete(query, ctx)
-	luaComps := rt.NewTable()
+	luaComps := moonlight.NewTable()
 
 	for i, comp := range completions {
-		luaComps.Set(rt.IntValue(int64(i+1)), rt.StringValue(comp))
+		luaComps.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(comp))
 	}
 
-	return c.PushingNext(t.Runtime, rt.TableValue(luaComps), rt.StringValue(pfx)), nil
+	mlr.PushNext(moonlight.TableValue(luaComps), moonlight.StringValue(pfx))
+	return nil
 }
 
 // #interface completions
@@ -447,30 +445,30 @@ function hilbish.completions.handler(line, pos)
 end
 #example
 */
-func hcmpHandler(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	return c.Next(), nil
+func hcmpHandler(mlr *moonlight.Runtime) error {
+	return nil
 }
 
-func getCompleteParams(c *rt.GoCont) (string, string, []string, error) {
-	if err := c.CheckNArgs(3); err != nil {
+func getCompleteParams(mlr *moonlight.Runtime) (string, string, []string, error) {
+	if err := mlr.CheckNArgs(3); err != nil {
 		return "", "", []string{}, err
 	}
-	query, err := c.StringArg(0)
+	query, err := mlr.StringArg(0)
 	if err != nil {
 		return "", "", []string{}, err
 	}
-	ctx, err := c.StringArg(1)
+	ctx, err := mlr.StringArg(1)
 	if err != nil {
 		return "", "", []string{}, err
 	}
-	fields, err := c.TableArg(2)
+	fields, err := mlr.TableArg(2)
 	if err != nil {
 		return "", "", []string{}, err
 	}
 
 	var fds []string
-	util.ForEach(fields, func(k rt.Value, v rt.Value) {
-		if v.Type() == rt.StringType {
+	moonlight.ForEach(fields, func(k moonlight.Value, v moonlight.Value) {
+		if v.Type() == moonlight.StringType {
 			fds = append(fds, v.AsString())
 		}
 	})

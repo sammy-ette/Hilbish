@@ -5,79 +5,74 @@ package terminal
 import (
 	"os"
 
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
 
-	"github.com/arnodel/golua/lib/packagelib"
-	rt "github.com/arnodel/golua/runtime"
 	"golang.org/x/term"
 )
 
 var termState *term.State
-var Loader = packagelib.Loader{
-	Load: loaderFunc,
-	Name: "terminal",
-}
 
-func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
-	exports := map[string]util.LuaExport{
-		"setRaw":       util.LuaExport{Function: termsetRaw, ArgNum: 0, Variadic: false},
-		"restoreState": util.LuaExport{Function: termrestoreState, ArgNum: 0, Variadic: false},
-		"size":         util.LuaExport{Function: termsize, ArgNum: 0, Variadic: false},
-		"saveState":    util.LuaExport{Function: termsaveState, ArgNum: 0, Variadic: false},
+func Loader(rtm *moonlight.Runtime) moonlight.Value {
+	exports := map[string]moonlight.Export{
+		"setRaw":       {Function: termsetRaw, ArgNum: 0, Variadic: false},
+		"restoreState": {Function: termrestoreState, ArgNum: 0, Variadic: false},
+		"size":         {Function: termsize, ArgNum: 0, Variadic: false},
+		"saveState":    {Function: termsaveState, ArgNum: 0, Variadic: false},
 	}
 
-	mod := rt.NewTable()
-	util.SetExports(rtm, mod, exports)
+	mod := moonlight.NewTable()
+	rtm.SetExports(mod, exports)
 
-	return rt.TableValue(mod), nil
+	return moonlight.TableValue(mod)
 }
 
 // size()
 // Gets the dimensions of the terminal. Returns a table with `width` and `height`
 // NOTE: The size refers to the amount of columns and rows of text that can fit in the terminal.
-func termsize(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func termsize(mlr *moonlight.Runtime) error {
 	w, h, err := term.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	dimensions := rt.NewTable()
-	dimensions.Set(rt.StringValue("width"), rt.IntValue(int64(w)))
-	dimensions.Set(rt.StringValue("height"), rt.IntValue(int64(h)))
+	dimensions := moonlight.NewTable()
+	dimensions.SetField("width", moonlight.IntValue(int64(w)))
+	dimensions.SetField("height", moonlight.IntValue(int64(h)))
 
-	return c.PushingNext1(t.Runtime, rt.TableValue(dimensions)), nil
+	mlr.PushNext1(moonlight.TableValue(dimensions))
+	return nil
 }
 
 // saveState()
 // Saves the current state of the terminal.
-func termsaveState(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func termsaveState(mlr *moonlight.Runtime) error {
 	state, err := term.GetState(int(os.Stdin.Fd()))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	termState = state
-	return c.Next(), nil
+	return nil
 }
 
 // restoreState()
 // Restores the last saved state of the terminal
-func termrestoreState(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func termrestoreState(mlr *moonlight.Runtime) error {
 	err := term.Restore(int(os.Stdin.Fd()), termState)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
 // setRaw()
 // Puts the terminal into raw mode.
-func termsetRaw(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+func termsetRaw(mlr *moonlight.Runtime) error {
 	_, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.Next(), nil
+	return nil
 }
