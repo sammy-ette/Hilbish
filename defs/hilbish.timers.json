@@ -385,7 +385,7 @@
 			"parent": "hilbish",
 			"interfaces": "timers",
 			"signature": "wait()",
-			"goFuncName": "timerwait",
+			"goFuncName": "luawait",
 			"isInterface": true,
 			"isMember": false,
 			"isType": false,

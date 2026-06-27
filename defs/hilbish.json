@@ -239,6 +239,21 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false
+		},
+		{
+			"name": "midnightEdition",
+			"description": [
+				"If",
+				"Hilbish",
+				"is",
+				"compiled",
+				"as",
+				"midnight",
+				"edition."
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
 		}
 	],
 	"types": [
