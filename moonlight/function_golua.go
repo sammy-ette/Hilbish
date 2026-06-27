@@ -7,6 +7,8 @@ import (
 )
 
 type GoFunctionFunc = rt.GoFunctionFunc
+type Callable = rt.Callable
+type Closure = rt.Closure
 
 func (mlr *Runtime) CheckNArgs(num int) error {
 	return mlr.curCont.CheckNArgs(num)

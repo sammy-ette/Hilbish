@@ -1,6 +1,2 @@
 {
-	"go.buildTags": "midnight",
-	"gopls": {
-		"build.buildFlags": ["-tags=midnight"]
-	}
 }

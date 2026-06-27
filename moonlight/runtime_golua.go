@@ -45,10 +45,6 @@ func (mlr *Runtime) UnderlyingRuntime() *rt.Runtime {
 	return mlr.rt
 }
 
-func (mlr *Runtime) Push(c *GoCont, v Value) {
-	c.cont.Push(c.thread.Runtime, v)
-}
-
 func (mlr *Runtime) PushNext1(v Value) {
 	mlr.curCont.Next().Push(mlr.rt.MainThread().Runtime, v)
 }
