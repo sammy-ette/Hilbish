@@ -2,11 +2,12 @@ package readline
 
 import (
 	"errors"
-	"hilbish/moonlight"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 type fileHistory struct {

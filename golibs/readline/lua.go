@@ -11,7 +11,7 @@ import (
 	"io"
 	"strings"
 
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 
 	"github.com/sahilm/fuzzy"
 )

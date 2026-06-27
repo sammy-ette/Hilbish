@@ -5,7 +5,7 @@ package terminal
 import (
 	"os"
 
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 
 	"golang.org/x/term"
 )

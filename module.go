@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"hilbish/moonlight"
 	"plugin"
+
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // #interface module

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // TestMatchPathPrefixNotEscaped verifies that matchPath returns the raw

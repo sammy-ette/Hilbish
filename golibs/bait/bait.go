@@ -26,8 +26,9 @@ package bait
 
 import (
 	"errors"
-	"hilbish/moonlight"
-	"hilbish/util"
+
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 )
 
 type listenerType int

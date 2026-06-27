@@ -1,4 +1,4 @@
-module hilbish
+module github.com/sammy-ette/hilbish
 
 go 1.25.0
 

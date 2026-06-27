@@ -12,8 +12,8 @@ import (
 	"io"
 	"strings"
 
-	"hilbish/moonlight"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 
 	"github.com/arnodel/golua/lib/iolib"
 	"mvdan.cc/sh/v3/interp"

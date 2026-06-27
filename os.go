@@ -1,8 +1,8 @@
 package main
 
 import (
-	"hilbish/moonlight"
-	//"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
+	//"github.com/sammy-ette/hilbish/util"
 
 	"github.com/blackfireio/osinfo"
 )

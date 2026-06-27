@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 var sinkMetaKey = moonlight.StringValue("hshsink")

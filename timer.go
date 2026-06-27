@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 type timerType int64

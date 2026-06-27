@@ -10,10 +10,10 @@ import (
 	"strings"
 	"sync"
 
-	"hilbish/golibs/bait"
-	"hilbish/golibs/commander"
-	"hilbish/moonlight"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/golibs/bait"
+	"github.com/sammy-ette/hilbish/golibs/commander"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 
 	"github.com/pborman/getopt"
 	"golang.org/x/term"

@@ -28,9 +28,9 @@ In the future, `sinks.in` will be removed.<nl>
 package commander
 
 import (
-	"hilbish/golibs/bait"
-	"hilbish/moonlight"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/golibs/bait"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 )
 
 type Commander struct {

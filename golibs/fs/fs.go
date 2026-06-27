@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"strings"
 
-	"hilbish/moonlight"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 )
 
 func Loader(mlr *moonlight.Runtime) moonlight.Value {

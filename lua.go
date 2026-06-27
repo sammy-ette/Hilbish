@@ -5,14 +5,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"hilbish/golibs/bait"
-	"hilbish/golibs/commander"
-	"hilbish/golibs/fs"
-	"hilbish/golibs/readline"
-	"hilbish/golibs/snail"
-	"hilbish/golibs/terminal"
-	"hilbish/golibs/yarn"
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/golibs/bait"
+	"github.com/sammy-ette/hilbish/golibs/commander"
+	"github.com/sammy-ette/hilbish/golibs/fs"
+	"github.com/sammy-ette/hilbish/golibs/readline"
+	"github.com/sammy-ette/hilbish/golibs/snail"
+	"github.com/sammy-ette/hilbish/golibs/terminal"
+	"github.com/sammy-ette/hilbish/golibs/yarn"
+	"github.com/sammy-ette/hilbish/moonlight"
 
 	"github.com/pborman/getopt"
 )

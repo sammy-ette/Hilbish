@@ -1,7 +1,7 @@
 package main
 
 import (
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // #interface userDir

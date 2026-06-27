@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"hilbish/moonlight"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 )
 
 var charEscapeMap = []string{

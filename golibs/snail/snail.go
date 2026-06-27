@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"hilbish/moonlight"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 
 	"mvdan.cc/sh/v3/shell"
 

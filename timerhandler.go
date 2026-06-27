@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 var timers *timersModule

@@ -6,7 +6,7 @@ import (
 	"os/user"
 	"testing"
 
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // initTestRuntime runs the same startup sequence as luaInit (in lua.go),

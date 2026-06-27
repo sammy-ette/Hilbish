@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 var ErrNotExec = errors.New("not executable")

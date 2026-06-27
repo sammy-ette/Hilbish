@@ -17,8 +17,9 @@ package yarn
 
 import (
 	"fmt"
-	"hilbish/moonlight"
 	"os"
+
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 var yarnMetaKey = moonlight.StringValue("hshyarn")
