@@ -10,7 +10,7 @@ vars:
   LIBDIR: '{{default .libdir__ .LIBDIR}}'
   goflags__: '-ldflags "-s -w -X main.dataDir={{.LIBDIR}}"'
   GOFLAGS: '{{default .goflags__ .GOFLAGS}}'
-  lua__: 'lua'
+  lua__: 'lua54'
   LUA: '{{default .lua__ .LUA}}'
 
 tasks:
