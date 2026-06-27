@@ -170,14 +170,17 @@ func getVersion() string {
 
 	v.WriteString(ver)
 	if gitBranch != "" && gitBranch != "HEAD" {
-		v.WriteString("-" + gitBranch)
+		v.WriteString("-")
+		v.WriteString(gitBranch)
 	}
 
 	if gitCommit != "" {
-		v.WriteString("." + gitCommit)
+		v.WriteString(".")
+		v.WriteString(gitCommit)
 	}
 
-	v.WriteString(" (" + releaseName)
+	v.WriteString(" (")
+	v.WriteString(releaseName)
 	if moonlight.IsMidnight() {
 		v.WriteString(" - Midnight Edition")
 	}
