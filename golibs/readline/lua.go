@@ -501,9 +501,6 @@ func rlSetCompleter(mlr *moonlight.Runtime) error {
 
 			moonlight.ForEach(moonlight.ToTable(luaCompItems), func(lkey moonlight.Value, lval moonlight.Value) {
 				if keytyp := lkey.Type(); keytyp == moonlight.StringType {
-					// TODO: remove in 3.0
-					// ['--flag'] = {'description', '--flag-alias'}
-					// OR
 					// ['--flag'] = {description = '', alias = '', display = ''}
 					itemName, ok := lkey.TryString()
 					vlTbl, okk := lval.TryTable()
@@ -513,26 +510,15 @@ func rlSetCompleter(mlr *moonlight.Runtime) error {
 					}
 
 					item := MenuItem{Value: itemName}
-
-					itemDescription, ok := vlTbl.Get(moonlight.IntValue(1)).TryString()
-					if !ok {
-						// if we can't get it by number index, try by string key
-						itemDescription, _ = vlTbl.Get(moonlight.StringValue("description")).TryString()
+					if itemDescription, ok := vlTbl.Get(moonlight.StringValue("description")).TryString(); ok {
+						item.Description = itemDescription
 					}
-					item.Description = itemDescription
-
-					// display
 					if itemDisplay, ok := vlTbl.Get(moonlight.StringValue("display")).TryString(); ok {
 						item.Display = itemDisplay
 					}
-
-					itemAlias, ok := vlTbl.Get(moonlight.IntValue(2)).TryString()
-					if !ok {
-						// if we can't get it by number index, try by string key
-						itemAlias, _ = vlTbl.Get(moonlight.StringValue("alias")).TryString()
+					if itemAlias, ok := vlTbl.Get(moonlight.StringValue("alias")).TryString(); ok {
+						item.Alias = itemAlias
 					}
-					item.Alias = itemAlias
-
 					menuItems = append(menuItems, item)
 				} else if keytyp == moonlight.IntType {
 					vlStr, ok := lval.TryString()

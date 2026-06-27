@@ -168,21 +168,7 @@ func setupDocType(mod string, typ *doc.Type) *docPiece {
 	properties := docPieceTag("property", tags)
 
 	for _, d := range doc {
-		if strings.HasPrefix(d, "---") {
-			// TODO: document types in lua
-			/*
-				emmyLine := strings.TrimSpace(strings.TrimPrefix(d, "---"))
-				emmyLinePieces := strings.Split(emmyLine, " ")
-				emmyType := emmyLinePieces[0]
-				if emmyType == "@param" {
-					em.Params = append(em.Params, emmyLinePieces[1])
-				}
-				if emmyType == "@vararg" {
-					em.Params = append(em.Params, "...") // add vararg
-				}
-				em.Annotations = append(em.Annotations, d)
-			*/
-		} else {
+		if !strings.HasPrefix(d, "---") {
 			typeDoc = append(typeDoc, d)
 		}
 	}

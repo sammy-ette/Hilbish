@@ -141,8 +141,6 @@ const (
 	seqCtermFg255 = "\033[48;5;255m"
 )
 
-// TODO: return whether its actually a sequence or not
-// remedies the edge case of someone literally typing Ctrl-A for example.
 func (rl *Readline) ReadChar() string {
 	b := make([]byte, 1024)
 	i, _ := os.Stdin.Read(b)
