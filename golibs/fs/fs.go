@@ -30,7 +30,7 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 		"dir":        {Function: fdir, ArgNum: 1, Variadic: false},
 		"glob":       {Function: fglob, ArgNum: 1, Variadic: false},
 		"join":       {Function: fjoin, ArgNum: 0, Variadic: true},
-		// "pipe":       {Function: fpipe, ArgNum: 0, Variadic: false},
+		"pipe":       {Function: fpipe, ArgNum: 0, Variadic: false},
 	}
 	mod := moonlight.NewTable()
 	mlr.SetExports(mod, exports)
@@ -259,24 +259,23 @@ func fmkdir(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// pipe() -> file*, file*
+// pipe() -> @Sink, @Sink
 // Returns a pair of connected files, also known as a pipe.
-// The type returned is a Lua file, same as returned from `io` functions, like `io.open`.
-// #returns file*
-// #returns file*
-// func fpipe(mlr *moonlight.Runtime) error {
-// 	rf, wf, err := os.Pipe()
-// 	if err != nil {
-// 		return err
-// 	}
+// #returns Sink
+// #returns Sink
+func fpipe(mlr *moonlight.Runtime) error {
+	rf, wf, err := os.Pipe()
+	if err != nil {
+		return err
+	}
 
-// 	rfLua := iolib.NewFile(rf, 0)
-// 	wfLua := iolib.NewFile(wf, 0)
+	rfLua := util.NewSinkInput(mlr, rf)
+	wfLua := util.NewSinkOutput(mlr, wf)
 
-// 	mlr.PushNext(rfLua.Value(mlr), wfLua.Value(mlr))
+	mlr.PushNext(moonlight.UserDataValue(rfLua.UserData), moonlight.UserDataValue(wfLua.UserData))
 
-// 	return nil
-// }
+	return nil
+}
 
 // readdir(path) -> table[string]
 // Returns a list of all files and directories in the provided path.
