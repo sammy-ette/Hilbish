@@ -182,7 +182,7 @@ func getVersion() string {
 	v.WriteString(" (")
 	v.WriteString(releaseName)
 	if moonlight.IsMidnight() {
-		v.WriteString(" - Midnight Edition")
+		v.WriteString(" / Midnight Edition")
 	}
 	v.WriteString(")")
 

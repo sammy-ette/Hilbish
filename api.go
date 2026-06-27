@@ -15,6 +15,7 @@
 // #field exitCode Exit code of the last executed command
 // #field running If Hilbish is currently running any interactive input
 // #field initialized If Hilbish has been fully initialized. This is `false` until the interactive REPL.
+// #field midnightEdition If Hilbish is compiled as midnight edition.
 package main
 
 import (
@@ -100,6 +101,7 @@ func hilbishLoader(mlr *moonlight.Runtime) moonlight.Value {
 	mod.Set(moonlight.StringValue("timers"), moonlight.TableValue(timersModule))
 
 	versionModule := moonlight.NewTable()
+	util.SetField(versionModule, "semver", moonlight.StringValue(ver))
 	util.SetField(versionModule, "branch", moonlight.StringValue(gitBranch))
 	util.SetField(versionModule, "full", moonlight.StringValue(getVersion()))
 	util.SetField(versionModule, "commit", moonlight.StringValue(gitCommit))
