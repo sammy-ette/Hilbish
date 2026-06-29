@@ -47,6 +47,8 @@ require 'nature.hummingbird'
 require 'nature.env'
 require 'nature.abbr'
 
+require 'nature.paperbush'
+
 local shlvl = tonumber(os.getenv 'SHLVL')
 if shlvl ~= nil then
 	os.setenv('SHLVL', tostring(shlvl + 1))

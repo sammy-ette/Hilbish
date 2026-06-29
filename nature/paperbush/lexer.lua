@@ -15,7 +15,7 @@ local kinds = {
 	CAPTURE = 'CAPTURE', -- $(
 	RESULT = 'RESULT',   -- !(
 	RUN = 'RUN',         -- $[
-	SPLICE = 'SPLICE',   -- @(
+	EVAL = 'EVAL',   -- @(
 	ENV = 'ENV',         -- $NAME / ${NAME}
 
 	ASSIGN = 'ASSIGN',     -- =
@@ -60,7 +60,7 @@ local single = {
 local sigils = {
 	['$('] = { kinds.CAPTURE, '(', ')' },
 	['!('] = { kinds.RESULT, '(', ')' },
-	['@('] = { kinds.SPLICE, '(', ')' },
+	['@('] = { kinds.EVAL, '(', ')' },
 	['$['] = { kinds.RUN, '[', ']' },
 }
 
@@ -125,20 +125,27 @@ function Lexer:next()
         return tok(kinds.NEWLINE, '\n')
     end
 
-	-- comments `--` line and `--[[ ]]` block
+	-- only treat `--` as a comment when
+	-- followed by whitespace/EOL/`[`, so shell flags work
 	if self:peek2() == '--' then
-		self:read()
-        self:read()
-		if self:peek() == '[' then
+		local after = self.src:sub(self.pos + 2, self.pos + 2)
+		if after == '[' then
+			self:read()
+			self:read()
 			local level = self:tryLongBracket()
 			if level then
 				local body, incomplete = self:scanLongBracket(level)
 				local t = tok(kinds.COMMENT, body)
+				t.opener = '--[' .. string.rep('=', level) .. '['
+				t.closer = ']' .. string.rep('=', level) .. ']'
 				if incomplete then t.incomplete = true end
 				return t
 			end
+			return tok(kinds.COMMENT, self:scanComment()) -- `--[x` is a line comment
+		elseif after == '' or after == ' ' or after == '\t' or after == '\r' or after == '\n' then
+			self:read(); self:read()
+			return tok(kinds.COMMENT, self:scanComment())
 		end
-		return tok(kinds.COMMENT, self:scanComment())
 	end
 
 	-- long strings: [[ ]] / [=[ ]=]
@@ -147,6 +154,8 @@ function Lexer:next()
 		if level then
 			local body, incomplete = self:scanLongBracket(level)
 			local t = tok(kinds.LONGSTRING, body)
+			t.opener = '[' .. string.rep('=', level) .. '['
+			t.closer = ']' .. string.rep('=', level) .. ']'
 			if incomplete then t.incomplete = true end
 			return t
 		end
@@ -159,15 +168,18 @@ function Lexer:next()
 		self:read()
 		local lit, err = self:scanString(c)
 		local t = tok(kinds.STRING, lit)
+		t.quote = c
 		if err then t.incomplete = true end
 		return t
 	end
 
 	local sg = sigils[self:peek2()]
 	if sg then
+		local openTxt = self:peek2()
 		self:read(); self:read()
 		local body, incomplete = self:scanBalanced(sg[2], sg[3])
 		local t = tok(sg[1], body)
+		t.opener, t.closer = openTxt, sg[3]
 		if incomplete then t.incomplete = true end
 		return t
 	end
@@ -177,8 +189,10 @@ function Lexer:next()
 		local nx = self.src:sub(self.pos + 1, self.pos + 1)
 		if nx == '{' or nx:match('[%a_]') then
 			self:read()
+			local braced = nx == '{'
 			local name, incomplete = self:scanEnv()
 			local t = tok(kinds.ENV, name)
+			if braced then t.opener, t.closer = '${', '}' end
 			if incomplete then t.incomplete = true end
 			return t
 		end
@@ -193,6 +207,12 @@ function Lexer:next()
 	-- numbers, including the leading-dot form (`.5`).
 	if c:match('%d') or (c == '.' and self.src:sub(self.pos + 1, self.pos + 1):match('%d')) then
 		return tok(kinds.NUMBER, self:scanNumber())
+	end
+
+	-- or operator
+	if c == '|' and self:peek2() == '||' then
+		self:read(); self:read()
+		return tok(kinds.OP, '||')
 	end
 
 	if single[c] then
@@ -383,6 +403,113 @@ function lexer.dump(src)
 	end
 	local out = table.concat(lines, '\n')
 	return out
+end
+
+-- isValidNumber re-checks a scanned NUMBER token's text against Lua's actual
+-- number grammar. scanNumber is deliberately permissive (it just gobbles
+-- digits/dots/hex/exponent runs), so it happily produces tokens like `1..2` or
+-- `0x` that Lua's own lexer would reject; this catches those before they ever
+-- reach load().
+local function isValidNumber(s)
+	if s:match('^0[xX]') then
+		local body = s:sub(3)
+		local mantissa, exp = body:match('^([^pP]*)(.*)$')
+		if exp ~= '' and not exp:match('^[pP][%+%-]?%d+$') then return false end
+		if mantissa == '' then return false end
+		if not mantissa:match('^%x*%.?%x*$') then return false end
+		return true
+	end
+	local mantissa, exp = s:match('^([^eE]*)(.*)$')
+	if exp ~= '' and not exp:match('^[eE][%+%-]?%d+$') then return false end
+	if mantissa == '' or mantissa == '.' then return false end
+	if not mantissa:match('^%d*%.?%d*$') then return false end
+	return true
+end
+lexer.isValidNumber = isValidNumber
+
+local sigilNoun = {
+	[kinds.CAPTURE] = 'capture', [kinds.RESULT] = 'result',
+	[kinds.EVAL] = 'eval', [kinds.RUN] = 'run',
+}
+
+--- diagnose scans an already-tokenized list for lexical errors: illegal bytes,
+--- unterminated strings/long-brackets/comments/sigils, and malformed numbers.
+--- Every position comes straight from the tokens (no Lua round-trip), so these
+--- are exact. `src` is needed only to compute the "ran out of input" position
+--- (one past the last character) for unterminated constructs.
+--- @param toks table token list from lexer.tokenize
+--- @param src string the original source the tokens were lexed from
+--- @return table list of diagnostics (see diagnostic.lua for the shape)
+function lexer.diagnose(toks, src)
+	local diags = {}
+
+	local eofLine, lastNL = 1, 0
+	for p in src:gmatch('()\n') do lastNL = p; eofLine = eofLine + 1 end
+	local eofCol = #src - lastNL + 1
+	local eofPos = #src + 1
+
+	for _, t in ipairs(toks) do
+		if t.kind == kinds.ILLEGAL then
+			diags[#diags + 1] = {
+				severity = 'error', code = 'illegal-char',
+				message = string.format('unexpected character %q', t.value),
+				labels = { { line = t.line, col = t.col, pos = t.pos, len = 1, text = 'not valid here', primary = true } },
+				help = 'remove this character, or quote it if it is meant to be literal text',
+			}
+		elseif t.incomplete and t.kind == kinds.STRING then
+			diags[#diags + 1] = {
+				severity = 'error', code = 'unterminated',
+				message = 'unterminated string',
+				labels = {
+					{ line = t.line, col = t.col, pos = t.pos, len = 1, text = 'string starts here', primary = true },
+					{ line = eofLine, col = eofCol, pos = eofPos, len = 1,
+						text = string.format("expected closing %s before end of input", ('%q'):format(t.quote or '"')) },
+				},
+				help = 'add the matching quote, or escape it with \\ if it is meant to be literal',
+			}
+		elseif t.incomplete and (t.kind == kinds.LONGSTRING or t.kind == kinds.COMMENT) then
+			diags[#diags + 1] = {
+				severity = 'error', code = 'unterminated',
+				message = string.format('unterminated %s', t.kind == kinds.COMMENT and 'long comment' or 'long string'),
+				labels = {
+					{ line = t.line, col = t.col, pos = t.pos, len = #t.opener, text = 'opened here', primary = true },
+					{ line = eofLine, col = eofCol, pos = eofPos, len = 1,
+						text = string.format("expected '%s' before end of input", t.closer) },
+				},
+				help = string.format("close it with '%s'", t.closer),
+			}
+		elseif t.incomplete and sigilNoun[t.kind] then
+			diags[#diags + 1] = {
+				severity = 'error', code = 'unterminated',
+				message = string.format("unclosed '%s' %s", t.opener, sigilNoun[t.kind]),
+				labels = {
+					{ line = t.line, col = t.col, pos = t.pos, len = #t.opener, text = 'opened here', primary = true },
+					{ line = eofLine, col = eofCol, pos = eofPos, len = 1,
+						text = string.format("expected '%s' before end of input", t.closer) },
+				},
+				help = string.format("close it with '%s'", t.closer),
+			}
+		elseif t.incomplete and t.kind == kinds.ENV then
+			diags[#diags + 1] = {
+				severity = 'error', code = 'unterminated',
+				message = "unclosed '${' environment reference",
+				labels = {
+					{ line = t.line, col = t.col, pos = t.pos, len = #(t.opener or '${'), text = 'opened here', primary = true },
+					{ line = eofLine, col = eofCol, pos = eofPos, len = 1, text = "expected '}' before end of input" },
+				},
+				help = "close it with '}'",
+			}
+		elseif t.kind == kinds.NUMBER and not isValidNumber(t.value) then
+			diags[#diags + 1] = {
+				severity = 'error', code = 'malformed-number',
+				message = string.format("malformed number near '%s'", t.value),
+				labels = { { line = t.line, col = t.col, pos = t.pos, len = #t.value, text = 'not a valid number literal', primary = true } },
+				help = 'a number may have at most one decimal point and one exponent (e/E, or p/P for hex floats)',
+			}
+		end
+	end
+
+	return diags
 end
 
 return lexer

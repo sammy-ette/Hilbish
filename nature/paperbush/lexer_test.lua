@@ -1,11 +1,11 @@
 -- Tests for the Paperbush lexer.
 --
--- Standalone harness: run with `lua nature/paperbush/lexer_test.lua` from the
--- repo root (or from this dir). Exits 0 if all assertions pass, 1 otherwise.
+-- Run under Hilbish from the repo root:
+--   hilbish nature/paperbush/lexer_test.lua
+-- Exits 0 if all assertions pass, 1 otherwise.
 
--- resolve our own dir so the lexer loads regardless of cwd
-local here = (arg and arg[0] or ''):match('(.*[/\\])') or './'
-local lexer = dofile(here .. 'lexer.lua')
+package.path = './?.lua;' .. package.path
+local lexer = require('nature.paperbush.lexer')
 local k = lexer.kinds
 
 local total, failures = 0, 0
@@ -88,10 +88,10 @@ eq('local b = $(git status)', {
 	{ k.KEYWORD, 'local' }, { k.NAME, 'b' }, { k.ASSIGN, '=' }, { k.CAPTURE, 'git status' },
 })
 eq('echo $(date) | @(string.upper)', {
-	{ k.NAME, 'echo' }, { k.CAPTURE, 'date' }, { k.PIPE, '|' }, { k.SPLICE, 'string.upper' },
+	{ k.NAME, 'echo' }, { k.CAPTURE, 'date' }, { k.PIPE, '|' }, { k.EVAL, 'string.upper' },
 })
 eq('x = @(f($(whoami)))', {
-	{ k.NAME, 'x' }, { k.ASSIGN, '=' }, { k.SPLICE, 'f($(whoami))' }, -- nesting balanced
+	{ k.NAME, 'x' }, { k.ASSIGN, '=' }, { k.EVAL, 'f($(whoami))' }, -- nesting balanced
 })
 eq('run $[ls -la]', { { k.NAME, 'run' }, { k.RUN, 'ls -la' } })
 eq('echo $HOME', { { k.NAME, 'echo' }, { k.ENV, 'HOME' } })
@@ -112,6 +112,11 @@ incomplete('run $[ls -la', true)            -- unclosed $[
 incomplete('echo ${HOME', true)             -- unclosed ${
 incomplete('x = [[unclosed', true)          -- unclosed long string
 incomplete('local x = 1 + 2', false)
+
+-- `--` is a comment only before whitespace/EOL/`[`; `--flag` stays a flag (fuzz regression)
+eq('-- a comment', { { k.COMMENT } })
+eq('--[[ b ]]', { { k.COMMENT } })
+eq('ls --all', { { k.NAME, 'ls' }, { k.OP, '--' }, { k.NAME, 'all' } })
 
 -- summary -----------------------------------------------------------------
 
