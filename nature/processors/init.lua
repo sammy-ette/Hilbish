@@ -40,14 +40,18 @@ function hilbish.processors.execute(command, opts)
 	opts.skip = opts.skip or {}
 
 	local continue = true
-	local history
+	local modifiers = {}
 	for _, processor in ipairs(hilbish.processors.list) do
 		if not contains(opts.skip, processor.name) then
 			local processed = processor.func(command)
 			if processed then
-				if processed.history ~= nil then history = processed.history end
 				if processed.command then command = processed.command end
-				if not processed.continue then
+				if processed.modifiers then
+					for k, v in pairs(processed.modifiers) do
+						modifiers[k] = v
+					end
+				end
+				if processed.continue == false then
 					continue = false
 					break
 				end
@@ -58,6 +62,6 @@ function hilbish.processors.execute(command, opts)
 	return {
 		command = command,
 		continue = continue,
-		history = history
+		modifiers = modifiers
 	}
 end

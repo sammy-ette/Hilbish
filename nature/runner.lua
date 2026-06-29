@@ -48,6 +48,7 @@
 --- hilbish.runner.setCurrent('fennel')
 --- ```
 local bait = require 'bait'
+local fs = require 'fs'
 local snail = require 'snail'
 local currentRunner = 'hybrid'
 local runners = {}
@@ -170,16 +171,27 @@ function hilbish.runner.run(input, priv)
 	local processed = hilbish.processors.execute(input, {
 		skip = hilbish.opts.processorSkipList
 	})
-	priv = processed.history ~= nil and (not processed.history) or priv
+
+	if processed.modifiers.private or processed.modifiers.priv then
+		priv = true
+	end
+
 	if not processed.continue then
 		finishExec(0, '', true)
 		return
 	end
 
-	local runner = hilbish.runner.get(currentRunner)
+	local runner = hilbish.runner.get(processed.modifiers.runner or currentRunner)
+	local oldDir = hilbish.cwd()
 	
 	::rerun::
-	local command = hilbish.aliases.resolve(processed.command)
+	local command
+	if processed.modifiers.alias == false then
+		command = processed.command
+	else
+		command = hilbish.aliases.resolve(processed.command)
+	end
+
 	local valid = runner.validate(processed.command)
 	if not valid then
 		local contInput = hilbish.runner.continuePrompt(processed.command, false)
@@ -194,10 +206,33 @@ function hilbish.runner.run(input, priv)
 
 	bait.throw('command.preexec', processed.command, command)
 
+	local function cd(dir)
+		return pcall(fs.cd, dir)
+	end
+
+	local function cdToOld()
+		if processed.modifiers.dir then
+			local ok, err = cd(oldDir)
+			if not ok then
+				io.stderr:write('hilbish: failed to restore directory: ' .. tostring(err) .. '\n')
+			end
+		end
+	end
+
+	if processed.modifiers.dir then
+		local ok, err = cd(processed.modifiers.dir)
+		if not ok then
+			io.stderr:write('hilbish: @dir: ' .. tostring(err) .. '\n')
+			finishExec(1, '', true)
+			return
+		end
+	end
+
 	local ok, out = pcall(runner.run, processed.command)
 	if not ok then
 		io.stderr:write(out .. '\n')
 		finishExec(124, out.input, priv)
+		cdToOld()
 		return
 	end
 
@@ -220,6 +255,7 @@ function hilbish.runner.run(input, priv)
 		end
 	end
 	finishExec(out.exitCode, out.input, priv)
+	cdToOld()
 end
 
 --- Runs input using Hilbish's snail instance, that is, as shell script.

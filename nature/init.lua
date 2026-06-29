@@ -41,6 +41,7 @@ require 'nature.hilbish'
 
 require 'nature.processors'
 require 'nature.processors.wildcardWarn'
+require 'nature.processors.modifiers'
 
 require 'nature.commands'
 require 'nature.completions'
