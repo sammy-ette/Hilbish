@@ -28,42 +28,35 @@ In the future, `sinks.in` will be removed.<nl>
 package commander
 
 import (
-	"hilbish/golibs/bait"
-	"hilbish/util"
-
-	"github.com/arnodel/golua/lib/packagelib"
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/golibs/bait"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 )
 
 type Commander struct {
 	Events   *bait.Bait
-	Loader   packagelib.Loader
-	Commands map[string]*rt.Closure
+	Commands map[string]*moonlight.Closure
 }
 
-func New(rtm *rt.Runtime) *Commander {
+func New(rtm *moonlight.Runtime) *Commander {
 	c := &Commander{
 		Events:   bait.New(rtm),
-		Commands: make(map[string]*rt.Closure),
-	}
-	c.Loader = packagelib.Loader{
-		Load: c.loaderFunc,
-		Name: "commander",
+		Commands: make(map[string]*moonlight.Closure),
 	}
 
 	return c
 }
 
-func (c *Commander) loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
-	exports := map[string]util.LuaExport{
-		"register":   util.LuaExport{Function: c.cregister, ArgNum: 2, Variadic: false},
-		"deregister": util.LuaExport{Function: c.cderegister, ArgNum: 1, Variadic: false},
-		"registry":   util.LuaExport{Function: c.cregistry, ArgNum: 0, Variadic: false},
+func (c *Commander) Loader(rtm *moonlight.Runtime) moonlight.Value {
+	exports := map[string]moonlight.Export{
+		"register":   {Function: c.cregister, ArgNum: 2, Variadic: false},
+		"deregister": {Function: c.cderegister, ArgNum: 1, Variadic: false},
+		"registry":   {Function: c.cregistry, ArgNum: 0, Variadic: false},
 	}
-	mod := rt.NewTable()
-	util.SetExports(rtm, mod, exports)
+	mod := moonlight.NewTable()
+	rtm.SetExports(mod, exports)
 
-	return rt.TableValue(mod), nil
+	return moonlight.TableValue(mod)
 }
 
 // register(name, cb)
@@ -83,46 +76,47 @@ commander.register('hello', function(args, sinks)
 end)
 #example
 */
-func (c *Commander) cregister(t *rt.Thread, ct *rt.GoCont) (rt.Cont, error) {
-	cmdName, cmd, err := util.HandleStrCallback(t, ct)
+func (c *Commander) cregister(mlr *moonlight.Runtime) error {
+	cmdName, cmd, err := util.HandleStrCallback(mlr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	c.Commands[cmdName] = cmd
 
-	return ct.Next(), err
+	return nil
 }
 
 // deregister(name)
 // Removes the named command. Note that this will only remove Commander-registered commands.
 // #param name string Name of the command to remove.
-func (c *Commander) cderegister(t *rt.Thread, ct *rt.GoCont) (rt.Cont, error) {
-	if err := ct.Check1Arg(); err != nil {
-		return nil, err
+func (c *Commander) cderegister(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
-	cmdName, err := ct.StringArg(0)
+	cmdName, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	delete(c.Commands, cmdName)
 
-	return ct.Next(), err
+	return err
 }
 
 // registry() -> table
 // Returns all registered commanders. Returns a list of tables with the following keys:
 // - `exec`: The function used to run the commander. Commanders require args and sinks to be passed.
 // #returns table
-func (c *Commander) cregistry(t *rt.Thread, ct *rt.GoCont) (rt.Cont, error) {
-	registryLua := rt.NewTable()
+func (c *Commander) cregistry(mlr *moonlight.Runtime) error {
+	registryLua := moonlight.NewTable()
 	for cmdName, cmd := range c.Commands {
-		cmdTbl := rt.NewTable()
-		cmdTbl.Set(rt.StringValue("exec"), rt.FunctionValue(cmd))
+		cmdTbl := moonlight.NewTable()
+		cmdTbl.SetField("exec", moonlight.FunctionValue(cmd))
 
-		registryLua.Set(rt.StringValue(cmdName), rt.TableValue(cmdTbl))
+		registryLua.SetField(cmdName, moonlight.TableValue(cmdTbl))
 	}
 
-	return ct.PushingNext1(t.Runtime, rt.TableValue(registryLua)), nil
+	mlr.PushNext1(moonlight.TableValue(registryLua))
+	return nil
 }

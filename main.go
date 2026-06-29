@@ -10,19 +10,19 @@ import (
 	"strings"
 	"sync"
 
-	"hilbish/golibs/bait"
-	"hilbish/golibs/commander"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/golibs/bait"
+	"github.com/sammy-ette/hilbish/golibs/commander"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/pborman/getopt"
 	"golang.org/x/term"
 )
 
 var (
-	l *rt.Runtime
+	l *moonlight.Runtime
 
-	luaCompletions   = map[string]*rt.Closure{}
+	luaCompletions   = map[string]*moonlight.Closure{}
 	luaCompletionsMu sync.RWMutex
 
 	confDir     string
@@ -170,14 +170,21 @@ func getVersion() string {
 
 	v.WriteString(ver)
 	if gitBranch != "" && gitBranch != "HEAD" {
-		v.WriteString("-" + gitBranch)
+		v.WriteString("-")
+		v.WriteString(gitBranch)
 	}
 
 	if gitCommit != "" {
-		v.WriteString("." + gitCommit)
+		v.WriteString(".")
+		v.WriteString(gitCommit)
 	}
 
-	v.WriteString(" (" + releaseName + ")")
+	v.WriteString(" (")
+	v.WriteString(releaseName)
+	if moonlight.IsMidnight() {
+		v.WriteString(" / Midnight Edition")
+	}
+	v.WriteString(")")
 
 	return v.String()
 }

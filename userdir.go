@@ -1,9 +1,7 @@
 package main
 
 import (
-	"hilbish/util"
-
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // #interface userDir
@@ -13,11 +11,11 @@ import (
 // for configs and data.
 // #field config The user's config directory
 // #field data The user's directory for program data
-func userDirLoader() *rt.Table {
-	mod := rt.NewTable()
+func userDirLoader() *moonlight.Table {
+	mod := moonlight.NewTable()
 
-	util.SetField(mod, "config", rt.StringValue(confDir))
-	util.SetField(mod, "data", rt.StringValue(userDataDir))
+	mod.SetField("config", moonlight.StringValue(confDir))
+	mod.SetField("data", moonlight.StringValue(userDataDir))
 
 	return mod
 }

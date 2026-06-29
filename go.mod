@@ -1,8 +1,9 @@
-module hilbish
+module github.com/sammy-ette/hilbish
 
 go 1.25.0
 
 require (
+	github.com/aarzilli/golua v0.0.0-20250217091409-248753f411c4
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
 	github.com/arnodel/golua v0.2.0
 	github.com/blackfireio/osinfo v1.0.5
@@ -29,3 +30,5 @@ replace mvdan.cc/sh/v3 => github.com/Rosettea/sh/v3 v3.4.0-0.dev.0.2026061912244
 replace layeh.com/gopher-luar => github.com/layeh/gopher-luar v1.0.10
 
 replace github.com/arnodel/golua => github.com/Rosettea/golua v0.0.0-20241104031959-5551ea280f23
+
+replace github.com/aarzilli/golua => github.com/sammy-ette/golua v0.0.0-20260620013038-128040905a10

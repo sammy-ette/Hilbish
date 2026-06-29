@@ -43,7 +43,7 @@ Example:
 local cg = {
 	items = {
 		'list item 1',
-		['--command-flag-here'] = {'this does a thing', '--the-flag-alias'}
+		['--command-flag-here'] = {description = 'this does a thing', alias = '--the-flag-alias'}
 	},
 	type = 'list'
 }
@@ -53,12 +53,6 @@ local cg2 = {
 }
 
 return {cg, cg2}, prefix
-```
-
-Which looks like this:
-
-``` =html
-<video src="https://safe.saya.moe/t4CiLK6dgPbD.mp4" controls class="rounded-lg max-w-full my-4"></video>
 ```
 
 # Completion Group Types
@@ -81,13 +75,10 @@ Example:
 
 The list completion group type displays in a list. A list item can either be a string, or a table for additional display options.
 
-A completion alias can be specified either as the `2nd` entry in the options table
-or the `alias` key.
-
-A description can optionally be displayed for a list item, which is either the `1st`
-entry or the `description` key.
-
-Lastly, list entries can be styled. This is done with the `display` key. If this is present, this overrides what the completion item _looks_ like.
+The table can take these keys to customize the completion item (all optional):
+- `alias`: Defines a completion alias
+- `display`: Defines how the completion should be displayed. Can be used to style the completion with colors
+- `description`: A short description for the completion 
 
 Example:
 

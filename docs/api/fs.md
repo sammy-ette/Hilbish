@@ -24,7 +24,7 @@ library offers more functions and will work on any operating system Hilbish does
 - [`fs.glob(pattern) -> matches (table)`](#glob): Match all files based on the provided `pattern`.
 - [`fs.join(...path) -> string`](#join): Takes any list of paths and joins them based on the operating system's path separator.
 - [`fs.mkdir(name, recursive)`](#mkdir): Creates a new directory with the provided `name`.
-- [`fs.pipe() -> file*, file*`](#pipe): Returns a pair of connected files, also known as a pipe.
+- [`fs.pipe() -> @Sink, @Sink`](#pipe): Returns a pair of connected files, also known as a pipe.
 - [`fs.readdir(path) -> table[string]`](#readdir): Returns a list of all files and directories in the provided path.
 - [`fs.stat(path) -> {}`](#stat): Returns the information about a given `path`.
 
@@ -192,10 +192,9 @@ fs.mkdir('./foo/bar', true)
 
 #### pipe
 
-fs.pipe() -> file*, file*
+fs.pipe() -> @Sink, @Sink
 
 Returns a pair of connected files, also known as a pipe.  
-The type returned is a Lua file, same as returned from `io` functions, like `io.open`.  
 
 #### Parameters
 
