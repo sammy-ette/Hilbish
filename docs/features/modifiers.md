@@ -13,7 +13,7 @@ that one command is run, without affecting any other command. They look like
 separated by spaces.
 
 ```
-@priv echo this won't be saved to history
+@priv echo this wont be saved to history
 @dir=~/Downloads ls
 @runner=lua print('hi')
 ```
