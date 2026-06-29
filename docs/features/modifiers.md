@@ -28,8 +28,6 @@ kept as a string.
 
 ### `priv` / `private`
 
-#### Value: `boolean`
-
 Runs the command without saving it to history, the same as if
 `hilbish.opts.history` were temporarily disabled for just that command.
 
