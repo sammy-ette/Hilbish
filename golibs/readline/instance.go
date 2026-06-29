@@ -226,7 +226,7 @@ func NewInstance() *Readline {
 
 	// History
 	rl.mainHistory = new(ExampleHistory) // In-memory history by default.
-	rl.HistoryAutoWrite = true
+	rl.HistoryAutoWrite = false
 
 	// Others
 	rl.InfoFormatting = seqFgBlue
