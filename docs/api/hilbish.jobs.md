@@ -17,8 +17,8 @@ interactive usage or with the functions defined below for use in external runner
 
 ## Functions
 
-- [`hilbish.jobs.add(cmdstr, args, execPath)`](#jobs.add): Creates a new job. This function does not run the job. This function is intended to be
-- [`hilbish.jobs.all() -> table[@Job]`](#jobs.all): Returns a table of all job objects.
+- [`hilbish.jobs.add(cmdstr, opts) -> @Job`](#jobs.add): Creates a new job but does not run it. The job kind is decided by `opts`:
+- [`hilbish.jobs.all() -> table<@Job>`](#jobs.all): Returns a table of all job objects.
 - [`hilbish.jobs.disown(id)`](#jobs.disown): Disowns a job. This simply deletes it from the list of jobs without stopping it.
 - [`hilbish.jobs.get(id) -> @Job`](#jobs.get): Get a job object via its ID.
 - [`hilbish.jobs.last() -> @Job`](#jobs.last): Returns the last added job to the table.
@@ -28,26 +28,36 @@ interactive usage or with the functions defined below for use in external runner
 
 #### jobs.add
 
-hilbish.jobs.add(cmdstr, args, execPath)
+hilbish.jobs.add(cmdstr, opts) -> @Job
 
-Creates a new job. This function does not run the job. This function is intended to be  
-used by runners, but can also be used to create jobs via Lua. Commanders cannot be ran as jobs.  
+Creates a new job but does not run it. The job kind is decided by `opts`:  
+a process job is created from `args`/`path` (with optional `env`, `dir`  
+and `sinks`), while a lua/code job is created by supplying `run` (and  
+optionally `suspend`/`resume`) functions.  
 
 #### Parameters
 
 `string` _cmdstr_  
 String that a user would write for the job
 
-`table` _args_  
-Arguments for the commands. Has to include the name of the command.
-
-`string` _execPath_  
-Binary to use to run the command. Needs to be an absolute path.
+`table` _opts_  
+Job options.
 
 #### Example
 
 ```lua
-hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')
+-- a process job
+hilbish.jobs.add('go build', {
+	args = {'go', 'build'},
+	path = '/usr/bin/go',
+})
+
+-- a lua/code job (suspendable if the runner can handle it)
+hilbish.jobs.add('my task', {
+	run = function(job) --[[ ... ]] return 0 end,
+	suspend = function(job) --[[ pause ]] end,
+	resume = function(job, fg) --[[ resume ]] end,
+})
 ```
 
 
@@ -55,7 +65,7 @@ hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')
 
 #### jobs.all
 
-hilbish.jobs.all() -> table[@Job]
+hilbish.jobs.all() -> table<@Job>
 
 Returns a table of all job objects.  
 
@@ -129,27 +139,30 @@ The Job type describes a Hilbish job.
 
 - `cmd`: The user entered command string for the job.
 - `running`: Whether the job is running or not.
+- `suspended`: Whether the job is suspended (e.g. via Ctrl+Z).
 - `id`: The ID of the job in the job table
-- `pid`: The Process ID
+- `pid`: The Process ID, or nil for jobs that aren't OS processes.
 - `exitCode`: The last exit code of the job.
-- `stdout`: The standard output of the job. This just means the normal logs of the process.
-- `stderr`: The standard error stream of the process. This (usually) includes error messages of the job.
+- `stdout`: The standard output of the job. Nil for jobs that aren't OS processes.
+- `stderr`: The standard error stream of the job. Nil for jobs that aren't OS processes.
 
 
 ### Methods
 
 #### background()
 
-Puts a job in the background. This acts the same as initially running a job.
+Resumes a suspended job in the background.
 
 #### foreground()
 
-Puts a job in the foreground. This will cause it to run like it was
-executed normally and wait for it to complete.
+Resumes a suspended or backgrounded job in the foreground. This will cause
+it to run like it was executed normally and wait for it to complete.
 
-#### start()
+#### start(opts)
 
-Starts running the job.
+Starts running the job. If opts.background is true, runs in background.
+Otherwise runs in foreground and blocks until completion or suspension.
+Returns the exit code.
 
 #### stop()
 
