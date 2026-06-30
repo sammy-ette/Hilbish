@@ -34,6 +34,26 @@ function hilbish.completions.handler(line, pos)
 	end
 	local query = fields[#fields]
 
+	if query:match('^@.+') then
+		local name = query:match '^@([a-zA-Z0-9]+)'
+		local val = query:match '^@[a-zA-Z0-9]+=(.*)' or ''
+
+		if name == 'dir' then
+			local comps, pfx = hilbish.completions.dirs(val, val, {val})
+			local compGroup = {
+				items = comps,
+				type = 'grid'
+			}
+			return {compGroup}, pfx
+		end
+
+		return {}, ''
+	end
+
+	while #fields > 0 and fields[1]:match('^@.+') do
+		table.remove(fields, 1)
+	end
+
 	if #fields == 1 then
 		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
 		local compGroup = {
@@ -45,7 +65,7 @@ function hilbish.completions.handler(line, pos)
 	else
 		local ok, compGroups, pfx = pcall(hilbish.completions.call,
 		'command.' .. fields[1], query, ctx, fields)
-		if ok then
+		if ok and compGroups then
 			return compGroups, pfx
 		end
 
