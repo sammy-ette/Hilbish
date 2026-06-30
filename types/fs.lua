@@ -10,7 +10,7 @@
 ---@field glob fun(pattern: string): table
 ---@field join fun(...: string): string
 ---@field mkdir fun(name: string, recursive: boolean)
----@field pipe fun(): file*, file*
+---@field pipe fun(): Sink, Sink
 ---@field readdir fun(dir: string): table
 ---@field stat fun(path: string): table
 local fs = {}

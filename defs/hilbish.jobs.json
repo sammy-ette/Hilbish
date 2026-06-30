@@ -50,6 +50,22 @@
 					"isType": false
 				},
 				{
+					"name": "suspended",
+					"description": [
+						"Whether",
+						"the",
+						"job",
+						"is",
+						"suspended",
+						"(e.g.",
+						"via",
+						"Ctrl+Z)."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false
+				},
+				{
 					"name": "id",
 					"description": [
 						"The",
@@ -71,7 +87,15 @@
 					"description": [
 						"The",
 						"Process",
-						"ID"
+						"ID,",
+						"or",
+						"nil",
+						"for",
+						"jobs",
+						"that",
+						"aren't",
+						"OS",
+						"processes."
 					],
 					"isInterface": false,
 					"isMember": false,
@@ -101,15 +125,13 @@
 						"of",
 						"the",
 						"job.",
-						"This",
-						"just",
-						"means",
-						"the",
-						"normal",
-						"logs",
-						"of",
-						"the",
-						"process."
+						"Nil",
+						"for",
+						"jobs",
+						"that",
+						"aren't",
+						"OS",
+						"processes."
 					],
 					"isInterface": false,
 					"isMember": false,
@@ -124,15 +146,14 @@
 						"stream",
 						"of",
 						"the",
-						"process.",
-						"This",
-						"(usually)",
-						"includes",
-						"error",
-						"messages",
-						"of",
-						"the",
-						"job."
+						"job.",
+						"Nil",
+						"for",
+						"jobs",
+						"that",
+						"aren't",
+						"OS",
+						"processes."
 					],
 					"isInterface": false,
 					"isMember": false,
@@ -176,6 +197,20 @@
 						"startIdx": 0
 					},
 					{
+						"id": "suspended",
+						"fields": [
+							"Whether",
+							"the",
+							"job",
+							"is",
+							"suspended",
+							"(e.g.",
+							"via",
+							"Ctrl+Z)."
+						],
+						"startIdx": 0
+					},
+					{
 						"id": "id",
 						"fields": [
 							"The",
@@ -195,7 +230,15 @@
 						"fields": [
 							"The",
 							"Process",
-							"ID"
+							"ID,",
+							"or",
+							"nil",
+							"for",
+							"jobs",
+							"that",
+							"aren't",
+							"OS",
+							"processes."
 						],
 						"startIdx": 0
 					},
@@ -221,15 +264,13 @@
 							"of",
 							"the",
 							"job.",
-							"This",
-							"just",
-							"means",
-							"the",
-							"normal",
-							"logs",
-							"of",
-							"the",
-							"process."
+							"Nil",
+							"for",
+							"jobs",
+							"that",
+							"aren't",
+							"OS",
+							"processes."
 						],
 						"startIdx": 0
 					},
@@ -242,15 +283,14 @@
 							"stream",
 							"of",
 							"the",
-							"process.",
-							"This",
-							"(usually)",
-							"includes",
-							"error",
-							"messages",
-							"of",
-							"the",
-							"job."
+							"job.",
+							"Nil",
+							"for",
+							"jobs",
+							"that",
+							"aren't",
+							"OS",
+							"processes."
 						],
 						"startIdx": 0
 					}
@@ -269,14 +309,16 @@
 		{
 			"name": "jobs.add",
 			"description": [
-				"Creates a new job. This function does not run the job. This function is intended to be",
-				"used by runners, but can also be used to create jobs via Lua. Commanders cannot be ran as jobs.",
+				"Creates a new job but does not run it. The job kind is decided by `opts`:",
+				"a process job is created from `args`/`path` (with optional `env`, `dir`",
+				"and `sinks`), while a lua/code job is created by supplying `run` (and",
+				"optionally `suspend`/`resume`) functions.",
 				"",
 				""
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
-			"signature": "add(cmdstr, args, execPath)",
+			"signature": "add(cmdstr, opts) -\u003e @Job",
 			"goFuncName": "luaaddjob",
 			"isInterface": true,
 			"isMember": false,
@@ -298,40 +340,11 @@
 					]
 				},
 				{
-					"Name": "args",
+					"Name": "opts",
 					"Type": "table",
 					"Doc": [
-						"Arguments",
-						"for",
-						"the",
-						"commands.",
-						"Has",
-						"to",
-						"include",
-						"the",
-						"name",
-						"of",
-						"the",
-						"command."
-					]
-				},
-				{
-					"Name": "execPath",
-					"Type": "string",
-					"Doc": [
-						"Binary",
-						"to",
-						"use",
-						"to",
-						"run",
-						"the",
-						"command.",
-						"Needs",
-						"to",
-						"be",
-						"an",
-						"absolute",
-						"path."
+						"Job",
+						"options."
 					]
 				}
 			],
@@ -340,9 +353,20 @@
 					{
 						"id": "",
 						"fields": [
-							"hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')"
+							"-- a process job",
+							"hilbish.jobs.add('go build', {",
+							"\targs = {'go', 'build'},",
+							"\tpath = '/usr/bin/go',",
+							"})",
+							"",
+							"-- a lua/code job (suspendable if the runner can handle it)",
+							"hilbish.jobs.add('my task', {",
+							"\trun = function(job) --[[ ... ]] return 0 end,",
+							"\tsuspend = function(job) --[[ pause ]] end,",
+							"\tresume = function(job, fg) --[[ resume ]] end,",
+							"})"
 						],
-						"startIdx": 8
+						"startIdx": 9
 					}
 				],
 				"interface": [
@@ -367,44 +391,14 @@
 							"the",
 							"job"
 						],
-						"startIdx": 4
+						"startIdx": 6
 					},
 					{
-						"id": "args",
+						"id": "opts",
 						"fields": [
 							"table",
-							"Arguments",
-							"for",
-							"the",
-							"commands.",
-							"Has",
-							"to",
-							"include",
-							"the",
-							"name",
-							"of",
-							"the",
-							"command."
-						],
-						"startIdx": 0
-					},
-					{
-						"id": "execPath",
-						"fields": [
-							"string",
-							"Binary",
-							"to",
-							"use",
-							"to",
-							"run",
-							"the",
-							"command.",
-							"Needs",
-							"to",
-							"be",
-							"an",
-							"absolute",
-							"path."
+							"Job",
+							"options."
 						],
 						"startIdx": 0
 					}
@@ -418,7 +412,7 @@
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
-			"signature": "all() -\u003e table[@Job]",
+			"signature": "all() -\u003e table\u003c@Job\u003e",
 			"goFuncName": "luaalljobs",
 			"isInterface": true,
 			"isMember": false,
@@ -433,7 +427,7 @@
 				],
 				"returns": [
 					{
-						"id": "table[Job]",
+						"id": "table\u003cJob\u003e",
 						"fields": [],
 						"startIdx": 3
 					}
@@ -443,7 +437,7 @@
 		{
 			"name": "jobs.background",
 			"description": [
-				"Puts a job in the background. This acts the same as initially running a job."
+				"Resumes a suspended job in the background."
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
@@ -510,8 +504,8 @@
 		{
 			"name": "jobs.foreground",
 			"description": [
-				"Puts a job in the foreground. This will cause it to run like it was",
-				"executed normally and wait for it to complete."
+				"Resumes a suspended or backgrounded job in the foreground. This will cause",
+				"it to run like it was executed normally and wait for it to complete."
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
@@ -591,11 +585,13 @@
 		{
 			"name": "jobs.start",
 			"description": [
-				"Starts running the job."
+				"Starts running the job. If opts.background is true, runs in background.",
+				"Otherwise runs in foreground and blocks until completion or suspension.",
+				"Returns the exit code."
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
-			"signature": "start()",
+			"signature": "start(opts)",
 			"goFuncName": "luastartjob",
 			"isInterface": true,
 			"isMember": true,
