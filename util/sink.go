@@ -36,7 +36,7 @@ a Commander's callback receives `sinks.out`, `sinks.err`, and `sinks.input`
 (see the commander module doc), and `hilbish.run()`'s `streams` table accepts sinks
 for `out`, `err`, and `input` to redirect a command's I/O.
 
-`fs.pipe()`` creates a connected pair of sinks directly,
+`fs.pipe()` creates a connected pair of sinks directly,
 useful for piping data between commands manually.
 
 ```lua
