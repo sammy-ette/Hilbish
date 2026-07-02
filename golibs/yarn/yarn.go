@@ -1,7 +1,8 @@
 // multi threading library
-// Yarn is a simple multithreading library. Threads are individual Lua states,
-// so they do NOT share the same environment as the code that runs the thread.
+// Yarn is a simple multithreading library _(lol)_. Threads are individual Lua states,
+// so they do NOT share the same environment (variables) as the code that runs the thread.
 // Bait and Commanders are shared though, so you *can* throw hooks from 1 thread to another.
+// You may use that as a way to pass variables and data to a Yarn thread.
 /*
 Example:
 
@@ -29,7 +30,9 @@ type Yarn struct {
 	initializer func(*moonlight.Runtime)
 }
 
-// #type
+// @type
+// A thread is a Lua state that can be executed independently.
+// You call a thread object as a function to run the thread with the provided arguments.
 type Thread struct {
 	mlr *moonlight.Runtime
 	f   moonlight.Callable
@@ -64,7 +67,6 @@ func (y *Yarn) init(th *Thread) {
 	y.initializer(th.mlr)
 }
 
-// thread(fun) -> @Thread
 // Creates a new, fresh Yarn thread.
 // `fun` is the function that will run in the thread.
 func yarnthread(mlr *moonlight.Runtime) error {

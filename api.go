@@ -1,21 +1,23 @@
 // the core Hilbish API
 // The Hilbish module includes the core API, containing
 // interfaces and functions which directly relate to shell functionality.
-// #field ver The version of Hilbish
-// #field goVersion The version of Go that Hilbish was compiled with
-// #field user Username of the user
-// #field host Hostname of the machine
-// #field dataDir Directory for Hilbish data files, including the docs and default modules
-// #field defaultConfDir Default directory Hilbish runs its config file from
-// #field confFile Path to the Hilbish config file being used, either the default or a path provided with the -C/--config flag
-// #field command The command string passed to Hilbish via the -c flag
-// #field interactive Is Hilbish in an interactive shell?
-// #field login Is Hilbish the login shell?
-// #field vimMode Current Vim input mode of Hilbish (will be nil if not in Vim input mode)
-// #field exitCode Exit code of the last executed command
-// #field running If Hilbish is currently running any interactive input
-// #field initialized If Hilbish has been fully initialized. This is `false` until the interactive REPL.
-// #field midnightEdition If Hilbish is compiled as midnight edition.
+// It is always loaded as the global `hilbish` table, so none of its
+// functions or fields need a `require` call.
+// @field ver string The version of Hilbish
+// @field goVersion string The version of Go that Hilbish was compiled with
+// @field user string Username of the user
+// @field host string Hostname of the machine
+// @field dataDir string Directory for Hilbish data files, including the docs and default modules
+// @field defaultConfDir string Default directory Hilbish runs its config file from
+// @field confFile string Path to the Hilbish config file being used, either the default or a path provided with the -C/--config flag
+// @field command string The command string passed to Hilbish via the -c flag
+// @field interactive boolean Is Hilbish in an interactive shell?
+// @field login boolean Is Hilbish the login shell?
+// @field vimMode string Current Vim input mode of Hilbish (will be nil if not in Vim input mode)
+// @field exitCode number Exit code of the last executed command
+// @field running boolean If Hilbish is currently running any interactive input
+// @field initialized boolean If Hilbish has been fully initialized. This is `false` until the interactive REPL.
+// @field midnightEdition boolean If Hilbish is compiled as midnight edition.
 package main
 
 import (
@@ -125,9 +127,9 @@ func getenv(key, fallback string) string {
 	return value
 }
 
-// cwd() -> string
 // Returns the current directory of the shell.
-// #returns string
+// @return string cwd
+// @since 2.0
 func hlcwd(mlr *moonlight.Runtime) error {
 	cwd, _ := os.Getwd()
 
@@ -135,11 +137,11 @@ func hlcwd(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// lookpath(file) -> string
 // Searches for `file` in $PATH and returns its full path.
 // Throws an error if it is not found.
-// #param file string
-// #returns string
+// @param file string
+// @return string path
+// @since 2.0
 func hllookpath(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -158,10 +160,10 @@ func hllookpath(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// exec(cmd)
 // Replaces the currently running Hilbish instance with the supplied command.
 // This can be used to do an in-place restart.
-// #param cmd string
+// @param cmd string
+// @since 2.0
 func hlexec(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -200,12 +202,13 @@ func hlexec(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// timeout(cb, time) -> @Timer
-// Executed the `cb` function after a period of `time`.
+// Executes the `cb` function after a period of `time`.
 // This creates a Timer that starts ticking immediately.
-// #param cb function
-// #param time number Time to run in milliseconds.
-// #returns Timer
+// @param cb function
+// @param time number Time to run in milliseconds.
+// @return Timer timer
+// @since 2.0
+// @see hilbish.interval
 func hltimeout(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
@@ -227,12 +230,13 @@ func hltimeout(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// interval(cb, time) -> @Timer
 // Runs the `cb` function every specified amount of `time`.
 // This creates a timer that ticking immediately.
-// #param cb function
-// #param time number Time in milliseconds.
-// #return Timer
+// @param cb function
+// @param time number Time in milliseconds.
+// @return Timer timer
+// @since 2.0
+// @see hilbish.timeout
 func hlinterval(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err

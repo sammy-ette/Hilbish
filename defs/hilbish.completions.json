@@ -2,7 +2,7 @@
 	"name": "hilbish.completions",
 	"section": "api",
 	"shortDescription": "tab completions",
-	"description": "The completions interface deals with tab completions.",
+	"description": "The completions interface provides functions to register and manage tab completions.\n\n## Completer Function\n\nA function registered for a specific command scope with\n`hilbish.completions.add`. The scope string is `command.\u003cname\u003e` where `\u003cname\u003e` is\nthe command being completed (e.g. `command.git`). The handler is called with three\narguments:\n\n- `query` (string): The word the user is currently trying to complete. Use this to filter your items.\n- `ctx` (string): The full command line as a string.\n- `fields` (table): The command line split into fields by whitespace. `fields[1]` is the command name, `fields[2]` is the first argument, and so on.\n\nThe handler must return two values: a table of *completion groups* and a prefix string.\nThe prefix is usually just `query`.\n\n## Completion Groups\n\nA completion group is a table with two fields: `type` and `items`.\nMultiple groups can be returned at once and Hilbish will display them together.\n\n*Grid*: items shown side by side in a grid. `items` is a list of strings:\n\n```lua\n{ type = 'grid', items = {'add', 'commit', 'push', 'pull'} }\n```\n\n*List*: items shown in a vertical list with optional descriptions and aliases.\nEach entry in `items` can be a plain string or a table with these keys (all optional): `description`, `alias`, `display`.\n\n```lua\n\n\t{\n\t  type = 'list',\n\t  items = {\n\t    ['--verbose'] = { description = 'enable verbose output', alias = '-v' },\n\t    ['--output']  = { description = 'output file path' },\n\t    '--dry-run',\n\t  }\n\t}\n\n```\n\n## Example\n\nHere is a full completer for a `sudo`-like command: it completes binaries when\nno argument has been typed yet, and falls back to file completion otherwise.\n\n```lua\nhilbish.completions.add('command.sudo', function(query, ctx, fields)\n\n\tif #fields == 0 then\n\t\t-- complete for commands\n\t\tlocal comps, pfx = hilbish.completions.bins(query, ctx, fields)\n\t\tlocal compGroup = {\n\t\t\titems = comps, -- our list of items to complete\n\t\t\ttype = 'grid' -- what our completions will look like.\n\t\t}\n\n\t\treturn {compGroup}, pfx\n\tend\n\n\t-- otherwise just be boring and return files\n\n\tlocal comps, pfx = hilbish.completions.files(query, ctx, fields)\n\tlocal compGroup = {\n\t\titems = comps,\n\t\ttype = 'grid'\n\t}\n\n\treturn {compGroup}, pfx\n\nend)\n```",
 	"parent": "hilbish",
 	"properties": [],
 	"fields": [],
@@ -13,10 +13,9 @@
 				"Registers a completion handler for the specified scope.",
 				"A `scope` is expected to be `command.\u003ccmd\u003e`,",
 				"replacing \u003ccmd\u003e with the name of the command (for example `command.git`).",
-				"The documentation for completions, under Features/Completions or `doc completions`",
-				"provides more details.",
-				"",
-				""
+				"See the module introduction above for a full worked example, and the",
+				"documentation for completions, under Features/Completions or `doc completions`,",
+				"for more details."
 			],
 			"parent": "hilbish",
 			"interfaces": "completions",
@@ -29,46 +28,21 @@
 				{
 					"Name": "scope",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "cb",
 					"Type": "fun(query:string,ctx:string,fields:table\u003cstring\u003e):table,string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
-				"example": [
-					{
-						"id": "",
-						"fields": [
-							"-- This is a very simple example. Read the full doc for completions for details.",
-							"hilbish.completions.add('command.sudo', function(query, ctx, fields)",
-							"\tif #fields == 0 then",
-							"\t\t-- complete for commands",
-							"\t\tlocal comps, pfx = hilbish.completions.bins(query, ctx, fields)",
-							"\t\tlocal compGroup = {",
-							"\t\t\titems = comps, -- our list of items to complete",
-							"\t\t\ttype = 'grid' -- what our completions will look like.",
-							"\t\t}",
-							"",
-							"\t\treturn {compGroup}, pfx",
-							"\tend",
-							"",
-							"\t-- otherwise just be boring and return files",
-							"",
-							"\tlocal comps, pfx = hilbish.completions.files(query, ctx, fields)",
-							"\tlocal compGroup = {",
-							"\t\titems = comps,",
-							"\t\ttype = 'grid'",
-							"\t}",
-							"",
-							"\treturn {compGroup}, pfx",
-							"end)"
-						],
-						"startIdx": 10
-					}
-				],
 				"interface": [
 					{
 						"id": "completions",
@@ -82,7 +56,7 @@
 						"fields": [
 							"string"
 						],
-						"startIdx": 7
+						"startIdx": 8
 					},
 					{
 						"id": "cb",
@@ -98,13 +72,12 @@
 			"name": "completions.bins",
 			"description": [
 				"Return binaries/executables based on the provided parameters.",
-				"This function is meant to be used as a helper in a command completion handler.",
-				"",
-				""
+				"This function is meant to be used as a helper in a command completion handler,",
+				"as shown in the module introduction above."
 			],
 			"parent": "hilbish",
 			"interfaces": "completions",
-			"signature": "bins(query, ctx, fields) -\u003e entries (table), prefix (string)",
+			"signature": "bins(query, ctx, fields) -\u003e table\u003cstring\u003e, string",
 			"goFuncName": "hcmpbins",
 			"isInterface": true,
 			"isMember": false,
@@ -113,43 +86,82 @@
 				{
 					"Name": "query",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"Text",
+						"the",
+						"user",
+						"is",
+						"currently",
+						"trying",
+						"to",
+						"complete."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "ctx",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"The",
+						"full",
+						"command",
+						"line",
+						"string."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "fields",
 					"Type": "table",
-					"Doc": []
+					"Doc": [
+						"The",
+						"command",
+						"line",
+						"split",
+						"into",
+						"fields",
+						"by",
+						"whitespace."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "entries",
+					"Type": "table\u003cstring\u003e",
+					"Doc": [
+						"A",
+						"list",
+						"of",
+						"entries."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "prefix",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"prefix",
+						"used",
+						"for",
+						"completions."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
-				"example": [
-					{
-						"id": "",
-						"fields": [
-							"-- an extremely simple completer for sudo.",
-							"hilbish.completions.add('command.sudo', function(query, ctx, fields)",
-							"\ttable.remove(fields, 1)",
-							"\tif #fields[1] then",
-							"\t\t-- return commands because sudo runs a command as root..!",
-							"",
-							"\t\tlocal entries, pfx = hilbish.completions.bins(query, ctx, fields)",
-							"\t\treturn {",
-							"\t\t\ttype = 'grid',",
-							"\t\t\titems = entries",
-							"\t\t}, pfx",
-							"\tend",
-							"",
-							"\t-- ... else suggest files or anything else ..",
-							"end)"
-						],
-						"startIdx": 8
-					}
-				],
 				"interface": [
 					{
 						"id": "completions",
@@ -161,21 +173,67 @@
 					{
 						"id": "query",
 						"fields": [
-							"string"
+							"string",
+							"Text",
+							"the",
+							"user",
+							"is",
+							"currently",
+							"trying",
+							"to",
+							"complete."
 						],
-						"startIdx": 4
+						"startIdx": 5
 					},
 					{
 						"id": "ctx",
 						"fields": [
-							"string"
+							"string",
+							"The",
+							"full",
+							"command",
+							"line",
+							"string."
 						],
 						"startIdx": 0
 					},
 					{
 						"id": "fields",
 						"fields": [
-							"table"
+							"table",
+							"The",
+							"command",
+							"line",
+							"split",
+							"into",
+							"fields",
+							"by",
+							"whitespace."
+						],
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "table\u003cstring\u003e",
+						"fields": [
+							"entries",
+							"A",
+							"list",
+							"of",
+							"entries."
+						],
+						"startIdx": 8
+					},
+					{
+						"id": "string",
+						"fields": [
+							"prefix",
+							"The",
+							"prefix",
+							"used",
+							"for",
+							"completions."
 						],
 						"startIdx": 0
 					}
@@ -185,13 +243,13 @@
 		{
 			"name": "completions.call",
 			"description": [
-				"Calls a completer function. This is mainly used to call a command completer, which will have a `name`",
-				"in the form of `command.name`, example: `command.git`.",
-				"You can check the Completions doc or `doc completions` for info on the `completionGroups` return value."
+				"Calls a completer function.",
+				"This is mainly used to call a command completer, which will have a `name`",
+				"in the form of `command.name`, example: `command.git`."
 			],
 			"parent": "hilbish",
 			"interfaces": "completions",
-			"signature": "call(name, query, ctx, fields) -\u003e completionGroups (table), prefix (string)",
+			"signature": "call(name, query, ctx, fields) -\u003e table, string",
 			"goFuncName": "hcmpcall",
 			"isInterface": true,
 			"isMember": false,
@@ -200,22 +258,92 @@
 				{
 					"Name": "name",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"The",
+						"name",
+						"of",
+						"the",
+						"completer",
+						"to",
+						"call,",
+						"e.g.",
+						"`command.git`."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "query",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"Text",
+						"the",
+						"user",
+						"is",
+						"currently",
+						"trying",
+						"to",
+						"complete."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "ctx",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"The",
+						"full",
+						"command",
+						"line",
+						"string."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "fields",
 					"Type": "table",
-					"Doc": []
+					"Doc": [
+						"The",
+						"command",
+						"line",
+						"split",
+						"into",
+						"fields",
+						"by",
+						"whitespace."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "completionGroups",
+					"Type": "table",
+					"Doc": [
+						"A",
+						"table",
+						"of",
+						"completion",
+						"groups."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "prefix",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -230,28 +358,79 @@
 					{
 						"id": "name",
 						"fields": [
-							"string"
+							"string",
+							"The",
+							"name",
+							"of",
+							"the",
+							"completer",
+							"to",
+							"call,",
+							"e.g.",
+							"`command.git`."
 						],
 						"startIdx": 5
 					},
 					{
 						"id": "query",
 						"fields": [
-							"string"
+							"string",
+							"Text",
+							"the",
+							"user",
+							"is",
+							"currently",
+							"trying",
+							"to",
+							"complete."
 						],
 						"startIdx": 0
 					},
 					{
 						"id": "ctx",
 						"fields": [
-							"string"
+							"string",
+							"The",
+							"full",
+							"command",
+							"line",
+							"string."
 						],
 						"startIdx": 0
 					},
 					{
 						"id": "fields",
 						"fields": [
-							"table"
+							"table",
+							"The",
+							"command",
+							"line",
+							"split",
+							"into",
+							"fields",
+							"by",
+							"whitespace."
+						],
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "table",
+						"fields": [
+							"completionGroups",
+							"A",
+							"table",
+							"of",
+							"completion",
+							"groups."
+						],
+						"startIdx": 9
+					},
+					{
+						"id": "string",
+						"fields": [
+							"prefix"
 						],
 						"startIdx": 0
 					}
@@ -266,7 +445,7 @@
 			],
 			"parent": "hilbish",
 			"interfaces": "completions",
-			"signature": "dirs(query, ctx, fields) -\u003e entries (table), prefix (string)",
+			"signature": "dirs(query, ctx, fields) -\u003e table\u003cstring\u003e, string",
 			"goFuncName": "hcmpdirs",
 			"isInterface": true,
 			"isMember": false,
@@ -275,17 +454,79 @@
 				{
 					"Name": "query",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"Text",
+						"the",
+						"user",
+						"is",
+						"currently",
+						"trying",
+						"to",
+						"complete."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "ctx",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"The",
+						"full",
+						"command",
+						"line",
+						"string."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "fields",
 					"Type": "table",
-					"Doc": []
+					"Doc": [
+						"The",
+						"command",
+						"line",
+						"split",
+						"into",
+						"fields",
+						"by",
+						"whitespace."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "entries",
+					"Type": "table\u003cstring\u003e",
+					"Doc": [
+						"A",
+						"list",
+						"of",
+						"entries."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "prefix",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"prefix",
+						"used",
+						"for",
+						"completions."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -300,21 +541,67 @@
 					{
 						"id": "query",
 						"fields": [
-							"string"
+							"string",
+							"Text",
+							"the",
+							"user",
+							"is",
+							"currently",
+							"trying",
+							"to",
+							"complete."
 						],
 						"startIdx": 4
 					},
 					{
 						"id": "ctx",
 						"fields": [
-							"string"
+							"string",
+							"The",
+							"full",
+							"command",
+							"line",
+							"string."
 						],
 						"startIdx": 0
 					},
 					{
 						"id": "fields",
 						"fields": [
-							"table"
+							"table",
+							"The",
+							"command",
+							"line",
+							"split",
+							"into",
+							"fields",
+							"by",
+							"whitespace."
+						],
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "table\u003cstring\u003e",
+						"fields": [
+							"entries",
+							"A",
+							"list",
+							"of",
+							"entries."
+						],
+						"startIdx": 7
+					},
+					{
+						"id": "string",
+						"fields": [
+							"prefix",
+							"The",
+							"prefix",
+							"used",
+							"for",
+							"completions."
 						],
 						"startIdx": 0
 					}
@@ -329,7 +616,7 @@
 			],
 			"parent": "hilbish",
 			"interfaces": "completions",
-			"signature": "files(query, ctx, fields) -\u003e entries (table), prefix (string)",
+			"signature": "files(query, ctx, fields) -\u003e table\u003cstring\u003e, string",
 			"goFuncName": "hcmpfiles",
 			"isInterface": true,
 			"isMember": false,
@@ -338,17 +625,79 @@
 				{
 					"Name": "query",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"Text",
+						"the",
+						"user",
+						"is",
+						"currently",
+						"trying",
+						"to",
+						"complete."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "ctx",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"The",
+						"full",
+						"command",
+						"line",
+						"string."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "fields",
 					"Type": "table",
-					"Doc": []
+					"Doc": [
+						"The",
+						"command",
+						"line",
+						"split",
+						"into",
+						"fields",
+						"by",
+						"whitespace."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "entries",
+					"Type": "table\u003cstring\u003e",
+					"Doc": [
+						"A",
+						"list",
+						"of",
+						"entries."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "prefix",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"prefix",
+						"used",
+						"for",
+						"completions."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -363,21 +712,67 @@
 					{
 						"id": "query",
 						"fields": [
-							"string"
+							"string",
+							"Text",
+							"the",
+							"user",
+							"is",
+							"currently",
+							"trying",
+							"to",
+							"complete."
 						],
 						"startIdx": 4
 					},
 					{
 						"id": "ctx",
 						"fields": [
-							"string"
+							"string",
+							"The",
+							"full",
+							"command",
+							"line",
+							"string."
 						],
 						"startIdx": 0
 					},
 					{
 						"id": "fields",
 						"fields": [
-							"table"
+							"table",
+							"The",
+							"command",
+							"line",
+							"split",
+							"into",
+							"fields",
+							"by",
+							"whitespace."
+						],
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "table\u003cstring\u003e",
+						"fields": [
+							"entries",
+							"A",
+							"list",
+							"of",
+							"entries."
+						],
+						"startIdx": 7
+					},
+					{
+						"id": "string",
+						"fields": [
+							"prefix",
+							"The",
+							"prefix",
+							"used",
+							"for",
+							"completions."
 						],
 						"startIdx": 0
 					}
@@ -387,15 +782,16 @@
 		{
 			"name": "completions.handler",
 			"description": [
-				"This function contains the general completion handler for Hilbish. This function handles",
-				"completion of everything, which includes calling other command handlers, binaries, and files.",
+				"This function contains the general completion handler for Hilbish.",
+				"This function handles completion of everything,",
+				"which includes calling other command handlers, binaries, and files.",
 				"This function can be overridden to supply a custom handler. Note that alias resolution is required to be done in this function.",
 				"",
 				""
 			],
 			"parent": "hilbish",
 			"interfaces": "completions",
-			"signature": "handler(line, pos)",
+			"signature": "handler(line, pos) -\u003e string, table",
 			"goFuncName": "hcmphandler",
 			"isInterface": true,
 			"isMember": false,
@@ -410,7 +806,10 @@
 						"Hilbish",
 						"command",
 						"line"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "pos",
@@ -421,7 +820,42 @@
 						"of",
 						"the",
 						"cursor"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "prefix",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"common",
+						"prefix",
+						"of",
+						"all",
+						"completion",
+						"items"
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "completionGroups",
+					"Type": "table",
+					"Doc": [
+						"A",
+						"list",
+						"of",
+						"completion",
+						"groups"
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -440,7 +874,7 @@
 							"\tend",
 							"end"
 						],
-						"startIdx": 10
+						"startIdx": 11
 					}
 				],
 				"interface": [
@@ -461,7 +895,7 @@
 							"command",
 							"line"
 						],
-						"startIdx": 5
+						"startIdx": 6
 					},
 					{
 						"id": "pos",
@@ -476,10 +910,11 @@
 						"startIdx": 0
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "string",
 						"fields": [
+							"prefix",
 							"The",
 							"common",
 							"prefix",
@@ -488,11 +923,12 @@
 							"completion",
 							"items"
 						],
-						"startIdx": 7
+						"startIdx": 8
 					},
 					{
 						"id": "table",
 						"fields": [
+							"completionGroups",
 							"A",
 							"list",
 							"of",

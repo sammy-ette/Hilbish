@@ -2,7 +2,7 @@
 	"name": "readline",
 	"section": "api",
 	"shortDescription": "line reader library",
-	"description": "The readline module is responsible for reading input from the user.\nThe readline module is what Hilbish uses to read input from the user,\nincluding all the interactive features of Hilbish like history search,\nsyntax highlighting, everything. The global Hilbish readline instance\nis usable at `hilbish.editor`.",
+	"description": "The readline module is responsible for reading input from the user.\nThe readline module is what Hilbish uses to read input from the user,\nincluding all the interactive features of Hilbish like history search,\nsyntax highlighting, everything. The global Hilbish readline instance\nis usable at `hilbish.editor`.\n\nCustomizing `hilbish.editor` is the common path. Creating a custom readline instance\nis only  needed when you want a fully separate line reader.\n\n```lua\nhilbish.editor:setHinter(function(line, pos)\n\n\tif line == '' then return end\n\treturn ' (type something!)'\n\nend)\n```",
 	"properties": [],
 	"fields": [],
 	"types": [
@@ -28,9 +28,10 @@
 		{
 			"name": "DeleteByAmount",
 			"description": [
+				"deleteByAmount(amount)",
 				"Deletes characters in the line by the given amount."
 			],
-			"signature": "deleteByAmount(amount)",
+			"signature": "DeleteByAmount(amount)",
 			"goFuncName": "rldeletebyamount",
 			"isInterface": false,
 			"isMember": true,
@@ -39,7 +40,10 @@
 				{
 					"Name": "amount",
 					"Type": "number",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -62,63 +66,25 @@
 			}
 		},
 		{
-			"name": "FuzzySearch",
-			"description": [
-				"Performs a fuzzy search of needle in haystack and returns matched strings."
-			],
-			"signature": "fuzzySearch(needle, haystack) -\u003e table",
-			"goFuncName": "rlfuzzysearch",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "needle",
-					"Type": "string",
-					"Doc": []
-				},
-				{
-					"Name": "haystack",
-					"Type": "table",
-					"Doc": []
-				}
-			],
-			"tags": {
-				"param": [
-					{
-						"id": "needle",
-						"fields": [
-							"string"
-						],
-						"startIdx": 2
-					},
-					{
-						"id": "haystack",
-						"fields": [
-							"table"
-						],
-						"startIdx": 0
-					}
-				],
-				"returns": [
-					{
-						"id": "table",
-						"fields": [],
-						"startIdx": 4
-					}
-				]
-			}
-		},
-		{
 			"name": "GetLine",
 			"description": [
 				"Returns the current input line."
 			],
-			"signature": "getLine() -\u003e string",
+			"signature": "GetLine() -\u003e string",
 			"goFuncName": "rlgetline",
 			"isInterface": false,
 			"isMember": true,
 			"isType": false,
+			"returns": [
+				{
+					"Name": "line",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
 			"tags": {
 				"member": [
 					{
@@ -127,11 +93,13 @@
 						"startIdx": 0
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "string",
-						"fields": [],
-						"startIdx": 3
+						"fields": [
+							"line"
+						],
+						"startIdx": 2
 					}
 				]
 			}
@@ -141,7 +109,7 @@
 			"description": [
 				"Returns the text that is at the register."
 			],
-			"signature": "getVimRegister(register) -\u003e string",
+			"signature": "GetRegister(register) -\u003e string",
 			"goFuncName": "rlgetregister",
 			"isInterface": false,
 			"isMember": true,
@@ -150,7 +118,20 @@
 				{
 					"Name": "register",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -167,6 +148,15 @@
 						"fields": [
 							"string"
 						],
+						"startIdx": 2
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"text"
+						],
 						"startIdx": 3
 					}
 				]
@@ -175,9 +165,10 @@
 		{
 			"name": "Insert",
 			"description": [
+				"insert(text)",
 				"Inserts text into the Hilbish command line."
 			],
-			"signature": "insert(text)",
+			"signature": "Insert(text)",
 			"goFuncName": "rlinsert",
 			"isInterface": false,
 			"isMember": true,
@@ -186,7 +177,10 @@
 				{
 					"Name": "text",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -213,7 +207,7 @@
 			"description": [
 				"Prints a message *before* the prompt without it being interrupted by user input."
 			],
-			"signature": "log(text)",
+			"signature": "Log()",
 			"goFuncName": "rllog",
 			"isInterface": false,
 			"isMember": true,
@@ -229,73 +223,12 @@
 			}
 		},
 		{
-			"name": "New",
-			"description": [
-				"Creates a new readline instance."
-			],
-			"signature": "new() -\u003e @Readline",
-			"goFuncName": "rlnew",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false
-		},
-		{
-			"name": "NewHistory",
-			"description": [
-				"Creates a file-backed history handler. Returns a table with",
-				"add, get, size, clear, and all functions. Pass it to setHistory."
-			],
-			"signature": "newHistory(path) -\u003e table",
-			"goFuncName": "rlnewhistory",
-			"isInterface": false,
-			"isMember": false,
-			"isType": false,
-			"params": [
-				{
-					"Name": "path",
-					"Type": "string",
-					"Doc": []
-				}
-			],
-			"tags": {
-				"param": [
-					{
-						"id": "path",
-						"fields": [
-							"string"
-						],
-						"startIdx": 3
-					}
-				]
-			}
-		},
-		{
 			"name": "Prompt",
 			"description": [
 				"Sets the prompt of the line reader. This is the text that shows up before user input."
 			],
-			"signature": "prompt(text)",
+			"signature": "Prompt()",
 			"goFuncName": "rlprompt",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "Read",
-			"description": [
-				"Reads input from the user."
-			],
-			"signature": "read() -\u003e string",
-			"goFuncName": "rlread",
 			"isInterface": false,
 			"isMember": true,
 			"isType": false,
@@ -312,10 +245,439 @@
 		{
 			"name": "ReadChar",
 			"description": [
-				"Reads a keystroke from the user. This is in a format of something like Ctrl-L."
+				"Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L."
 			],
-			"signature": "readChar() -\u003e string",
+			"signature": "ReadChar() -\u003e string",
 			"goFuncName": "rlreadchar",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"returns": [
+				{
+					"Name": "keystroke",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"keystroke"
+						],
+						"startIdx": 2
+					}
+				]
+			}
+		},
+		{
+			"name": "SetRegister",
+			"description": [
+				"Sets the vim register at `register` to hold the passed text."
+			],
+			"signature": "SetRegister(register, text)",
+			"goFuncName": "rlsetregister",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "register",
+					"Type": "string",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "register",
+						"fields": [
+							"string"
+						],
+						"startIdx": 2
+					},
+					{
+						"id": "text",
+						"fields": [
+							"string"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "fuzzySearch",
+			"description": [
+				"Performs a fuzzy search of needle in haystack and returns matched strings."
+			],
+			"signature": "fuzzySearch(needle, haystack) -\u003e table",
+			"goFuncName": "rlfuzzysearch",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "needle",
+					"Type": "string",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "haystack",
+					"Type": "table",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "matches",
+					"Type": "table",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "needle",
+						"fields": [
+							"string"
+						],
+						"startIdx": 1
+					},
+					{
+						"id": "haystack",
+						"fields": [
+							"table"
+						],
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "table",
+						"fields": [
+							"matches"
+						],
+						"startIdx": 3
+					}
+				]
+			}
+		},
+		{
+			"name": "new",
+			"description": [
+				"Creates a new readline instance."
+			],
+			"signature": "new() -\u003e Readline",
+			"goFuncName": "rlnew",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"returns": [
+				{
+					"Name": "",
+					"Type": "Readline",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"return": [
+					{
+						"id": "Readline",
+						"fields": [],
+						"startIdx": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "newHistory",
+			"description": [
+				"Creates a file-backed history handler."
+			],
+			"signature": "newHistory(path) -\u003e table",
+			"goFuncName": "rlnewhistory",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "handler",
+					"Type": "table",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": [
+						{
+							"Name": "add",
+							"Type": "function",
+							"Doc": [
+								"The add handler, which adds a line to the history."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "get",
+							"Type": "function",
+							"Doc": [
+								"Gets a command line from the history based on the index passed to it."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "size",
+							"Type": "function",
+							"Doc": [
+								"Returns the size of the history, how many commands the history has."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "clear",
+							"Type": "function",
+							"Doc": [
+								"Clears the history."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						}
+					]
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "path",
+						"fields": [
+							"string"
+						],
+						"startIdx": 1
+					}
+				],
+				"return": [
+					{
+						"id": "table",
+						"fields": [
+							"handler"
+						],
+						"startIdx": 2
+					}
+				],
+				"see": [
+					{
+						"id": "setHistory",
+						"fields": [],
+						"startIdx": 3
+					}
+				],
+				"treturn": [
+					{
+						"id": "handler",
+						"fields": [
+							"add",
+							"function",
+							"The",
+							"add",
+							"handler,",
+							"which",
+							"adds",
+							"a",
+							"line",
+							"to",
+							"the",
+							"history."
+						],
+						"startIdx": 4
+					},
+					{
+						"id": "handler",
+						"fields": [
+							"get",
+							"function",
+							"Gets",
+							"a",
+							"command",
+							"line",
+							"from",
+							"the",
+							"history",
+							"based",
+							"on",
+							"the",
+							"index",
+							"passed",
+							"to",
+							"it."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "handler",
+						"fields": [
+							"size",
+							"function",
+							"Returns",
+							"the",
+							"size",
+							"of",
+							"the",
+							"history,",
+							"how",
+							"many",
+							"commands",
+							"the",
+							"history",
+							"has."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "handler",
+						"fields": [
+							"clear",
+							"function",
+							"Clears",
+							"the",
+							"history."
+						],
+						"startIdx": 0
+					}
+				]
+			},
+			"seeAlso": [
+				"setHistory"
+			]
+		},
+		{
+			"name": "read",
+			"description": [
+				"Reads input from the user."
+			],
+			"signature": "read() -\u003e string?",
+			"goFuncName": "rlread",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"returns": [
+				{
+					"Name": "input",
+					"Type": "string?",
+					"Doc": [
+						"Throws",
+						"an",
+						"error",
+						"if",
+						"the",
+						"user",
+						"hits",
+						"Ctrl-D",
+						"or",
+						"another",
+						"error",
+						"occurs."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "string?",
+						"fields": [
+							"input",
+							"Throws",
+							"an",
+							"error",
+							"if",
+							"the",
+							"user",
+							"hits",
+							"Ctrl-D",
+							"or",
+							"another",
+							"error",
+							"occurs."
+						],
+						"startIdx": 2
+					}
+				]
+			}
+		},
+		{
+			"name": "refreshPrompt",
+			"description": [
+				"Refreshes the prompt, if the text has been updated.",
+				"This is called automatically on `hilbish.prompt`"
+			],
+			"signature": "refreshPrompt()",
+			"goFuncName": "rlrefreshprompt",
 			"isInterface": false,
 			"isMember": true,
 			"isType": false,
@@ -330,9 +692,9 @@
 			}
 		},
 		{
-			"name": "SetCompleter",
+			"name": "setCompleter",
 			"description": [
-				"Sets the tab completion handler. fn receives (line, pos) and returns (groups, prefix)."
+				"Sets the tab completion handler."
 			],
 			"signature": "setCompleter(fn)",
 			"goFuncName": "rlsetcompleter",
@@ -343,7 +705,10 @@
 				{
 					"Name": "fn",
 					"Type": "fun(line:string,pos:integer):table,string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -360,14 +725,15 @@
 						"fields": [
 							"fun(line:string,pos:integer):table,string"
 						],
-						"startIdx": 3
+						"startIdx": 2
 					}
 				]
 			}
 		},
 		{
-			"name": "SetHighlighter",
+			"name": "setHighlighter",
 			"description": [
+				"setHighlighter(fn)",
 				"Sets the syntax highlighter function. Called on every key insert to style the input."
 			],
 			"signature": "setHighlighter(fn)",
@@ -379,7 +745,10 @@
 				{
 					"Name": "fn",
 					"Type": "fun(line:string):string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -402,7 +771,7 @@
 			}
 		},
 		{
-			"name": "SetHinter",
+			"name": "setHinter",
 			"description": [
 				"Sets the hinter function. Called on every key insert to provide inline hint text."
 			],
@@ -415,7 +784,10 @@
 				{
 					"Name": "fn",
 					"Type": "fun(line:string,pos:integer):string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -432,15 +804,15 @@
 						"fields": [
 							"fun(line:string,pos:integer):string"
 						],
-						"startIdx": 3
+						"startIdx": 2
 					}
 				]
 			}
 		},
 		{
-			"name": "SetHistory",
+			"name": "setHistory",
 			"description": [
-				"Sets the history handler. handler is a table with add, get, size, clear, all functions.",
+				"Sets the history handler.",
 				"Use newHistory(path) to get a file-backed handler, or supply your own."
 			],
 			"signature": "setHistory(handler)",
@@ -452,7 +824,43 @@
 				{
 					"Name": "handler",
 					"Type": "table",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": [
+						{
+							"Name": "add",
+							"Type": "function",
+							"Doc": null,
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "get",
+							"Type": "function",
+							"Doc": null,
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "size",
+							"Type": "function",
+							"Doc": null,
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "clear",
+							"Type": "function",
+							"Doc": null,
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						}
+					]
 				}
 			],
 			"tags": {
@@ -469,15 +877,49 @@
 						"fields": [
 							"table"
 						],
+						"startIdx": 3
+					}
+				],
+				"tparam": [
+					{
+						"id": "handler",
+						"fields": [
+							"add",
+							"function"
+						],
 						"startIdx": 4
+					},
+					{
+						"id": "handler",
+						"fields": [
+							"get",
+							"function"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "handler",
+						"fields": [
+							"size",
+							"function"
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "handler",
+						"fields": [
+							"clear",
+							"function"
+						],
+						"startIdx": 0
 					}
 				]
 			}
 		},
 		{
-			"name": "SetInputMode",
+			"name": "setInputMode",
 			"description": [
-				"Sets the input mode. Accepted values: \"emacs\", \"vim\"."
+				"Sets the input mode."
 			],
 			"signature": "setInputMode(mode)",
 			"goFuncName": "rlsetinputmode",
@@ -488,7 +930,15 @@
 				{
 					"Name": "mode",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"Either",
+						"`emacs`",
+						"or",
+						"`vim`."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -503,15 +953,19 @@
 					{
 						"id": "mode",
 						"fields": [
-							"string"
+							"string",
+							"Either",
+							"`emacs`",
+							"or",
+							"`vim`."
 						],
-						"startIdx": 3
+						"startIdx": 2
 					}
 				]
 			}
 		},
 		{
-			"name": "SetRawInputCallback",
+			"name": "setRawInputCallback",
 			"description": [
 				"Sets a function to be called on every raw input event (each keystroke).",
 				"fn receives the input string."
@@ -525,7 +979,10 @@
 				{
 					"Name": "fn",
 					"Type": "function",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -542,61 +999,13 @@
 						"fields": [
 							"function"
 						],
-						"startIdx": 4
-					}
-				]
-			}
-		},
-		{
-			"name": "SetRegister",
-			"description": [
-				"Sets the vim register at `register` to hold the passed text."
-			],
-			"signature": "setVimRegister(register, text)",
-			"goFuncName": "rlsetregister",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"params": [
-				{
-					"Name": "register",
-					"Type": "string",
-					"Doc": []
-				},
-				{
-					"Name": "text",
-					"Type": "string",
-					"Doc": []
-				}
-			],
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				],
-				"param": [
-					{
-						"id": "register",
-						"fields": [
-							"string"
-						],
 						"startIdx": 3
-					},
-					{
-						"id": "text",
-						"fields": [
-							"string"
-						],
-						"startIdx": 0
 					}
 				]
 			}
 		},
 		{
-			"name": "SetSearcher",
+			"name": "setSearcher",
 			"description": [
 				"Sets the searcher used for history search and completion filtering.",
 				"fn receives (needle string, haystack table) and returns a table of results,",
@@ -611,7 +1020,10 @@
 				{
 					"Name": "fn",
 					"Type": "fun(needle:string,haystack:table\u003cstring\u003e):table|nil",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -628,13 +1040,13 @@
 						"fields": [
 							"fun(needle:string,haystack:table\u003cstring\u003e):table|nil"
 						],
-						"startIdx": 5
+						"startIdx": 4
 					}
 				]
 			}
 		},
 		{
-			"name": "SetViActionCallback",
+			"name": "setViActionCallback",
 			"description": [
 				"Sets the function called when a Vim action occurs (yank, paste).",
 				"fn receives (action string, args table)."
@@ -648,7 +1060,10 @@
 				{
 					"Name": "fn",
 					"Type": "function",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -665,14 +1080,15 @@
 						"fields": [
 							"function"
 						],
-						"startIdx": 4
+						"startIdx": 3
 					}
 				]
 			}
 		},
 		{
-			"name": "SetViModeCallback",
+			"name": "setViModeCallback",
 			"description": [
+				"setViModeCallback(fn)",
 				"Sets the function called when the Vim mode changes.",
 				"fn receives the mode string: \"insert\", \"normal\", \"delete\", or \"replace\"."
 			],
@@ -685,7 +1101,10 @@
 				{
 					"Name": "fn",
 					"Type": "function",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {

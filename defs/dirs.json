@@ -18,9 +18,12 @@
 			"isType": false,
 			"params": [
 				{
-					"Name": "num?",
+					"Name": "num",
 					"Type": "number",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
 				}
 			]
 		},
@@ -37,7 +40,10 @@
 				{
 					"Name": "num",
 					"Type": "number",
-					"Doc": null
+					"Doc": null,
+					"Default": "1",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
@@ -54,14 +60,17 @@
 				{
 					"Name": "dir",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
 		{
 			"name": "recent",
 			"description": [
-				"Get entry from recent directories list based on index."
+				"Get an entry from the recent directories list based on index."
 			],
 			"signature": "recent(idx)",
 			"isInterface": false,
@@ -71,14 +80,18 @@
 				{
 					"Name": "idx",
 					"Type": "number",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
 		{
 			"name": "setOld",
 			"description": [
-				"Sets the old directory string."
+				"Sets the old directory string.",
+				"This sets the OLDPWD environment variable."
 			],
 			"signature": "setOld(d)",
 			"isInterface": false,
@@ -88,7 +101,10 @@
 				{
 					"Name": "d",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		}

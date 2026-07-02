@@ -36,27 +36,39 @@ this function will set the user prompt.
 
 ## Functions
 
+:::funclist
 - [`bait.catch(name, cb)`](#catch): Catches an event. This function can be used to act on events.
 - [`bait.catchOnce(name, cb)`](#catchOnce): Catches an event, but only once. This will remove the hook immediately after it runs for the first time.
-- [`bait.hooks(name) -> table`](#hooks): Returns a table of functions that are hooked on an event with the corresponding `name`.
+- [`bait.hooks(name) -> table<function>`](#hooks): Returns a table of functions that are hooked on an event with the corresponding `name`.
 - [`bait.release(name, catcher)`](#release): Removes the `catcher` for the event with `name`.
 - [`bait.throw(name, ...args)`](#throw): Throws a hook with `name` with the provided `args`.
+
+:::
 
 ---
 
 #### catch
 
+:::signature
+```lua
 bait.catch(name, cb)
+```
+:::
 
 Catches an event. This function can be used to act on events.  
 
+
+
 #### Parameters
 
+:::params
 `string` _name_  
 The name of the hook.
 
 `function(...)` _cb_  
 The function that will be called when the hook is thrown.
+
+:::
 
 #### Example
 
@@ -71,17 +83,24 @@ end)
 
 #### catchOnce
 
+:::signature
+```lua
 bait.catchOnce(name, cb)
+```
+:::
 
 Catches an event, but only once. This will remove the hook immediately after it runs for the first time.  
 
 #### Parameters
 
+:::params
 `string` _name_  
 The name of the event
 
 `function(...)` _cb_  
 The function that will be called when the event is thrown.
+
+:::
 
 
 
@@ -89,14 +108,28 @@ The function that will be called when the event is thrown.
 
 #### hooks
 
-bait.hooks(name) -> table
+:::signature
+```lua
+bait.hooks(name) -> table<function>
+```
+:::
 
 Returns a table of functions that are hooked on an event with the corresponding `name`.  
 
 #### Parameters
 
+:::params
 `string` _name_  
 The name of the hook
+
+:::
+
+#### Returns
+
+:::returns
+`table<function>`  
+
+:::
 
 
 
@@ -104,19 +137,28 @@ The name of the hook
 
 #### release
 
+:::signature
+```lua
 bait.release(name, catcher)
+```
+:::
 
 Removes the `catcher` for the event with `name`.  
 For this to work, `catcher` has to be the same function used to catch  
 an event, like one saved to a variable.  
 
+
+
 #### Parameters
 
+:::params
 `string` _name_  
 Name of the event the hook is on
 
 `function(...)` _catcher_  
 Hook function to remove
+
+:::
 
 #### Example
 
@@ -135,17 +177,26 @@ bait.release('event', hookCallback)
 
 #### throw
 
+:::signature
+```lua
 bait.throw(name, ...args)
+```
+:::
 
 Throws a hook with `name` with the provided `args`.  
 
+
+
 #### Parameters
 
+:::params
 `string` _name_  
 The name of the hook.
 
-`any` _args_ (This type is variadic. You can pass an infinite amount of parameters with this type.)  
+`any` _args_ [Variadic]{.variadic}  
 The arguments to pass to the hook.
+
+:::
 
 #### Example
 

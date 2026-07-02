@@ -4,7 +4,7 @@
 local Thread = {}
 
 ---@class yarn
----@field thread fun(fun: any): Thread
+---@field thread fun()
 local yarn = {}
 
 return yarn

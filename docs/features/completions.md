@@ -7,121 +7,21 @@ menu:
     parent: "Features"
 ---
 
-Completions for commands can be created with the [`hilbish.completions.add`](../../api/hilbish/hilbish.completions/#completions.add)
-function. See the link for how to use it.
+Pressing Tab at the prompt will suggest completions for the current word.
+Hilbish provides completions for commands that have a registered completion
+handler. If no command-specific handler exists, it falls back to completing
+file paths.
 
-To create completions for a command is simple.
-The callback will be passed 3 parameters:
+Completions can appear in two layouts depending on what the handler provides:
 
-- `query` (string): The text that the user is currently trying to complete. This should be used to match entries.
-- `ctx` (string): Contains the entire line. Use this if more text is needed to be parsed for context.
-- `fields` (table): The `ctx` split up by spaces.
+- *Grid*: items shown in a column grid, used for simple lists like filenames
+  or subcommands
+- *List*: items shown in a vertical list, used when completions have
+  descriptions or aliases (common for command flags)
 
-In most cases, the completer just uses `fields` to check the amount
-and `query` on what to match entries on.
+Some commands also provide a mixed view with both types at the same time.
 
-In order to return your results, it has to go within a "completion group."
-Then you return a table of completion groups and a prefix. The prefix will
-usually just be the `query`.
-
-Hilbish allows one to mix completion menus of different types, so
-a grid menu and a list menu can be used and complete and display at the same time.
-A completion group is a table with these keys:
-
-- `type` (string): type of completion menu, either `grid` or `list`.
-- `items` (table): a list of items. 
-
-The requirements of the `items` table are different based on the
-`type`. If it is a `grid`, it can simply be a table of strings.
-
-Otherwise if it is a `list` then each entry can
-either be a string or a table.
-
-Example:
-
-```lua
-local cg = {
-	items = {
-		'list item 1',
-		['--command-flag-here'] = {description = 'this does a thing', alias = '--the-flag-alias'}
-	},
-	type = 'list'
-}
-local cg2 = {
-	items = {'just', 'a bunch', 'of items', 'here', 'hehe'},
-	type = 'grid'
-}
-
-return {cg, cg2}, prefix
-```
-
-# Completion Group Types
-
-### grid
-
-Grid is the simplest completion group type. All items are strings and when
-completion is done is displayed in a grid based on size.
-
-Example:
-
-```lua
-{
-	items = {'just', 'a bunch', 'of items', 'here', 'hehe'},
-	type = 'grid'
-}
-```
-
-### list
-
-The list completion group type displays in a list. A list item can either be a string, or a table for additional display options.
-
-The table can take these keys to customize the completion item (all optional):
-- `alias`: Defines a completion alias
-- `display`: Defines how the completion should be displayed. Can be used to style the completion with colors
-- `description`: A short description for the completion 
-
-Example:
-
-```lua
-{
-	items = {
-		['--flag'] = {
-			description = 'this flag nukes the bri ish',
-			alias = '--bye-bri-ish',
-			display = lunacolors.format('--{blue}fl{red}ag')
-		},
-		['--flag2'] = {
-			'make pizza', -- description
-			'--pizzuh', -- alias
-			display = lunacolors.yellow '--pizzuh'
-		},
-		'--flag3'
-	},
-	type = 'list'
-}
-```
-
-# Completion Handler
-
-Like most parts of Hilbish, it's made to be extensible and
-customizable. The default handler for completions in general can
-be overwritten to provide more advanced completions if needed.
-This usually doesn't need to be done though, unless you know
-what you're doing.
-
-The default completion handler provides 3 things:  
-binaries (with a plain name requested to complete, those in $PATH)  
-files  
-or command completions.
-
-It will try to run a handler for the command or fallback to file completions.
-
-To overwrite it, just assign a function to `hilbish.completions.handler` like so:
-
-```lua
--- line is the entire line as a string
--- pos is the position of the cursor.
-function hilbish.completions.handler(line, pos)
-	-- do things
-end
-```
+The completion system is extensible: you can write handlers for any command and
+Hilbish will use them when that command is on the line. See the
+[hilbish.completions API](../../api/hilbish/hilbish.completions) for how to
+register completions for your own commands.

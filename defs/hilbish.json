@@ -2,7 +2,7 @@
 	"name": "hilbish",
 	"section": "api",
 	"shortDescription": "the core Hilbish API",
-	"description": "The Hilbish module includes the core API, containing\ninterfaces and functions which directly relate to shell functionality.",
+	"description": "The Hilbish module includes the core API, containing\ninterfaces and functions which directly relate to shell functionality.\nIt is always loaded as the global `hilbish` table, so none of its\nfunctions or fields need a `require` call.",
 	"properties": [],
 	"fields": [
 		{
@@ -15,7 +15,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "goVersion",
@@ -32,7 +33,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "user",
@@ -44,7 +46,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "host",
@@ -56,7 +59,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "dataDir",
@@ -75,7 +79,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "defaultConfDir",
@@ -91,7 +96,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "confFile",
@@ -118,7 +124,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "command",
@@ -136,7 +143,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "interactive",
@@ -150,7 +158,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "boolean"
 		},
 		{
 			"name": "login",
@@ -163,7 +172,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "boolean"
 		},
 		{
 			"name": "vimMode",
@@ -186,7 +196,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "exitCode",
@@ -201,7 +212,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "number"
 		},
 		{
 			"name": "running",
@@ -217,7 +229,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "boolean"
 		},
 		{
 			"name": "initialized",
@@ -238,7 +251,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "boolean"
 		},
 		{
 			"name": "midnightEdition",
@@ -253,34 +267,18 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
-		}
-	],
-	"types": [
-		{
-			"name": "Sink",
-			"description": [
-				"A sink is a structure that has input and/or output to/from a desination."
-			],
-			"parent": "hilbish",
-			"isInterface": false,
-			"isMember": false,
-			"isType": true,
-			"tags": {
-				"type": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
+			"isType": false,
+			"type": "boolean"
 		}
 	],
 	"docs": [
 		{
 			"name": "alias",
-			"description": null,
+			"description": [
+				"Sets an alias: typing `alias` on the command line will run `cmd` instead.",
+				"Numbered substitutions like `%1`, `%2` etc. are supported and replaced with",
+				"the corresponding argument when the alias is expanded."
+			],
 			"signature": "alias(alias, cmd)",
 			"isInterface": false,
 			"isMember": false,
@@ -289,14 +287,78 @@
 				{
 					"Name": "alias",
 					"Type": "string",
-					"Doc": null
+					"Doc": [
+						"The name of the alias."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "cmd",
 					"Type": "string",
-					"Doc": null
+					"Doc": [
+						"The command the alias expands to."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
-			]
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"-- \"ga file\" becomes \"git add file\"",
+							"hilbish.alias('ga', 'git add')",
+							"-- numbered substitution: \"dircount ~\" counts files in ~",
+							"hilbish.alias('dircount', 'ls %1 | wc -l')"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "appendPath",
+			"description": [
+				"Appends the provided dir to the command path (`$PATH`)"
+			],
+			"signature": "appendPath(path)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string|table",
+					"Doc": [
+						"Directory (or directories) to append to path"
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"hilbish.appendPath '~/go/bin'",
+							"-- Will add ~/go/bin to the command path.",
+							"",
+							"-- Or do multiple:",
+							"hilbish.appendPath {",
+							"\t'~/go/bin',",
+							"\t'~/.local/bin'",
+							"}"
+						],
+						"startIdx": 0
+					}
+				]
+			}
 		},
 		{
 			"name": "cwd",
@@ -308,15 +370,35 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
+			"returns": [
+				{
+					"Name": "cwd",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
 			"tags": {
-				"returns": [
+				"return": [
 					{
 						"id": "string",
+						"fields": [
+							"cwd"
+						],
+						"startIdx": 1
+					}
+				],
+				"since": [
+					{
+						"id": "2.0",
 						"fields": [],
 						"startIdx": 2
 					}
 				]
-			}
+			},
+			"since": "2.0"
 		},
 		{
 			"name": "exec",
@@ -333,7 +415,10 @@
 				{
 					"Name": "cmd",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -343,10 +428,18 @@
 						"fields": [
 							"string"
 						],
+						"startIdx": 2
+					}
+				],
+				"since": [
+					{
+						"id": "2.0",
+						"fields": [],
 						"startIdx": 3
 					}
 				]
-			}
+			},
+			"since": "2.0"
 		},
 		{
 			"name": "interval",
@@ -354,7 +447,7 @@
 				"Runs the `cb` function every specified amount of `time`.",
 				"This creates a timer that ticking immediately."
 			],
-			"signature": "interval(cb, time) -\u003e @Timer",
+			"signature": "interval(cb, time) -\u003e Timer",
 			"goFuncName": "hlinterval",
 			"isInterface": false,
 			"isMember": false,
@@ -363,7 +456,10 @@
 				{
 					"Name": "cb",
 					"Type": "function",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "time",
@@ -372,7 +468,20 @@
 						"Time",
 						"in",
 						"milliseconds."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "timer",
+					"Type": "Timer",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -382,7 +491,7 @@
 						"fields": [
 							"function"
 						],
-						"startIdx": 3
+						"startIdx": 2
 					},
 					{
 						"id": "time",
@@ -398,11 +507,31 @@
 				"return": [
 					{
 						"id": "Timer",
+						"fields": [
+							"timer"
+						],
+						"startIdx": 4
+					}
+				],
+				"see": [
+					{
+						"id": "hilbish.timeout",
+						"fields": [],
+						"startIdx": 6
+					}
+				],
+				"since": [
+					{
+						"id": "2.0",
 						"fields": [],
 						"startIdx": 5
 					}
 				]
-			}
+			},
+			"since": "2.0",
+			"seeAlso": [
+				"hilbish.timeout"
+			]
 		},
 		{
 			"name": "lookpath",
@@ -419,7 +548,20 @@
 				{
 					"Name": "file",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -429,151 +571,58 @@
 						"fields": [
 							"string"
 						],
+						"startIdx": 2
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"path"
+						],
 						"startIdx": 3
 					}
 				],
-				"returns": [
+				"since": [
 					{
-						"id": "string",
+						"id": "2.0",
 						"fields": [],
 						"startIdx": 4
 					}
 				]
-			}
-		},
-		{
-			"name": "luaSinkAutoFlush",
-			"description": [
-				"Sets/toggles the option of automatically flushing output.",
-				"A call with no argument will toggle the value."
-			],
-			"signature": "autoFlush(auto)",
-			"goFuncName": "luasinkautoflush",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkFlush",
-			"description": [
-				"Flush writes all buffered input to the sink."
-			],
-			"signature": "flush()",
-			"goFuncName": "luasinkflush",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkRead",
-			"description": [
-				"Reads a liine of input from the sink."
-			],
-			"signature": "read() -\u003e string",
-			"goFuncName": "luasinkread",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkReadAll",
-			"description": [
-				"Reads all input from the sink."
-			],
-			"signature": "readAll() -\u003e string",
-			"goFuncName": "luasinkreadall",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkWrite",
-			"description": [
-				"Writes data to a sink."
-			],
-			"signature": "write(str)",
-			"goFuncName": "luasinkwrite",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "luaSinkWriteln",
-			"description": [
-				"Writes data to a sink with a newline at the end."
-			],
-			"signature": "writeln(str)",
-			"goFuncName": "luasinkwriteln",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
+			},
+			"since": "2.0"
 		},
 		{
 			"name": "multiprompt",
-			"description": null,
-			"signature": "multiprompt(str) -\u003e string|nil Returns the currently set multilinePrompt if `str` is not provided.",
+			"description": [
+				"Changes the text prompt when Hilbish asks for more input.",
+				"This will show up when text is incomplete, like a missing quote."
+			],
+			"signature": "multiprompt(str) -\u003e string?",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
 			"params": [
 				{
 					"Name": "str",
-					"Type": "string|nil",
-					"Doc": null
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "prompt",
+					"Type": "string?",
+					"Doc": [
+						"Returns the currently set multilinePrompt if `str` is not provided."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -581,12 +630,58 @@
 					{
 						"id": "",
 						"fields": [
-							"so then you get",
-							"user ~ ∆ echo \"hey",
-							"--\u003e ...!\"",
-							"hey ...!",
-							"]]--",
+							"-- imagine this is your text input:",
+							"-- user ~ ∆ echo \"hey",
+							"-- but there's a missing quote! hilbish will now prompt you so the terminal",
+							"-- will look like:",
+							"-- user ~ ∆ echo \"hey",
+							"-- --\u003e ...!\"",
+							"--",
+							"-- so then you get:",
+							"-- user ~ ∆ echo \"hey",
+							"-- --\u003e ...!\"",
+							"-- hey ...!",
 							"hilbish.multiprompt '--\u003e'"
+						],
+						"startIdx": 0
+					}
+				]
+			}
+		},
+		{
+			"name": "prependPath",
+			"description": [
+				"Prepends the provided dir to the command path (`$PATH`)"
+			],
+			"signature": "prependPath(path)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "path",
+					"Type": "string|table",
+					"Doc": [
+						"Directory (or directories) to append to path"
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"hilbish.prependPath '~/go/bin'",
+							"-- Will add ~/go/bin to the command path.",
+							"",
+							"-- Or do multiple:",
+							"hilbish.prependPath {",
+							"\t'~/go/bin',",
+							"\t'~/.local/bin'",
+							"}"
 						],
 						"startIdx": 0
 					}
@@ -596,16 +691,14 @@
 		{
 			"name": "prompt",
 			"description": [
-				"prompt(str, typ)",
 				"Changes the shell prompt to the provided string.",
 				"There are a few verbs that can be used in the prompt text.",
 				"These will be formatted and replaced with the appropriate values.",
-				"`%d` - Current working directory",
-				"`%D` - Basename of working directory ()",
-				"`%u` - Name of current user",
-				"`%h` - Hostname of device",
-				"#param str string",
-				"#param typ? string Type of prompt, being left or right. Left by default."
+				"",
+				"- `%d`: Current working directory",
+				"- `%D`: Basename of working directory",
+				"- `%u`: Name of current user",
+				"- `%h`: Hostname of device"
 			],
 			"signature": "prompt(p, typ)",
 			"isInterface": false,
@@ -615,14 +708,20 @@
 				{
 					"Name": "p",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
-					"Name": "typ?",
+					"Name": "typ",
 					"Type": "string",
 					"Doc": [
-						"Type of prompt, either left or right"
-					]
+						"Type of prompt, either left or right."
+					],
+					"Default": "left",
+					"IsOptional": true,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -644,22 +743,34 @@
 		{
 			"name": "read",
 			"description": [
-				"read(prompt) -\u003e input (string)",
 				"Read input from the user, using Hilbish's line editor/input reader.",
 				"This is a separate instance from the one Hilbish actually uses.",
 				"Returns `input`, will be nil if Ctrl-D is pressed, or an error occurs."
 			],
-			"signature": "read(prompt) -\u003e string|nil",
+			"signature": "read(prompt) -\u003e string?",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
 			"params": [
 				{
-					"Name": "prompt?",
+					"Name": "prompt",
 					"Type": "string",
 					"Doc": [
-						"Text to print before input, can be empty."
-					]
+						"Text to use as prompt"
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "input",
+					"Type": "string?",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
 				}
 			]
 		},
@@ -667,13 +778,16 @@
 			"name": "run",
 			"description": [
 				"Runs `cmd` in Hilbish's shell script interpreter.",
+				"",
 				"The `streams` parameter specifies the output and input streams the command should use.",
 				"For example, to write command output to a sink.",
+				"",
 				"As a table, the caller can directly specify the standard output, error, and input",
 				"streams of the command with the table keys `out`, `err`, and `input` respectively.",
+				"",
 				"As a boolean, it specifies whether the command should use standard output or return its output streams."
 			],
-			"signature": "run(cmd, streams) -\u003e number, string, string",
+			"signature": "run(cmd, streams) -\u003e number, string?, string?",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
@@ -681,12 +795,48 @@
 				{
 					"Name": "cmd",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "streams",
 					"Type": "table|boolean",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "exitCode",
+					"Type": "number",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "stdout",
+					"Type": "string?",
+					"Doc": [
+						"Standard output of the command, if `streams` did not redirect it."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				},
+				{
+					"Name": "stderr",
+					"Type": "string?",
+					"Doc": [
+						"Standard error output of the command, if `streams` did not redirect it."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -714,10 +864,10 @@
 		{
 			"name": "timeout",
 			"description": [
-				"Executed the `cb` function after a period of `time`.",
+				"Executes the `cb` function after a period of `time`.",
 				"This creates a Timer that starts ticking immediately."
 			],
-			"signature": "timeout(cb, time) -\u003e @Timer",
+			"signature": "timeout(cb, time) -\u003e Timer",
 			"goFuncName": "hltimeout",
 			"isInterface": false,
 			"isMember": false,
@@ -726,7 +876,10 @@
 				{
 					"Name": "cb",
 					"Type": "function",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "time",
@@ -737,7 +890,20 @@
 						"run",
 						"in",
 						"milliseconds."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "timer",
+					"Type": "Timer",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -747,7 +913,7 @@
 						"fields": [
 							"function"
 						],
-						"startIdx": 3
+						"startIdx": 2
 					},
 					{
 						"id": "time",
@@ -762,14 +928,34 @@
 						"startIdx": 0
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "Timer",
+						"fields": [
+							"timer"
+						],
+						"startIdx": 4
+					}
+				],
+				"see": [
+					{
+						"id": "hilbish.interval",
+						"fields": [],
+						"startIdx": 6
+					}
+				],
+				"since": [
+					{
+						"id": "2.0",
 						"fields": [],
 						"startIdx": 5
 					}
 				]
-			}
+			},
+			"since": "2.0",
+			"seeAlso": [
+				"hilbish.interval"
+			]
 		},
 		{
 			"name": "which",
@@ -777,7 +963,7 @@
 				"Checks if `name` is a valid command.",
 				"Will return the path of the binary, or a basename if it's a commander."
 			],
-			"signature": "which(name) -\u003e string|nil",
+			"signature": "which(name) -\u003e string?",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
@@ -785,7 +971,20 @@
 				{
 					"Name": "name",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "path",
+					"Type": "string?",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
 				}
 			]
 		}

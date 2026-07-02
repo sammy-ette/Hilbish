@@ -2,7 +2,7 @@
 	"name": "hilbish.aliases",
 	"section": "api",
 	"shortDescription": "command aliasing",
-	"description": "The alias interface deals with all command aliases in Hilbish.",
+	"description": "The alias interface manages command aliases in Hilbish. An alias is a short name\nthat expands to a longer command when entered at the prompt.\nAliases are stored as-is in history (the short name, not the expanded command).\n\n\nAliases support numbered argument substitution. `%1` in the alias body is replaced\nby the first argument, `%2` by the second, and so on. `%0` is passed through\nliterally. A substitution can be escaped by prefixing it with `\\`.",
 	"properties": null,
 	"fields": null,
 	"docs": [
@@ -19,13 +19,23 @@
 				{
 					"Name": "alias",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "cmd",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
+			],
+			"since": "2.0",
+			"seeAlso": [
+				"hilbish.alias"
 			]
 		},
 		{
@@ -41,17 +51,48 @@
 				{
 					"Name": "alias",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
 		{
 			"name": "list",
-			"description": null,
+			"description": [
+				"Returns a table of all defined aliases.",
+				"Keys are the alias names and values are the command strings they expand to."
+			],
 			"signature": "list() -\u003e table\u003cstring, string\u003e",
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"returns": [
+				{
+					"Name": "aliases",
+					"Type": "table\u003cstring, string\u003e",
+					"Doc": [
+						"A table mapping alias names to their command strings."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"example": [
+					{
+						"id": "",
+						"fields": [
+							"hilbish.aliases.add('hi', 'echo hi')",
+							"local aliases = hilbish.aliases.list()",
+							"-- -\u003e {hi = 'echo hi'}"
+						],
+						"startIdx": 0
+					}
+				]
+			}
 		},
 		{
 			"name": "resolve",
@@ -66,7 +107,20 @@
 				{
 					"Name": "cmdstr",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "resolved",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		}

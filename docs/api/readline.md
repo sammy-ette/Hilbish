@@ -15,56 +15,122 @@ including all the interactive features of Hilbish like history search,
 syntax highlighting, everything. The global Hilbish readline instance
 is usable at `hilbish.editor`.
 
+Customizing `hilbish.editor` is the common path. Creating a custom readline instance
+is only  needed when you want a fully separate line reader.
+
+```lua
+hilbish.editor:setHinter(function(line, pos)
+
+	if line == '' then return end
+	return ' (type something!)'
+
+end)
+```
+
 ## Functions
 
-- [`readline.fuzzySearch(needle, haystack) -> table`](#FuzzySearch): Performs a fuzzy search of needle in haystack and returns matched strings.
-- [`readline.new() -> @Readline`](#New): Creates a new readline instance.
-- [`readline.newHistory(path) -> table`](#NewHistory): Creates a file-backed history handler. Returns a table with
+:::funclist
+- [`readline.fuzzySearch(needle, haystack) -> table`](#fuzzySearch): Performs a fuzzy search of needle in haystack and returns matched strings.
+- [`readline.new() -> Readline`](#new): Creates a new readline instance.
+- [`readline.newHistory(path) -> table`](#newHistory): Creates a file-backed history handler.
+
+:::
 
 ---
 
-#### FuzzySearch
+#### fuzzySearch
 
+:::signature
+```lua
 readline.fuzzySearch(needle, haystack) -> table
+```
+:::
 
 Performs a fuzzy search of needle in haystack and returns matched strings.  
 
 #### Parameters
 
+:::params
 `string` _needle_  
-
 
 `table` _haystack_  
 
+:::
+
+#### Returns
+
+:::returns
+`table`  
+
+:::
 
 
 
 ---
 
-#### New
+#### new
 
-readline.new() -> @Readline
+:::signature
+```lua
+readline.new() -> Readline
+```
+:::
 
 Creates a new readline instance.  
 
-#### Parameters
+#### Returns
 
-This function has no parameters.  
+:::returns
+`Readline`  
+
+:::
+
 
 
 ---
 
-#### NewHistory
+#### newHistory
 
+:::signature
+```lua
 readline.newHistory(path) -> table
+```
+:::
 
-Creates a file-backed history handler. Returns a table with  
-add, get, size, clear, and all functions. Pass it to setHistory.  
+Creates a file-backed history handler.  
 
 #### Parameters
 
+:::params
 `string` _path_  
 
+:::
+
+#### Returns
+
+:::returns
+`table`  
+
+:::tparams
+`function` _add_  
+The add handler, which adds a line to the history.
+
+`function` _get_  
+Gets a command line from the history based on the index passed to it.
+
+`function` _size_  
+Returns the size of the history, how many commands the history has.
+
+`function` _clear_  
+Clears the history.
+
+:::
+
+:::
+
+#### See also
+
+- [`setHistory`](#setHistory)
 
 
 
@@ -75,83 +141,417 @@ add, get, size, clear, and all functions. Pass it to setHistory.
 ## Readline
 
 
+
 ### Methods
 
-#### deleteByAmount(amount)
+---
 
-Deletes characters in the line by the given amount.
+#### DeleteByAmount
 
-#### getLine() -> string
+:::signature
+```lua
+readline:DeleteByAmount(amount)
+```
+:::
 
-Returns the current input line.
+deleteByAmount(amount)  
+Deletes characters in the line by the given amount.  
 
-#### getVimRegister(register) -> string
+#### Parameters
 
-Returns the text that is at the register.
+:::params
+`number` _amount_  
 
-#### insert(text)
+:::
 
-Inserts text into the Hilbish command line.
 
-#### log(text)
 
-Prints a message *before* the prompt without it being interrupted by user input.
+---
 
-#### prompt(text)
+#### GetLine
 
-Sets the prompt of the line reader. This is the text that shows up before user input.
+:::signature
+```lua
+readline:GetLine() -> string
+```
+:::
 
-#### read() -> string
+Returns the current input line.  
 
-Reads input from the user.
+#### Returns
 
-#### readChar() -> string
+:::returns
+`string`  
 
-Reads a keystroke from the user. This is in a format of something like Ctrl-L.
+:::
 
-#### setCompleter(fn)
 
-Sets the tab completion handler. fn receives (line, pos) and returns (groups, prefix).
 
-#### setHighlighter(fn)
+---
 
-Sets the syntax highlighter function. Called on every key insert to style the input.
+#### GetRegister
 
-#### setHinter(fn)
+:::signature
+```lua
+readline:GetRegister(register) -> string
+```
+:::
 
-Sets the hinter function. Called on every key insert to provide inline hint text.
+Returns the text that is at the register.  
 
-#### setHistory(handler)
+#### Parameters
 
-Sets the history handler. handler is a table with add, get, size, clear, all functions.
-Use newHistory(path) to get a file-backed handler, or supply your own.
+:::params
+`string` _register_  
 
-#### setInputMode(mode)
+:::
 
-Sets the input mode. Accepted values: "emacs", "vim".
+#### Returns
 
-#### setRawInputCallback(fn)
+:::returns
+`string`  
 
-Sets a function to be called on every raw input event (each keystroke).
-fn receives the input string.
+:::
 
-#### setVimRegister(register, text)
 
-Sets the vim register at `register` to hold the passed text.
 
-#### setSearcher(fn)
+---
 
-Sets the searcher used for history search and completion filtering.
-fn receives (needle string, haystack table) and returns a table of results,
-or nil to fall back to the default regex searcher.
+#### Insert
 
-#### setViActionCallback(fn)
+:::signature
+```lua
+readline:Insert(text)
+```
+:::
 
-Sets the function called when a Vim action occurs (yank, paste).
-fn receives (action string, args table).
+insert(text)  
+Inserts text into the Hilbish command line.  
 
-#### setViModeCallback(fn)
+#### Parameters
 
-Sets the function called when the Vim mode changes.
-fn receives the mode string: "insert", "normal", "delete", or "replace".
+:::params
+`string` _text_  
+
+:::
+
+
+
+---
+
+#### Log
+
+:::signature
+```lua
+readline:Log()
+```
+:::
+
+Prints a message *before* the prompt without it being interrupted by user input.  
+
+
+
+---
+
+#### Prompt
+
+:::signature
+```lua
+readline:Prompt()
+```
+:::
+
+Sets the prompt of the line reader. This is the text that shows up before user input.  
+
+
+
+---
+
+#### ReadChar
+
+:::signature
+```lua
+readline:ReadChar() -> string
+```
+:::
+
+Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L.  
+
+#### Returns
+
+:::returns
+`string`  
+
+:::
+
+
+
+---
+
+#### SetRegister
+
+:::signature
+```lua
+readline:SetRegister(register, text)
+```
+:::
+
+Sets the vim register at `register` to hold the passed text.  
+
+#### Parameters
+
+:::params
+`string` _register_  
+
+`string` _text_  
+
+:::
+
+
+
+---
+
+#### read
+
+:::signature
+```lua
+readline:read() -> string?
+```
+:::
+
+Reads input from the user.  
+
+#### Returns
+
+:::returns
+`string?` [Optional]{.optional}  
+Throws an error if the user hits Ctrl-D or another error occurs.
+
+:::
+
+
+
+---
+
+#### refreshPrompt
+
+:::signature
+```lua
+readline:refreshPrompt()
+```
+:::
+
+Refreshes the prompt, if the text has been updated.  
+This is called automatically on `hilbish.prompt`  
+
+
+
+---
+
+#### setCompleter
+
+:::signature
+```lua
+readline:setCompleter(fn)
+```
+:::
+
+Sets the tab completion handler.  
+
+#### Parameters
+
+:::params
+`fun(line:string,pos:integer):table,string` _fn_  
+
+:::
+
+
+
+---
+
+#### setHighlighter
+
+:::signature
+```lua
+readline:setHighlighter(fn)
+```
+:::
+
+setHighlighter(fn)  
+Sets the syntax highlighter function. Called on every key insert to style the input.  
+
+#### Parameters
+
+:::params
+`fun(line:string):string` _fn_  
+
+:::
+
+
+
+---
+
+#### setHinter
+
+:::signature
+```lua
+readline:setHinter(fn)
+```
+:::
+
+Sets the hinter function. Called on every key insert to provide inline hint text.  
+
+#### Parameters
+
+:::params
+`fun(line:string,pos:integer):string` _fn_  
+
+:::
+
+
+
+---
+
+#### setHistory
+
+:::signature
+```lua
+readline:setHistory(handler)
+```
+:::
+
+Sets the history handler.  
+Use newHistory(path) to get a file-backed handler, or supply your own.  
+
+#### Parameters
+
+:::params
+`table` _handler_  
+
+:::tparams
+`function` _add_  
+
+`function` _get_  
+
+`function` _size_  
+
+`function` _clear_  
+
+:::
+
+:::
+
+
+
+---
+
+#### setInputMode
+
+:::signature
+```lua
+readline:setInputMode(mode)
+```
+:::
+
+Sets the input mode.  
+
+#### Parameters
+
+:::params
+`string` _mode_  
+Either `emacs` or `vim`.
+
+:::
+
+
+
+---
+
+#### setRawInputCallback
+
+:::signature
+```lua
+readline:setRawInputCallback(fn)
+```
+:::
+
+Sets a function to be called on every raw input event (each keystroke).  
+fn receives the input string.  
+
+#### Parameters
+
+:::params
+`function` _fn_  
+
+:::
+
+
+
+---
+
+#### setSearcher
+
+:::signature
+```lua
+readline:setSearcher(fn)
+```
+:::
+
+Sets the searcher used for history search and completion filtering.  
+fn receives (needle string, haystack table) and returns a table of results,  
+or nil to fall back to the default regex searcher.  
+
+#### Parameters
+
+:::params
+`fun(needle:string,haystack:table<string>):table|nil` _fn_  
+
+:::
+
+
+
+---
+
+#### setViActionCallback
+
+:::signature
+```lua
+readline:setViActionCallback(fn)
+```
+:::
+
+Sets the function called when a Vim action occurs (yank, paste).  
+fn receives (action string, args table).  
+
+#### Parameters
+
+:::params
+`function` _fn_  
+
+:::
+
+
+
+---
+
+#### setViModeCallback
+
+:::signature
+```lua
+readline:setViModeCallback(fn)
+```
+:::
+
+setViModeCallback(fn)  
+Sets the function called when the Vim mode changes.  
+fn receives the mode string: "insert", "normal", "delete", or "replace".  
+
+#### Parameters
+
+:::params
+`function` _fn_  
+
+:::
+
+
 

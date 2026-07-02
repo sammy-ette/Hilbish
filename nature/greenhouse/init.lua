@@ -1,9 +1,9 @@
 -- @module greenhouse
+-- Hilbish's environmentally friendly pager for long text
 -- Greenhouse is a simple text scrolling handler (pager) for terminal programs.
--- The idea is that it can be set a region to do its scrolling and paging
--- job and then the user can draw whatever outside it.
--- This reduces code duplication for the message viewer
--- and flowerbook.
+-- It can be set a specific region to do its scrolling and paging job,
+-- then the user can draw whatever outside it. You may use this as some kind
+-- of terminal UI library.
 
 local ansikit = require 'ansikit'
 local lunacolors = require 'lunacolors'
@@ -11,8 +11,12 @@ local terminal = require 'terminal'
 local Page = require 'nature.greenhouse.page'
 local Object = require 'nature.object'
 
+---@class Greenhouse
 local Greenhouse = Object:extend()
 
+--- Creates a new Greenhouse pager.
+--- @param sink hilbish.sink
+--- @return nature.object
 function Greenhouse:new(sink)
 	local size = terminal.size()
 	self.region = size
@@ -53,10 +57,14 @@ function Greenhouse:new(sink)
 	return self
 end
 
+--- Adds a page to Greenhouse
+---@param page greenhouse.page
 function Greenhouse:addPage(page)
 	table.insert(self.pages, page)
 end
 
+--- Sets the text of the currently active page.
+---@param text string
 function Greenhouse:updateCurrentPage(text)
 	local page = self.pages[self.curPage]
 	page:setText(text)
@@ -141,9 +149,14 @@ function Greenhouse:draw()
 	self:render()
 end
 
+--- This should be overloaded to render extra UI around Greenhouse.
 function Greenhouse:render()
 end
 
+--- Scrolls the currently active page by one line, or a page height if specified.
+--- @param direction string Either `up` or `down`
+--- @param opts table
+--- @tparam opts page boolean Whether the scroll amount should be the page height.
 function Greenhouse:scroll(direction, opts)
 	opts = opts or {}
 
@@ -191,7 +204,6 @@ function Greenhouse:update()
 
 	self:draw()
 end
-
 
 function Greenhouse:special(val)
 	self.isSpecial = val
@@ -253,6 +265,7 @@ function Greenhouse:toc(toggle)
 	self:draw()
 end
 
+--- Resizes Greenhouse to fit the terminal's size.
 function Greenhouse:resize()
 	local size = terminal.size()
 	self.region = size
@@ -298,6 +311,9 @@ function Greenhouse:jump(idx)
 	self:update()
 end
 
+---Registers a keybind.
+---@param key string
+---@param callback function
 function Greenhouse:keybind(key, callback)
 	self.keybinds[key] = callback
 end

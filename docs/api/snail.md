@@ -11,39 +11,79 @@ menu:
 
 
 The snail library houses Hilbish's Lua wrapper of its shell script interpreter.
-It's not very useful other than running shell scripts, which can be done with other
-Hilbish functions.
+`hilbish.run` and `hilbish.runner.sh` both run scripts through Hilbish's shared,
+global Snail instance (available at `hilbish.snail`), which is what you should be using
+almost all the time.
+
+Reach for an independent snail instance directly only when you need
+an isolated interpreter with its own working directory.
+
+```lua
+local snail = require 'snail'
+
+local interp = snail.new()
+local result = interp:run 'echo hello from an isolated snail'
+print(result.stdout)
+```
 
 ## Functions
 
-- [`snail.new() -> @Snail`](#new): Creates a new Snail instance.
-- [`snail.validate(input)`](#validate): Checks if input is incomplete. Does not error otherwise.
+:::funclist
+- [`snail.new() -> Snail`](#new): Creates a new Snail shell interpreter instance.
+- [`snail.validate(input) -> boolean`](#validate): Checks if the input shell script is syntactically incomplete (e.g. unclosed quotes
+
+:::
 
 ---
 
 #### new
 
-snail.new() -> @Snail
+:::signature
+```lua
+snail.new() -> Snail
+```
+:::
 
-Creates a new Snail instance.  
+Creates a new Snail shell interpreter instance.  
 
-#### Parameters
+#### Returns
 
-This function has no parameters.  
+:::returns
+`Snail`  
+The new Snail instance.
+
+:::
+
 
 
 ---
 
 #### validate
 
-snail.validate(input)
+:::signature
+```lua
+snail.validate(input) -> boolean
+```
+:::
 
-Checks if input is incomplete. Does not error otherwise.  
+Checks if the input shell script is syntactically incomplete (e.g. unclosed quotes  
+or blocks). Returns true if the input is incomplete, false otherwise.  
 
 #### Parameters
 
+:::params
 `string` _input_  
+The shell script string to check.
 
+:::
+
+#### Returns
+
+:::returns
+`boolean`  
+True if more input is needed to complete the statement.
+
+:::
 
 
 
@@ -55,15 +95,81 @@ Checks if input is incomplete. Does not error otherwise.
 
 A Snail is a shell script interpreter instance.
 
+
 ### Methods
 
-#### dir(path)
+---
 
-Changes the directory of the snail instance.
-The interpreter keeps its set directory even when the Hilbish process changes
-directory, so this should be called on the `hilbish.cd` hook.
+#### dir
 
-#### run(command, streams)
+:::signature
+```lua
+snail:dir(path)
+```
+:::
 
-Runs a shell command. Works the same as `hilbish.run`, but only accepts a table of streams.
+Changes the working directory of this Snail instance.  
+The interpreter keeps its own directory state.  
+In Hilbish usage, this is called when `hilbish.cd` is emitted.  
+
+#### Parameters
+
+:::params
+`string` _path_  
+The new working directory. Must be an absolute path.
+
+:::
+
+
+
+---
+
+#### run
+
+:::signature
+```lua
+snail:run(command, streams) -> table
+```
+:::
+
+Runs a shell script command. Works like `hilbish.run` but operates on this Snail instance.  
+
+#### Parameters
+
+:::params
+`string` _command_  
+The shell command or script to run.
+
+`table` _streams_ [Optional]{.optional}  
+Optional table of I/O streams with keys `out`, `err`, `input` (each a Sink).
+
+:::
+
+#### Returns
+
+:::returns
+`table`  
+The result of running the command.
+
+:::tparams
+`number` _exitCode_  
+The exit code of the command.
+
+`string` _stdout_  
+Standard output of the command, if not streamed.
+
+`string` _stderr_  
+Standard error output of the command, if not streamed.
+
+`string` _err_  
+Error message, if one occurred.
+
+`boolean` _bg_  
+Whether the command was run in the background.
+
+:::
+
+:::
+
+
 

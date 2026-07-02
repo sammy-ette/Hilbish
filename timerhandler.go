@@ -59,12 +59,13 @@ func (th *timersModule) get(id int) *timer {
 	return th.timers[id]
 }
 
-// #interface timers
-// create(type, time, callback) -> @Timer
-// Creates a timer that runs based on the specified `time`.
-// #param type number What kind of timer to create, can either be `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`
-// #param time number The amount of time the function should run in milliseconds.
-// #param callback function The function to run for the timer.
+// @interface timers
+// create
+// Creates a timer.
+// @param type number Timer type: `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`.
+// @param time number Time it takes for the callback to run, in milliseconds.
+// @param callback function The function to call when the timer fires.
+// @return Timer timer The created timer. Call `:start()` to run it.
 func (th *timersModule) luaCreate(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(3); err != nil {
 		return err
@@ -88,11 +89,11 @@ func (th *timersModule) luaCreate(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface timers
-// get(id) -> @Timer
-// Retrieves a timer via its ID.
-// #param id number
-// #returns Timer
+// @interface timers
+// get
+// Retrieves a timer.
+// @param id number The ID of the timer to retrieve.
+// @return Timer? timer The timer object, or nil if no timer with that ID exists.
 func (th *timersModule) luaGet(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -111,7 +112,7 @@ func (th *timersModule) luaGet(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface timers
+// @interface timers
 // wait()
 // Waits for all timers to finish.
 func (th *timersModule) luaWait(mlr *moonlight.Runtime) error {
@@ -119,19 +120,25 @@ func (th *timersModule) luaWait(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface timers
-// #field INTERVAL Constant for an interval timer type
-// #field TIMEOUT Constant for a timeout timer type
+// @interface timers
+// @field INTERVAL Constant Interval timer type
+// @field TIMEOUT Constant Timeout timer type
 // timeout and interval API
 /*
 If you ever want to run a piece of code on a timed interval, or want to wait
-a few seconds, you don't have to rely on timing tricks, as Hilbish has a
-timer API to set intervals and timeouts.
+a few seconds to run a function, you can use Hilbish's simple timer API.
 
-These are the simple functions `hilbish.interval` and `hilbish.timeout` (doc
-accessible with `doc hilbish`, or `Module hilbish` on the Website).
+For the common cases, `hilbish.interval` and `hilbish.timeout` create and start a
+timer in one simple call:
 
-An example of usage:
+```lua
+hilbish.timeout(function() print 'hello!' end, 5000)
+```
+
+This interface, `hilbish.timers`, is the full API behind those two shorthands.
+Read it for documentation :), or use it when you need to create timers without them
+starting immediately.
+
 ```lua
 local t = hilbish.timers.create(hilbish.timers.TIMEOUT, 5000, function()
 	print 'hello!'
@@ -172,6 +179,8 @@ func (th *timersModule) loader() *moonlight.Table {
 			ti.mu.Unlock()
 		case "duration":
 			val = moonlight.IntValue(int64(ti.dur / time.Millisecond))
+		case "id":
+			val = moonlight.IntValue(int64(ti.id))
 		}
 
 		mlr.PushNext1(val)

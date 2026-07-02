@@ -2,26 +2,25 @@
 	"name": "hilbish.userDir",
 	"section": "api",
 	"shortDescription": "user-related directories",
-	"description": "This interface just contains properties to know about certain user directories.\nIt is equivalent to XDG on Linux and gets the user's preferred directories\nfor configs and data.",
+	"description": "This interface just contains properties to know about certain user directories.\nIt is equivalent to XDG on Linux and gets the user's preferred directories\nfor configs and data.\n\n\nThis is mainly useful for locating files alongside your own config, since\nHilbish's own config lives at `fs.join(hilbish.userDir.config, 'hilbish')`:\n\n\n```lua\nlocal fs = require 'fs'\nlocal myPluginDir = fs.join(hilbish.userDir.config, 'hilbish', 'myplugin')\n```",
 	"parent": "hilbish",
 	"properties": [],
 	"fields": [
 		{
 			"name": "config",
 			"description": [
-				"The",
 				"user's",
 				"config",
 				"directory"
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "The"
 		},
 		{
 			"name": "data",
 			"description": [
-				"The",
 				"user's",
 				"directory",
 				"for",
@@ -30,7 +29,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "The"
 		}
 	],
 	"docs": null

@@ -14,37 +14,73 @@ The fs module provides filesystem functions to Hilbish. While Lua's standard
 library has some I/O functions, they're missing a lot of the basics. The `fs`
 library offers more functions and will work on any operating system Hilbish does.
 
+```lua
+local fs = require 'fs'
+
+-- resolve a config path and check what's in it
+local confDir = fs.join(hilbish.userDir.config, 'hilbish')
+if fs.stat(confDir).isDir then
+	for _, name in ipairs(fs.readdir(confDir)) do
+		print(name)
+	end
+end
+
+-- find every Lua file directly under the current directory
+local luaFiles = fs.glob('./*.lua')
+```
+
 ## Functions
 
+:::funclist
 - [`fs.abs(path) -> string`](#abs): Returns an absolute version of the `path`.
-- [`fs.basename(path) -> string`](#basename): Returns the "basename," or the last part of the provided `path`. If path is empty,
+- [`fs.basename(path) -> string`](#basename): Returns the "basename," or the last part of the provided `path`.
 - [`fs.cd(dir)`](#cd): Changes Hilbish's directory to `dir`.
-- [`fs.dir(path) -> string`](#dir): Returns the directory part of `path`. If a file path like
+- [`fs.dir(path) -> string`](#dir): Returns the directory part of `path`.
 - [`fs.executable(path) -> boolean`](#executable): Checks if `path` is an executable file.
-- [`fs.glob(pattern) -> matches (table)`](#glob): Match all files based on the provided `pattern`.
+- [`fs.glob(pattern) -> table`](#glob): Match all files based on the provided `pattern`.
 - [`fs.join(...path) -> string`](#join): Takes any list of paths and joins them based on the operating system's path separator.
 - [`fs.mkdir(name, recursive)`](#mkdir): Creates a new directory with the provided `name`.
-- [`fs.pipe() -> @Sink, @Sink`](#pipe): Returns a pair of connected files, also known as a pipe.
-- [`fs.readdir(path) -> table[string]`](#readdir): Returns a list of all files and directories in the provided path.
-- [`fs.stat(path) -> {}`](#stat): Returns the information about a given `path`.
+- [`fs.pipe() -> Sink, Sink`](#pipe): Returns a pair of connected sinks, a read end and a write end.
+- [`fs.readdir(dir) -> table`](#readdir): Returns a list of all files and directories in the provided path.
+- [`fs.stat(path) -> table`](#stat): Returns the information about a given `path`.
+
+:::
 
 ## Static module fields
 
-- `pathSep`: The operating system's path separator.
+:::fieldlist
+- `string` `pathSep`: The operating system's path separator.
+
+:::
 
 ---
 
 #### abs
 
+:::signature
+```lua
 fs.abs(path) -> string
+```
+:::
+
+Since: `2.0`
 
 Returns an absolute version of the `path`.  
 This can be used to resolve short paths like `..` to `/home/user`.  
 
 #### Parameters
 
+:::params
 `string` _path_  
 
+:::
+
+#### Returns
+
+:::returns
+`string`  
+
+:::
 
 
 
@@ -52,15 +88,31 @@ This can be used to resolve short paths like `..` to `/home/user`.
 
 #### basename
 
+:::signature
+```lua
 fs.basename(path) -> string
+```
+:::
 
-Returns the "basename," or the last part of the provided `path`. If path is empty,  
-`.` will be returned.  
+Since: `2.0`
+
+Returns the "basename," or the last part of the provided `path`.  
+If path is empty, `.` will be returned.  
 
 #### Parameters
 
+:::params
 `string` _path_  
 Path to get the base name of.
+
+:::
+
+#### Returns
+
+:::returns
+`string`  
+
+:::
 
 
 
@@ -68,14 +120,23 @@ Path to get the base name of.
 
 #### cd
 
+:::signature
+```lua
 fs.cd(dir)
+```
+:::
+
+Since: `2.0`
 
 Changes Hilbish's directory to `dir`.  
 
 #### Parameters
 
+:::params
 `string` _dir_  
 Path to change directory to.
+
+:::
 
 
 
@@ -83,15 +144,31 @@ Path to change directory to.
 
 #### dir
 
+:::signature
+```lua
 fs.dir(path) -> string
+```
+:::
 
-Returns the directory part of `path`. If a file path like  
-`~/Documents/doc.txt` then this function will return `~/Documents`.  
+Since: `2.0`
+
+Returns the directory part of `path`.  
+If a file path like `~/Documents/doc.txt` then this function will return `~/Documents`.  
 
 #### Parameters
 
+:::params
 `string` _path_  
 Path to get the directory for.
+
+:::
+
+#### Returns
+
+:::returns
+`string`  
+
+:::
 
 
 
@@ -99,14 +176,29 @@ Path to get the directory for.
 
 #### executable
 
+:::signature
+```lua
 fs.executable(path) -> boolean
+```
+:::
+
+Since: `2.0`
 
 Checks if `path` is an executable file.  
 
 #### Parameters
 
+:::params
 `string` _path_  
 
+:::
+
+#### Returns
+
+:::returns
+`boolean`  
+
+:::
 
 
 
@@ -114,15 +206,32 @@ Checks if `path` is an executable file.
 
 #### glob
 
-fs.glob(pattern) -> matches (table)
+:::signature
+```lua
+fs.glob(pattern) -> table
+```
+:::
 
 Match all files based on the provided `pattern`.  
 For the syntax' refer to Go's filepath.Match function: https://pkg.go.dev/path/filepath#Match  
 
+
+
 #### Parameters
 
+:::params
 `string` _pattern_  
 Pattern to compare files with.
+
+:::
+
+#### Returns
+
+:::returns
+`table`  
+A list of file names/paths that match.
+
+:::
 
 #### Example
 
@@ -144,14 +253,31 @@ print(matches)
 
 #### join
 
+:::signature
+```lua
 fs.join(...path) -> string
+```
+:::
 
 Takes any list of paths and joins them based on the operating system's path separator.  
 
+
+
 #### Parameters
 
-`string` _path_ (This type is variadic. You can pass an infinite amount of parameters with this type.)  
+:::params
+`string` _path_ [Variadic]{.variadic}  
 Paths to join together
+
+:::
+
+#### Returns
+
+:::returns
+`string`  
+The joined path.
+
+:::
 
 #### Example
 
@@ -166,18 +292,27 @@ print(fs.join(hilbish.userDir.config, 'hilbish'))
 
 #### mkdir
 
+:::signature
+```lua
 fs.mkdir(name, recursive)
+```
+:::
 
 Creates a new directory with the provided `name`.  
 With `recursive`, mkdir will create parent directories.  
 
+
+
 #### Parameters
 
+:::params
 `string` _name_  
 Name of the directory
 
 `boolean` _recursive_  
 Whether to create parent directories for the provided name
+
+:::
 
 #### Example
 
@@ -192,27 +327,54 @@ fs.mkdir('./foo/bar', true)
 
 #### pipe
 
-fs.pipe() -> @Sink, @Sink
+:::signature
+```lua
+fs.pipe() -> Sink, Sink
+```
+:::
 
-Returns a pair of connected files, also known as a pipe.  
+Returns a pair of connected sinks, a read end and a write end.  
+The write end can be written to, and the read end will return that data.  
+This is mainly useful for piping output between commands.  
 
-#### Parameters
+#### Returns
 
-This function has no parameters.  
+:::returns
+`Sink`  
+The read end of the pipe.
+
+`Sink`  
+The write end of the pipe.
+
+:::
+
 
 
 ---
 
 #### readdir
 
-fs.readdir(path) -> table[string]
+:::signature
+```lua
+fs.readdir(dir) -> table
+```
+:::
 
 Returns a list of all files and directories in the provided path.  
 
 #### Parameters
 
+:::params
 `string` _dir_  
 
+:::
+
+#### Returns
+
+:::returns
+`table`  
+
+:::
 
 
 
@@ -220,19 +382,44 @@ Returns a list of all files and directories in the provided path.
 
 #### stat
 
-fs.stat(path) -> {}
+:::signature
+```lua
+fs.stat(path) -> table
+```
+:::
 
 Returns the information about a given `path`.  
-The returned table contains the following values:  
-name (string) - Name of the path  
-size (number) - Size of the path in bytes  
-mode (string) - Unix permission mode in an octal format string (with leading 0)  
-isDir (boolean) - If the path is a directory  
+
+
 
 #### Parameters
 
+:::params
 `string` _path_  
 
+:::
+
+#### Returns
+
+:::returns
+`table`  
+
+:::tparams
+`string` _name_  
+Name of the path.
+
+`number` _size_  
+Size of the path in bytes.
+
+`string` _mode_  
+Unix permission mode in an octal format string (with leading 0).
+
+`boolean` _isDir_  
+If the path is a directory.
+
+:::
+
+:::
 
 #### Example
 

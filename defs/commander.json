@@ -27,7 +27,10 @@
 						"command",
 						"to",
 						"remove."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -43,7 +46,7 @@
 							"to",
 							"remove."
 						],
-						"startIdx": 2
+						"startIdx": 1
 					}
 				]
 			}
@@ -70,7 +73,10 @@
 						"of",
 						"the",
 						"command"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "cb",
@@ -81,7 +87,10 @@
 						"handle",
 						"command",
 						"invocation"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -98,7 +107,7 @@
 							"\tsinks.out:writeln('Hello ' .. name)",
 							"end)"
 						],
-						"startIdx": 6
+						"startIdx": 5
 					}
 				],
 				"param": [
@@ -111,7 +120,7 @@
 							"the",
 							"command"
 						],
-						"startIdx": 3
+						"startIdx": 2
 					},
 					{
 						"id": "cb",
@@ -132,6 +141,7 @@
 			"name": "registry",
 			"description": [
 				"Returns all registered commanders. Returns a list of tables with the following keys:",
+				"",
 				"- `exec`: The function used to run the commander. Commanders require args and sinks to be passed."
 			],
 			"signature": "registry() -\u003e table",
@@ -139,11 +149,23 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
+			"returns": [
+				{
+					"Name": "registry",
+					"Type": "table",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
 			"tags": {
-				"returns": [
+				"return": [
 					{
 						"id": "table",
-						"fields": [],
+						"fields": [
+							"registry"
+						],
 						"startIdx": 3
 					}
 				]

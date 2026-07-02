@@ -1,8 +1,20 @@
 // shell script interpreter library
 /*
 The snail library houses Hilbish's Lua wrapper of its shell script interpreter.
-It's not very useful other than running shell scripts, which can be done with other
-Hilbish functions.
+`hilbish.run` and `hilbish.runner.sh` both run scripts through Hilbish's shared,
+global Snail instance (available at `hilbish.snail`), which is what you should be using
+almost all the time.
+
+Reach for an independent snail instance directly only when you need
+an isolated interpreter with its own working directory.
+
+```lua
+local snail = require 'snail'
+
+local interp = snail.new()
+local result = interp:run 'echo hello from an isolated snail'
+print(result.stdout)
+```
 */
 package snail
 
@@ -52,8 +64,8 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 	return moonlight.TableValue(mod)
 }
 
-// new() -> @Snail
-// Creates a new Snail instance.
+// Creates a new Snail shell interpreter instance.
+// @return Snail snail The new Snail instance.
 func snailnew(mlr *moonlight.Runtime) error {
 	s := New(mlr)
 
@@ -61,9 +73,10 @@ func snailnew(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// validate(input)
-// Checks if input is incomplete. Does not error otherwise.
-// #param input string
+// Checks if the input shell script is syntactically incomplete (e.g. unclosed quotes
+// or blocks). Returns true if the input is incomplete, false otherwise.
+// @param input string The shell script string to check.
+// @return boolean incomplete True if more input is needed to complete the statement.
 func snailvalidate(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -78,12 +91,16 @@ func snailvalidate(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// run(command, streams)
-// Runs a shell command. Works the same as `hilbish.run`, but only accepts a table of streams.
-// #param command string
-// #param streams? table
-// #returns table
+// @member
+// Runs a shell script command. Works like `hilbish.run` but operates on this Snail instance.
+// @param command string The shell command or script to run.
+// @param streams? table Optional table of I/O streams with keys `out`, `err`, `input` (each a Sink).
+// @return table result The result of running the command.
+// @treturn result exitCode number The exit code of the command.
+// @treturn result stdout string Standard output of the command, if not streamed.
+// @treturn result stderr string Standard error output of the command, if not streamed.
+// @treturn result err string Error message, if one occurred.
+// @treturn result bg boolean Whether the command was run in the background.
 func snailrun(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
@@ -148,18 +165,17 @@ func snailrun(mlr *moonlight.Runtime) error {
 	runnerRet.Set(moonlight.StringValue("continue"), moonlight.BoolValue(cont))
 	runnerRet.Set(moonlight.StringValue("newline"), moonlight.BoolValue(newline))
 	runnerRet.Set(moonlight.StringValue("err"), luaErr)
-
 	runnerRet.Set(moonlight.StringValue("bg"), moonlight.BoolValue(bg))
+
 	mlr.PushNext(moonlight.TableValue(runnerRet))
 	return nil
 }
 
-// #member
-// dir(path)
-// Changes the directory of the snail instance.
-// The interpreter keeps its set directory even when the Hilbish process changes
-// directory, so this should be called on the `hilbish.cd` hook.
-// #param path string Has to be an absolute path.
+// @member
+// Changes the working directory of this Snail instance.
+// The interpreter keeps its own directory state.
+// In Hilbish usage, this is called when `hilbish.cd` is emitted.
+// @param path string The new working directory. Must be an absolute path.
 func snaildir(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err

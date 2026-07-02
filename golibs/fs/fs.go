@@ -3,7 +3,22 @@
 The fs module provides filesystem functions to Hilbish. While Lua's standard
 library has some I/O functions, they're missing a lot of the basics. The `fs`
 library offers more functions and will work on any operating system Hilbish does.
-#field pathSep The operating system's path separator.
+
+```lua
+local fs = require 'fs'
+
+-- resolve a config path and check what's in it
+local confDir = fs.join(hilbish.userDir.config, 'hilbish')
+if fs.stat(confDir).isDir then
+	for _, name in ipairs(fs.readdir(confDir)) do
+		print(name)
+	end
+end
+
+-- find every Lua file directly under the current directory
+local luaFiles = fs.glob('./*.lua')
+```
+@field pathSep string The operating system's path separator.
 */
 package fs
 
@@ -40,11 +55,11 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 	return moonlight.TableValue(mod)
 }
 
-// abs(path) -> string
 // Returns an absolute version of the `path`.
 // This can be used to resolve short paths like `..` to `/home/user`.
-// #param path string
-// #returns string
+// @param path string
+// @return string abspath
+// @since 2.0
 func fabs(mlr *moonlight.Runtime) error {
 	path, err := mlr.StringArg(0)
 	if err != nil {
@@ -61,11 +76,11 @@ func fabs(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// basename(path) -> string
-// Returns the "basename," or the last part of the provided `path`. If path is empty,
-// `.` will be returned.
-// #param path string Path to get the base name of.
-// #returns string
+// Returns the "basename," or the last part of the provided `path`.
+// If path is empty, `.` will be returned.
+// @param path string Path to get the base name of.
+// @return string basename
+// @since 2.0
 func fbasename(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -79,9 +94,9 @@ func fbasename(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// cd(dir)
 // Changes Hilbish's directory to `dir`.
-// #param dir string Path to change directory to.
+// @param dir string Path to change directory to.
+// @since 2.0
 func fcd(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -110,11 +125,11 @@ func fcd(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// dir(path) -> string
-// Returns the directory part of `path`. If a file path like
-// `~/Documents/doc.txt` then this function will return `~/Documents`.
-// #param path string Path to get the directory for.
-// #returns string
+// Returns the directory part of `path`.
+// If a file path like `~/Documents/doc.txt` then this function will return `~/Documents`.
+// @param path string Path to get the directory for.
+// @return string dir
+// @since 2.0
 func fdir(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -128,10 +143,10 @@ func fdir(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// executable(path) -> boolean
 // Checks if `path` is an executable file.
-// #param path string
-// #returns boolean
+// @param path string
+// @return boolean executable
+// @since 2.0
 func fexecutable(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -151,13 +166,12 @@ func fexecutable(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// glob(pattern) -> matches (table)
 // Match all files based on the provided `pattern`.
 // For the syntax' refer to Go's filepath.Match function: https://pkg.go.dev/path/filepath#Match
-// #param pattern string Pattern to compare files with.
-// #returns table A list of file names/paths that match.
+// @param pattern string Pattern to compare files with.
+// @return table matches A list of file names/paths that match.
 /*
-#example
+@example
 --[[
 	Within a folder that contains the following files:
 	a.txt
@@ -168,7 +182,7 @@ func fexecutable(mlr *moonlight.Runtime) error {
 local matches = fs.glob './*.lua'
 print(matches)
 -- -> {'init.lua', 'code.lua'}
-#example
+@example
 */
 func fglob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
@@ -194,16 +208,15 @@ func fglob(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// join(...path) -> string
 // Takes any list of paths and joins them based on the operating system's path separator.
-// #param path ...string Paths to join together
-// #returns string The joined path.
+// @param path ...string Paths to join together
+// @return string path The joined path.
 /*
-#example
+@example
 -- This prints the directory for Hilbish's config!
 print(fs.join(hilbish.userDir.config, 'hilbish'))
 -- -> '/home/user/.config/hilbish' on Linux
-#example
+@example
 */
 func fjoin(mlr *moonlight.Runtime) error {
 	strs := make([]string, len(mlr.Etc()))
@@ -221,17 +234,16 @@ func fjoin(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// mkdir(name, recursive)
 // Creates a new directory with the provided `name`.
 // With `recursive`, mkdir will create parent directories.
-// #param name string Name of the directory
-// #param recursive boolean Whether to create parent directories for the provided name
+// @param name string Name of the directory
+// @param recursive boolean Whether to create parent directories for the provided name
 /*
-#example
+@example
 -- This will create the directory foo, then create the directory bar in the
 -- foo directory. If recursive is false in this case, it will fail.
 fs.mkdir('./foo/bar', true)
-#example
+@example
 */
 func fmkdir(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
@@ -259,10 +271,11 @@ func fmkdir(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// pipe() -> @Sink, @Sink
-// Returns a pair of connected files, also known as a pipe.
-// #returns Sink
-// #returns Sink
+// Returns a pair of connected sinks, a read end and a write end.
+// The write end can be written to, and the read end will return that data.
+// This is mainly useful for piping output between commands.
+// @return Sink readEnd The read end of the pipe.
+// @return Sink writeEnd The write end of the pipe.
 func fpipe(mlr *moonlight.Runtime) error {
 	rf, wf, err := os.Pipe()
 	if err != nil {
@@ -277,10 +290,9 @@ func fpipe(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// readdir(path) -> table[string]
 // Returns a list of all files and directories in the provided path.
-// #param dir string
-// #returns table
+// @param dir string
+// @return table entries
 func freaddir(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -304,17 +316,15 @@ func freaddir(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// stat(path) -> {}
 // Returns the information about a given `path`.
-// The returned table contains the following values:
-// name (string) - Name of the path
-// size (number) - Size of the path in bytes
-// mode (string) - Unix permission mode in an octal format string (with leading 0)
-// isDir (boolean) - If the path is a directory
-// #param path string
-// #returns table
+// @param path string
+// @return table info
+// @treturn info name string Name of the path.
+// @treturn info size number Size of the path in bytes.
+// @treturn info mode string Unix permission mode in an octal format string (with leading 0).
+// @treturn info isDir boolean If the path is a directory.
 /*
-#example
+@example
 local inspect = require 'inspect'
 
 local stat = fs.stat '~'
@@ -328,7 +338,7 @@ Would print the following:
   size = 12288
 }
 ]]--
-#example
+@example
 */
 func fstat(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {

@@ -11,13 +11,19 @@ menu:
 
 
 If you ever want to run a piece of code on a timed interval, or want to wait
-a few seconds, you don't have to rely on timing tricks, as Hilbish has a
-timer API to set intervals and timeouts.
+a few seconds to run a function, you can use Hilbish's simple timer API.
 
-These are the simple functions `hilbish.interval` and `hilbish.timeout` (doc
-accessible with `doc hilbish`, or `Module hilbish` on the Website).
+For the common cases, `hilbish.interval` and `hilbish.timeout` create and start a
+timer in one simple call:
 
-An example of usage:
+```lua
+hilbish.timeout(function() print 'hello!' end, 5000)
+```
+
+This interface, `hilbish.timers`, is the full API behind those two shorthands.
+Read it for documentation :), or use it when you need to create timers without them
+starting immediately.
+
 ```lua
 local t = hilbish.timers.create(hilbish.timers.TIMEOUT, 5000, function()
 	print 'hello!'
@@ -29,33 +35,54 @@ print(t.running) // true
 
 ## Functions
 
-- [`hilbish.timers.create(type, time, callback) -> @Timer`](#timers.create): Creates a timer that runs based on the specified `time`.
-- [`hilbish.timers.get(id) -> @Timer`](#timers.get): Retrieves a timer via its ID.
+:::funclist
+- [`hilbish.timers.create(type, time, callback) -> Timer`](#timers.create): Creates a timer.
+- [`hilbish.timers.get(id) -> Timer?`](#timers.get): Retrieves a timer.
 - [`hilbish.timers.wait()`](#timers.wait): Waits for all timers to finish.
+
+:::
 
 ## Static module fields
 
-- `INTERVAL`: Constant for an interval timer type
-- `TIMEOUT`: Constant for a timeout timer type
+:::fieldlist
+- `Constant` `INTERVAL`: Interval timer type
+- `Constant` `TIMEOUT`: Timeout timer type
+
+:::
 
 ---
 
 #### timers.create
 
-hilbish.timers.create(type, time, callback) -> @Timer
+:::signature
+```lua
+hilbish.timers.create(type, time, callback) -> Timer
+```
+:::
 
-Creates a timer that runs based on the specified `time`.  
+Creates a timer.  
 
 #### Parameters
 
+:::params
 `number` _type_  
-What kind of timer to create, can either be `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`
+Timer type: `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`.
 
 `number` _time_  
-The amount of time the function should run in milliseconds.
+Time it takes for the callback to run, in milliseconds.
 
 `function` _callback_  
-The function to run for the timer.
+The function to call when the timer fires.
+
+:::
+
+#### Returns
+
+:::returns
+`Timer`  
+The created timer. Call `:start()` to run it.
+
+:::
 
 
 
@@ -63,14 +90,29 @@ The function to run for the timer.
 
 #### timers.get
 
-hilbish.timers.get(id) -> @Timer
+:::signature
+```lua
+hilbish.timers.get(id) -> Timer?
+```
+:::
 
-Retrieves a timer via its ID.  
+Retrieves a timer.  
 
 #### Parameters
 
+:::params
 `number` _id_  
+The ID of the timer to retrieve.
 
+:::
+
+#### Returns
+
+:::returns
+`Timer?` [Optional]{.optional}  
+The timer object, or nil if no timer with that ID exists.
+
+:::
 
 
 
@@ -78,13 +120,14 @@ Retrieves a timer via its ID.
 
 #### timers.wait
 
+:::signature
+```lua
 hilbish.timers.wait()
+```
+:::
 
 Waits for all timers to finish.  
 
-#### Parameters
-
-This function has no parameters.  
 
 
 ## Types
@@ -93,21 +136,43 @@ This function has no parameters.
 
 ## Timer
 
-The Job type describes a Hilbish timer.
+The Timer type represents a Hilbish timer created with hilbish.timers.create.
+
 ## Object Properties
 
-- `type`: What type of timer it is
-- `running`: If the timer is running
-- `duration`: The duration in milliseconds that the timer will run
+- `What` `type`: kind of timer it is: interval (repeating) or timeout (one-shot).
+- `Whether` `running`: the timer is currently running.
+- `The` `duration`: duration in milliseconds after which the callback fires.
+- `The` `id`: ID of the timer.
 
 
 ### Methods
 
-#### start()
+---
 
-Starts a timer.
+#### timers.start
 
-#### stop()
+:::signature
+```lua
+hilbish.timers:start()
+```
+:::
 
-Stops a timer.
+Starts a timer.  
+
+
+
+---
+
+#### timers.stop
+
+:::signature
+```lua
+hilbish.timers:stop()
+```
+:::
+
+Stops a timer.  
+
+
 
