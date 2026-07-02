@@ -114,6 +114,7 @@ func luaSinkNew(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// readAll()
 // Reads all buffered input from the sink.
 // @return string data All data read from the sink.
 func luaSinkReadAll(mlr *moonlight.Runtime) error {
