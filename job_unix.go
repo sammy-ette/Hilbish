@@ -55,16 +55,17 @@ func (j *job) procWait() (int, error) {
 	return exitCode, nil
 }
 
-func (j *job) procSuspend() error {
-	if j.handle != nil && j.handle.Process != nil {
-		return j.handle.Process.Signal(syscall.SIGSTOP)
+func signalProcessGroup(j *job, sig syscall.Signal) error {
+	if j.handle == nil || j.handle.Process == nil {
+		return nil
 	}
-	return nil
+	return syscall.Kill(-j.handle.Process.Pid, sig)
+}
+
+func (j *job) procSuspend() error {
+	return signalProcessGroup(j, syscall.SIGSTOP)
 }
 
 func (j *job) procContinue() error {
-	if j.handle != nil && j.handle.Process != nil {
-		return j.handle.Process.Signal(syscall.SIGCONT)
-	}
-	return nil
+	return signalProcessGroup(j, syscall.SIGCONT)
 }

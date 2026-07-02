@@ -63,18 +63,23 @@ type job struct {
 	runFn     moonlight.Value
 	suspendFn moonlight.Value
 	resumeFn  moonlight.Value
-	done      chan int
+	done      chan luaJobResult
+}
+
+type luaJobResult struct {
+	code int
+	err  error
 }
 
 // run starts the job. foreground blocks until it exits or is suspended,
 // background reaps it in the back.
 func (j *job) run(foreground bool) (int, error) {
 	if j.typ == jobLua {
-		return j.runLua(foreground), nil
+		return j.runLua(foreground)
 	}
 
 	if err := j.startProc(); err != nil {
-		return int(util.HandleExecErr(err)), nil
+		return int(util.HandleExecErr(err)), err
 	}
 	if foreground {
 		return j.procForeground()
@@ -107,9 +112,10 @@ func (j *job) startProc() error {
 	j.handle = cmd
 
 	err := cmd.Start()
-	if cmd.Process != nil {
-		j.pid = cmd.Process.Pid
+	if err != nil {
+		return err
 	}
+	j.pid = cmd.Process.Pid
 
 	j.mu.Lock()
 	j.running = true
@@ -117,11 +123,11 @@ func (j *job) startProc() error {
 	j.mu.Unlock()
 
 	j.emitIfRegistered("job.start")
-	return err
+	return nil
 }
 
-func (j *job) runLua(foreground bool) int {
-	j.done = make(chan int, 1)
+func (j *job) runLua(foreground bool) (int, error) {
+	j.done = make(chan luaJobResult, 1)
 
 	j.mu.Lock()
 	j.running = true
@@ -139,30 +145,31 @@ func (j *job) runLua(foreground bool) int {
 				code = int(c)
 			}
 		}
-		j.done <- code
+		j.done <- luaJobResult{code: code, err: err}
 	}()
 
 	if foreground {
 		return j.awaitLua()
 	}
 	go j.awaitLua()
-	return 0
+	return 0, nil
 }
 
-func (j *job) awaitLua() int {
-	code := <-j.done
+func (j *job) awaitLua() (int, error) {
+	res := <-j.done
 
 	j.mu.Lock()
 	suspended := j.suspended
 	if !suspended {
 		j.running = false
 	}
+	j.exitCode = res.code
 	j.mu.Unlock()
 
 	if !suspended {
 		j.finish()
 	}
-	return code
+	return res.code, res.err
 }
 
 // suspend pauses the job. for a process this is sigstop, for a lua job its
@@ -229,10 +236,10 @@ func (j *job) resumeLua(foreground bool) error {
 		return err
 	}
 	if foreground {
-		j.awaitLua()
-	} else {
-		go j.awaitLua()
+		_, err := j.awaitLua()
+		return err
 	}
+	go j.awaitLua()
 	return nil
 }
 
@@ -329,7 +336,11 @@ func luaStopJob(mlr *moonlight.Runtime) error {
 
 	if active {
 		j.stop()
-		j.finish()
+		// process jobs are reaped by procWait, which calls finish()
+		// doing it here too would emit job.done twice
+		if j.typ != jobProcess {
+			j.finish()
+		}
 	}
 
 	return nil
@@ -463,7 +474,6 @@ func (j *jobHandler) stopAll() {
 		if jb.typ == jobProcess {
 			if jb.handle != nil && jb.handle.Process != nil {
 				jb.handle.Process.Signal(syscall.SIGHUP)
-				jb.handle.Wait() // waits for program to exit due to sighup
 			}
 		} else {
 			jb.stop()
@@ -700,18 +710,27 @@ func (j *jobHandler) luaAddJob(mlr *moonlight.Runtime) error {
 		return nil
 	}
 
-	var args []string
-	if argsTbl, ok := moonlight.TryTable(opts.Get(moonlight.StringValue("args"))); ok {
-		moonlight.ForEach(argsTbl, func(k, v moonlight.Value) {
-			if v.Type() == moonlight.StringType {
-				args = append(args, v.AsString())
-			}
-		})
+	path, hasPath := opts.Get(moonlight.StringValue("path")).TryString()
+	if !hasPath || path == "" {
+		return errors.New("process job requires a path")
 	}
 
-	path := ""
-	if p, ok := opts.Get(moonlight.StringValue("path")).TryString(); ok {
-		path = p
+	argsTbl, hasArgs := moonlight.TryTable(opts.Get(moonlight.StringValue("args")))
+	if !hasArgs || argsTbl.Len() == 0 {
+		return errors.New("process job requires args")
+	}
+
+	var args []string
+	var argErr error
+	moonlight.ForEach(argsTbl, func(k, v moonlight.Value) {
+		if v.Type() != moonlight.StringType {
+			argErr = fmt.Errorf("args table must only contain strings, got %s at index %s", v.TypeName(), moonlight.ToString(k))
+			return
+		}
+		args = append(args, v.AsString())
+	})
+	if argErr != nil {
+		return argErr
 	}
 
 	var env []string
@@ -736,8 +755,15 @@ func (j *jobHandler) luaAddJob(mlr *moonlight.Runtime) error {
 
 	cmdout := io.Writer(os.Stdout)
 	cmderr := io.Writer(os.Stderr)
+	jb.stdin = os.Stdin
 	if sinks, ok := moonlight.TryTable(opts.Get(moonlight.StringValue("sinks"))); ok {
-		jb.stdin = sinkReader(sinks.Get(moonlight.StringValue("in")))
+		in := sinks.Get(moonlight.StringValue("in"))
+		if in == moonlight.NilValue {
+			in = sinks.Get(moonlight.StringValue("input"))
+		}
+		if r := sinkReader(in); r != nil {
+			jb.stdin = r
+		}
 		if w := sinkWriter(sinks.Get(moonlight.StringValue("out"))); w != nil {
 			cmdout = w
 		}
