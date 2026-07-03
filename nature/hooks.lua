@@ -57,7 +57,7 @@
 --- @hook hilbish.notification
 --- @group hilbish
 --- Thrown when a [notification](../features/notifications) is sent.
---- @var notification table The notificatione. See the notifications feature doc for its properties.
+--- @var notification table The notification. See the notifications feature doc for its properties.
 
 --- @hook hilbish.rawInput
 --- @group hilbish
