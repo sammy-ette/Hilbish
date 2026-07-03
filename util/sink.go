@@ -228,6 +228,7 @@ func luaSinkWriteln(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// flush()
 // Flushes all buffered data, writing it to the underlying destination.
 func luaSinkFlush(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
