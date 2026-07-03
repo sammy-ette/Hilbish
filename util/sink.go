@@ -199,6 +199,7 @@ func luaSinkWrite(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// writeln(str)
 // Writes a string to the sink followed by a newline.
 // @param str string The string to write.
 func luaSinkWriteln(mlr *moonlight.Runtime) error {
