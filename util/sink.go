@@ -153,6 +153,7 @@ func luaSinkReadAll(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// read() -> string
 // Reads a single line of input from the sink.
 // @return string line A line of data from the sink.
 func luaSinkRead(mlr *moonlight.Runtime) error {
