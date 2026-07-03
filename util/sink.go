@@ -247,6 +247,7 @@ func luaSinkFlush(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// autoFlush(auto?)
 // Sets whether the sink automatically flushes after every write.
 // @param auto? boolean Whether to enable auto-flush. Omit to toggle.
 func luaSinkAutoFlush(mlr *moonlight.Runtime) error {
