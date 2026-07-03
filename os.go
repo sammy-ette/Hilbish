@@ -22,9 +22,9 @@ import (
 // 	hilbish.prompt '%u@%h %d $'
 // end
 // ```
-// @field family Family name of the current OS
-// @field name Pretty name of the current OS
-// @field version Version of the current OS
+// @field family string Family name of the current OS
+// @field name string Pretty name of the current OS
+// @field version string Version of the current OS
 func hshosLoader() *moonlight.Table {
 	info, _ := osinfo.GetOSInfo()
 	mod := moonlight.NewTable()
