@@ -63,17 +63,16 @@ func (mlr *Runtime) DoFile(path string) error {
 
 	for {
 		line, err := reader.ReadBytes('\n')
+		buf = append(buf, line...)
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
 			return err
 		}
-
-		buf = append(buf, line...)
 	}
 
-	clos, err := mlr.rt.LoadFromSourceOrCode(path, buf, "bt", rt.TableValue(mlr.rt.GlobalEnv()), false)
+	clos, err := loadCachedOrCompile(mlr.rt, path, buf, rt.TableValue(mlr.rt.GlobalEnv()), false)
 	if clos != nil {
 		_, err = rt.Call1(mlr.rt.MainThread(), rt.FunctionValue(clos))
 	}

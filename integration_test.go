@@ -23,6 +23,9 @@ import (
 func initTestRuntime(t *testing.T) {
 	t.Helper()
 
+	moonlight.DisableBytecodeCache = true
+	t.Cleanup(func() { moonlight.DisableBytecodeCache = false })
+
 	cmdString = "true"
 	t.Cleanup(func() { cmdString = "" })
 
