@@ -46,6 +46,7 @@
 				{
 					"name": "type",
 					"description": [
+						"What",
 						"kind",
 						"of",
 						"timer",
@@ -60,11 +61,12 @@
 					"isInterface": false,
 					"isMember": false,
 					"isType": false,
-					"type": "What"
+					"type": "number"
 				},
 				{
 					"name": "running",
 					"description": [
+						"Whether",
 						"the",
 						"timer",
 						"is",
@@ -74,11 +76,12 @@
 					"isInterface": false,
 					"isMember": false,
 					"isType": false,
-					"type": "Whether"
+					"type": "boolean"
 				},
 				{
 					"name": "duration",
 					"description": [
+						"The",
 						"duration",
 						"in",
 						"milliseconds",
@@ -91,11 +94,12 @@
 					"isInterface": false,
 					"isMember": false,
 					"isType": false,
-					"type": "The"
+					"type": "number"
 				},
 				{
 					"name": "id",
 					"description": [
+						"The",
 						"ID",
 						"of",
 						"the",
@@ -104,7 +108,7 @@
 					"isInterface": false,
 					"isMember": false,
 					"isType": false,
-					"type": "The"
+					"type": "number"
 				}
 			],
 			"tags": {
@@ -119,6 +123,7 @@
 					{
 						"id": "type",
 						"fields": [
+							"number",
 							"What",
 							"kind",
 							"of",
@@ -136,6 +141,7 @@
 					{
 						"id": "running",
 						"fields": [
+							"boolean",
 							"Whether",
 							"the",
 							"timer",
@@ -148,6 +154,7 @@
 					{
 						"id": "duration",
 						"fields": [
+							"number",
 							"The",
 							"duration",
 							"in",
@@ -163,6 +170,7 @@
 					{
 						"id": "id",
 						"fields": [
+							"number",
 							"The",
 							"ID",
 							"of",

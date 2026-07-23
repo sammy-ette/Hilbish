@@ -146,10 +146,10 @@ The Timer type represents a Hilbish timer created with hilbish.timers.create.
 
 ## Object Properties
 
-- `What` `type`: kind of timer it is: interval (repeating) or timeout (one-shot).
-- `Whether` `running`: the timer is currently running.
-- `The` `duration`: duration in milliseconds after which the callback fires.
-- `The` `id`: ID of the timer.
+- `number` `type`: What kind of timer it is: interval (repeating) or timeout (one-shot).
+- `boolean` `running`: Whether the timer is currently running.
+- `number` `duration`: The duration in milliseconds after which the callback fires.
+- `number` `id`: The ID of the timer.
 
 
 ### Methods

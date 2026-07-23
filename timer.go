@@ -20,10 +20,10 @@ const (
 // @type
 // @interface timers
 // @since 2.0.0
-// @property type What kind of timer it is: interval (repeating) or timeout (one-shot).
-// @property running Whether the timer is currently running.
-// @property duration The duration in milliseconds after which the callback fires.
-// @property id The ID of the timer.
+// @property type number What kind of timer it is: interval (repeating) or timeout (one-shot).
+// @property running boolean Whether the timer is currently running.
+// @property duration number The duration in milliseconds after which the callback fires.
+// @property id number The ID of the timer.
 // The Timer type represents a Hilbish timer created with hilbish.timers.create.
 type timer struct {
 	mu      sync.Mutex
