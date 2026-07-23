@@ -17,8 +17,8 @@ import (
 // local fs = require 'fs'
 // local myPluginDir = fs.join(hilbish.userDir.config, 'hilbish', 'myplugin')
 // ```
-// @field config The user's config directory
-// @field data The user's directory for program data
+// @field config string The user's config directory
+// @field data string The user's directory for program data
 func userDirLoader() *moonlight.Table {
 	mod := moonlight.NewTable()
 

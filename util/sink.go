@@ -36,7 +36,7 @@ a Commander's callback receives `sinks.out`, `sinks.err`, and `sinks.input`
 (see the commander module doc), and `hilbish.run()`'s `streams` table accepts sinks
 for `out`, `err`, and `input` to redirect a command's I/O.
 
-`fs.pipe()`` creates a connected pair of sinks directly,
+`fs.pipe()` creates a connected pair of sinks directly,
 useful for piping data between commands manually.
 
 ```lua
@@ -115,6 +115,7 @@ func luaSinkNew(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// readAll()
 // Reads all buffered input from the sink.
 // @return string data All data read from the sink.
 // @since 2.2.0
@@ -154,6 +155,7 @@ func luaSinkReadAll(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// read() -> string
 // Reads a single line of input from the sink.
 // @return string line A line of data from the sink.
 // @since 2.2.0
@@ -175,6 +177,7 @@ func luaSinkRead(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// write(str)
 // Writes a string to the sink.
 // @param str string The string to write.
 // @since 2.1.0
@@ -202,6 +205,7 @@ func luaSinkWrite(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// writeln(str)
 // Writes a string to the sink followed by a newline.
 // @param str string The string to write.
 // @since 2.1.0
@@ -229,6 +233,7 @@ func luaSinkWriteln(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// flush()
 // Flushes all buffered data, writing it to the underlying destination.
 // @since 2.2.0
 func luaSinkFlush(mlr *moonlight.Runtime) error {
@@ -248,6 +253,7 @@ func luaSinkFlush(mlr *moonlight.Runtime) error {
 
 // @interface sink
 // @member
+// autoFlush(auto?)
 // Sets whether the sink automatically flushes after every write.
 // @param auto? boolean Whether to enable auto-flush. Omit to toggle.
 // @since 2.2.0
