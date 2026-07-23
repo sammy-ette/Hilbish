@@ -63,7 +63,7 @@ fs.abs(path) -> string
 ```
 :::
 
-Since: `2.0`
+Since: `2.0.0`
 
 Returns an absolute version of the `path`.  
 This can be used to resolve short paths like `..` to `/home/user`.  
@@ -94,7 +94,7 @@ fs.basename(path) -> string
 ```
 :::
 
-Since: `2.0`
+Since: `2.0.0`
 
 Returns the "basename," or the last part of the provided `path`.  
 If path is empty, `.` will be returned.  
@@ -126,8 +126,6 @@ fs.cd(dir)
 ```
 :::
 
-Since: `2.0`
-
 Changes Hilbish's directory to `dir`.  
 
 #### Parameters
@@ -150,7 +148,7 @@ fs.dir(path) -> string
 ```
 :::
 
-Since: `2.0`
+Since: `2.0.0`
 
 Returns the directory part of `path`.  
 If a file path like `~/Documents/doc.txt` then this function will return `~/Documents`.  
@@ -182,7 +180,7 @@ fs.executable(path) -> boolean
 ```
 :::
 
-Since: `2.0`
+Since: `3.0.0`
 
 Checks if `path` is an executable file.  
 
@@ -211,6 +209,8 @@ Checks if `path` is an executable file.
 fs.glob(pattern) -> table
 ```
 :::
+
+Since: `2.0.0`
 
 Match all files based on the provided `pattern`.  
 For the syntax' refer to Go's filepath.Match function: https://pkg.go.dev/path/filepath#Match  
@@ -258,6 +258,8 @@ print(matches)
 fs.join(...path) -> string
 ```
 :::
+
+Since: `2.0.0`
 
 Takes any list of paths and joins them based on the operating system's path separator.  
 
@@ -332,6 +334,8 @@ fs.mkdir('./foo/bar', true)
 fs.pipe() -> Sink, Sink
 ```
 :::
+
+Since: `2.3.0`
 
 Returns a pair of connected sinks, a read end and a write end.  
 The write end can be written to, and the read end will return that data.  

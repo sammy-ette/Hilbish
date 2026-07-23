@@ -7,6 +7,8 @@ menu:
     parent: "API"
 ---
 
+_Added in v2.2.0_
+
 ## Introduction
 
 The messages interface defines a way for Hilbish-integrated commands,
@@ -162,6 +164,7 @@ Do *not* emit the `hilbish.notification` signal directly.
 
 :::params
 `hilbish.message` _message_  
+The message to send.
 
 :::
 
@@ -204,7 +207,25 @@ Represents a Hilbish message.
 - `string` `text`: Contents of the message.
 - `string` `channel`: Short identifier of the message. `hilbish` and `hilbish.*` is preserved for internal Hilbish messages.
 - `string` `summary`: A short summary of the message.
+- `integer?` `index`: Index assigned to the message once sent with `send`, used to reference it in `read` and `delete`.
 - `boolean?` `read`: Whether the full message has been read or not.
+
+
+### Methods
+
+---
+
+## hilbish.messageIcons
+
+Predefined icons for the `icon` field of a message. Any code sending
+notifications can use these, whether from user config or Hilbish itself.
+
+## Object Properties
+
+- `string` `INFO`: Icon for informational messages.
+- `string` `SUCCESS`: Icon for success messages.
+- `string` `WARN`: Icon for warning messages.
+- `string` `ERROR`: Icon for error messages.
 
 
 ### Methods

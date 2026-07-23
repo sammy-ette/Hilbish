@@ -17,6 +17,13 @@
 			"isMember": false,
 			"isType": true,
 			"tags": {
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 1
+					}
+				],
 				"type": [
 					{
 						"id": "",
@@ -24,21 +31,68 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		}
 	],
 	"docs": [
 		{
 			"name": "thread",
 			"description": [
-				"Creates a new, fresh Yarn thread.",
-				"`fun` is the function that will run in the thread."
+				"thread(fun) -\u003e @Thread",
+				"Creates a new, fresh Yarn thread."
 			],
-			"signature": "thread()",
+			"signature": "thread(fun)",
 			"goFuncName": "yarnthread",
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"params": [
+				{
+					"Name": "fun",
+					"Type": "function",
+					"Doc": [
+						"The",
+						"function",
+						"that",
+						"will",
+						"run",
+						"in",
+						"the",
+						"thread."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "fun",
+						"fields": [
+							"function",
+							"The",
+							"function",
+							"that",
+							"will",
+							"run",
+							"in",
+							"the",
+							"thread."
+						],
+						"startIdx": 3
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 2
+					}
+				]
+			},
+			"since": "3.0.0"
 		}
 	]
 }

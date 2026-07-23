@@ -60,6 +60,8 @@ hilbish.timers.create(type, time, callback) -> Timer
 ```
 :::
 
+Since: `2.0.0`
+
 Creates a timer.  
 
 #### Parameters
@@ -96,6 +98,8 @@ hilbish.timers.get(id) -> Timer?
 ```
 :::
 
+Since: `2.0.0`
+
 Retrieves a timer.  
 
 #### Parameters
@@ -125,6 +129,8 @@ The timer object, or nil if no timer with that ID exists.
 hilbish.timers.wait()
 ```
 :::
+
+Since: `2.0.0`
 
 Waits for all timers to finish.  
 
@@ -158,6 +164,8 @@ hilbish.timers:start()
 ```
 :::
 
+Since: `2.0.0`
+
 Starts a timer.  
 
 
@@ -171,6 +179,8 @@ Starts a timer.
 hilbish.timers:stop()
 ```
 :::
+
+Since: `2.0.0`
 
 Stops a timer.  
 

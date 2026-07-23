@@ -48,6 +48,8 @@ hilbish.jobs.add(cmdstr, args, execPath) -> Job
 ```
 :::
 
+Since: `2.0.0`
+
 Creates a new job. This function does not run the job.  
 This function is intended to be used by runners, but can also be  
 used to create jobs via Lua. Commanders cannot be ran as jobs.  
@@ -92,6 +94,8 @@ hilbish.jobs.all() -> table<Job>
 ```
 :::
 
+Since: `1.2.0`
+
 Returns a table of all job objects.  
 
 #### Returns
@@ -114,6 +118,8 @@ hilbish.jobs.disown(id)
 ```
 :::
 
+Since: `2.0.0`
+
 Disowns a job. Hilbish will no longer manage the job and its process.  
 
 #### Parameters
@@ -135,6 +141,8 @@ The ID of the job to disown.
 hilbish.jobs.get(id) -> Job?
 ```
 :::
+
+Since: `1.2.0`
 
 Get a job object via its ID.  
 
@@ -166,6 +174,8 @@ hilbish.jobs.last() -> Job?
 ```
 :::
 
+Since: `2.0.0`
+
 Returns the last added job to the table.  
 
 #### Returns
@@ -187,6 +197,8 @@ The most recently added job object, or nil if no jobs exist.
 hilbish.jobs.stopAll()
 ```
 :::
+
+Since: `2.0.0`
 
 Stops all running jobs.  
 
@@ -223,6 +235,8 @@ hilbish.jobs:background()
 ```
 :::
 
+Since: `2.0.0`
+
 Puts a job in the background. This acts the same as initially running a job.  
 
 
@@ -236,6 +250,8 @@ Puts a job in the background. This acts the same as initially running a job.
 hilbish.jobs:foreground()
 ```
 :::
+
+Since: `2.0.0`
 
 Puts a job in the foreground. This will cause it to run like it was  
 executed normally and wait for it to complete.  
@@ -252,6 +268,8 @@ hilbish.jobs:start()
 ```
 :::
 
+Since: `1.2.0`
+
 Starts running the job.  
 
 
@@ -265,6 +283,8 @@ Starts running the job.
 hilbish.jobs:stop()
 ```
 :::
+
+Since: `1.2.0`
 
 :::note
 Sends SIGTERM to the process. For immediate termination use os.exit on the job's process directly.

@@ -14,6 +14,13 @@
 			"isMember": false,
 			"isType": true,
 			"tags": {
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 1
+					}
+				],
 				"type": [
 					{
 						"id": "",
@@ -21,17 +28,17 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		}
 	],
 	"docs": [
 		{
-			"name": "DeleteByAmount",
+			"name": "deleteByAmount",
 			"description": [
-				"deleteByAmount(amount)",
 				"Deletes characters in the line by the given amount."
 			],
-			"signature": "DeleteByAmount(amount)",
+			"signature": "deleteByAmount(amount)",
 			"goFuncName": "rldeletebyamount",
 			"isInterface": false,
 			"isMember": true,
@@ -60,280 +67,18 @@
 						"fields": [
 							"number"
 						],
+						"startIdx": 2
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
 						"startIdx": 3
 					}
 				]
-			}
-		},
-		{
-			"name": "GetLine",
-			"description": [
-				"Returns the current input line."
-			],
-			"signature": "GetLine() -\u003e string",
-			"goFuncName": "rlgetline",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"returns": [
-				{
-					"Name": "line",
-					"Type": "string",
-					"Doc": null,
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				}
-			],
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				],
-				"return": [
-					{
-						"id": "string",
-						"fields": [
-							"line"
-						],
-						"startIdx": 2
-					}
-				]
-			}
-		},
-		{
-			"name": "GetRegister",
-			"description": [
-				"Returns the text that is at the register."
-			],
-			"signature": "GetRegister(register) -\u003e string",
-			"goFuncName": "rlgetregister",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"params": [
-				{
-					"Name": "register",
-					"Type": "string",
-					"Doc": [],
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				}
-			],
-			"returns": [
-				{
-					"Name": "text",
-					"Type": "string",
-					"Doc": null,
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				}
-			],
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				],
-				"param": [
-					{
-						"id": "register",
-						"fields": [
-							"string"
-						],
-						"startIdx": 2
-					}
-				],
-				"return": [
-					{
-						"id": "string",
-						"fields": [
-							"text"
-						],
-						"startIdx": 3
-					}
-				]
-			}
-		},
-		{
-			"name": "Insert",
-			"description": [
-				"insert(text)",
-				"Inserts text into the Hilbish command line."
-			],
-			"signature": "Insert(text)",
-			"goFuncName": "rlinsert",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"params": [
-				{
-					"Name": "text",
-					"Type": "string",
-					"Doc": [],
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				}
-			],
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				],
-				"param": [
-					{
-						"id": "text",
-						"fields": [
-							"string"
-						],
-						"startIdx": 3
-					}
-				]
-			}
-		},
-		{
-			"name": "Log",
-			"description": [
-				"Prints a message *before* the prompt without it being interrupted by user input."
-			],
-			"signature": "Log()",
-			"goFuncName": "rllog",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "Prompt",
-			"description": [
-				"Sets the prompt of the line reader. This is the text that shows up before user input."
-			],
-			"signature": "Prompt()",
-			"goFuncName": "rlprompt",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "ReadChar",
-			"description": [
-				"Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L."
-			],
-			"signature": "ReadChar() -\u003e string",
-			"goFuncName": "rlreadchar",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"returns": [
-				{
-					"Name": "keystroke",
-					"Type": "string",
-					"Doc": null,
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				}
-			],
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				],
-				"return": [
-					{
-						"id": "string",
-						"fields": [
-							"keystroke"
-						],
-						"startIdx": 2
-					}
-				]
-			}
-		},
-		{
-			"name": "SetRegister",
-			"description": [
-				"Sets the vim register at `register` to hold the passed text."
-			],
-			"signature": "SetRegister(register, text)",
-			"goFuncName": "rlsetregister",
-			"isInterface": false,
-			"isMember": true,
-			"isType": false,
-			"params": [
-				{
-					"Name": "register",
-					"Type": "string",
-					"Doc": [],
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				},
-				{
-					"Name": "text",
-					"Type": "string",
-					"Doc": [],
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				}
-			],
-			"tags": {
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 0
-					}
-				],
-				"param": [
-					{
-						"id": "register",
-						"fields": [
-							"string"
-						],
-						"startIdx": 2
-					},
-					{
-						"id": "text",
-						"fields": [
-							"string"
-						],
-						"startIdx": 0
-					}
-				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "fuzzySearch",
@@ -398,8 +143,204 @@
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
+		},
+		{
+			"name": "getLine",
+			"description": [
+				"Returns the current input line."
+			],
+			"signature": "getLine() -\u003e string",
+			"goFuncName": "rlgetline",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"returns": [
+				{
+					"Name": "line",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"line"
+						],
+						"startIdx": 2
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			},
+			"since": "3.0.0"
+		},
+		{
+			"name": "getRegister",
+			"description": [
+				"Returns the text that is at the register."
+			],
+			"signature": "getRegister(register) -\u003e string",
+			"goFuncName": "rlgetregister",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "register",
+					"Type": "string",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "register",
+						"fields": [
+							"string"
+						],
+						"startIdx": 2
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"text"
+						],
+						"startIdx": 3
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
+				]
+			},
+			"since": "3.0.0"
+		},
+		{
+			"name": "insert",
+			"description": [
+				"Inserts text into the Hilbish command line."
+			],
+			"signature": "insert(text)",
+			"goFuncName": "rlinsert",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "text",
+						"fields": [
+							"string"
+						],
+						"startIdx": 2
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			},
+			"since": "3.0.0"
+		},
+		{
+			"name": "log",
+			"description": [
+				"Prints a message *before* the prompt without it being interrupted by user input."
+			],
+			"signature": "log()",
+			"goFuncName": "rllog",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 2
+					}
+				]
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "new",
@@ -428,8 +369,16 @@
 						"fields": [],
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 2
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "newHistory",
@@ -528,6 +477,13 @@
 						"startIdx": 3
 					}
 				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 8
+					}
+				],
 				"treturn": [
 					{
 						"id": "handler",
@@ -602,9 +558,38 @@
 					}
 				]
 			},
+			"since": "3.0.0",
 			"seeAlso": [
 				"setHistory"
 			]
+		},
+		{
+			"name": "prompt",
+			"description": [
+				"Sets the prompt of the line reader. This is the text that shows up before user input."
+			],
+			"signature": "prompt()",
+			"goFuncName": "rlprompt",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 2
+					}
+				]
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "read",
@@ -667,8 +652,63 @@
 						],
 						"startIdx": 2
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
+		},
+		{
+			"name": "readChar",
+			"description": [
+				"Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L."
+			],
+			"signature": "readChar() -\u003e string",
+			"goFuncName": "rlreadchar",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"returns": [
+				{
+					"Name": "keystroke",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"keystroke"
+						],
+						"startIdx": 2
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
+				]
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "refreshPrompt",
@@ -688,8 +728,16 @@
 						"fields": null,
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setCompleter",
@@ -727,13 +775,20 @@
 						],
 						"startIdx": 2
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setHighlighter",
 			"description": [
-				"setHighlighter(fn)",
 				"Sets the syntax highlighter function. Called on every key insert to style the input."
 			],
 			"signature": "setHighlighter(fn)",
@@ -765,10 +820,18 @@
 						"fields": [
 							"fun(line:string):string"
 						],
+						"startIdx": 2
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
 						"startIdx": 3
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setHinter",
@@ -806,8 +869,16 @@
 						],
 						"startIdx": 2
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setHistory",
@@ -880,6 +951,13 @@
 						"startIdx": 3
 					}
 				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 8
+					}
+				],
 				"tparam": [
 					{
 						"id": "handler",
@@ -914,7 +992,8 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setInputMode",
@@ -961,8 +1040,16 @@
 						],
 						"startIdx": 2
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setRawInputCallback",
@@ -1001,8 +1088,78 @@
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
+		},
+		{
+			"name": "setRegister",
+			"description": [
+				"Sets the vim register at `register` to hold the passed text."
+			],
+			"signature": "setRegister(register, text)",
+			"goFuncName": "rlsetregister",
+			"isInterface": false,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "register",
+					"Type": "string",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "text",
+					"Type": "string",
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 0
+					}
+				],
+				"param": [
+					{
+						"id": "register",
+						"fields": [
+							"string"
+						],
+						"startIdx": 2
+					},
+					{
+						"id": "text",
+						"fields": [
+							"string"
+						],
+						"startIdx": 0
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
+				]
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setSearcher",
@@ -1042,8 +1199,16 @@
 						],
 						"startIdx": 4
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setViActionCallback",
@@ -1082,13 +1247,20 @@
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "setViModeCallback",
 			"description": [
-				"setViModeCallback(fn)",
 				"Sets the function called when the Vim mode changes.",
 				"fn receives the mode string: \"insert\", \"normal\", \"delete\", or \"replace\"."
 			],
@@ -1121,10 +1293,18 @@
 						"fields": [
 							"function"
 						],
+						"startIdx": 3
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
 						"startIdx": 4
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		}
 	]
 }

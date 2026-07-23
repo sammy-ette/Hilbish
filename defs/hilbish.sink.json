@@ -2,7 +2,7 @@
 	"name": "hilbish.sink",
 	"section": "api",
 	"shortDescription": "stream interface",
-	"description": "\nA sink is a writable and readable interface to a stream of data.\nHilbish uses sinks for command output and input streams, and they can be used\nin many places like in `hilbish.run` with the streams parameter.\n\nYou will most commonly encounter sinks rather than create them directly:\na Commander's callback receives `sinks.out`, `sinks.err`, and `sinks.input`\n(see the commander module doc), and `hilbish.run()`'s `streams` table accepts sinks\nfor `out`, `err`, and `input` to redirect a command's I/O.\n\n`fs.pipe()`` creates a connected pair of sinks directly,\nuseful for piping data between commands manually.\n\n```lua\nlocal fs = require 'fs'\nlocal pr, pw = fs.pipe()\n\npw:writeln 'hello from the write end'\nprint(pr:readAll()) -- -\u003e hello from the write end\n```",
+	"description": "\nA sink is a writable and readable interface to a stream of data.\nHilbish uses sinks for command output and input streams, and they can be used\nin many places like in `hilbish.run` with the streams parameter.\n\nYou will most commonly encounter sinks rather than create them directly:\na Commander's callback receives `sinks.out`, `sinks.err`, and `sinks.input`\n(see the commander module doc), and `hilbish.run()`'s `streams` table accepts sinks\nfor `out`, `err`, and `input` to redirect a command's I/O.\n\n`fs.pipe()` creates a connected pair of sinks directly,\nuseful for piping data between commands manually.\n\n```lua\nlocal fs = require 'fs'\nlocal pr, pw = fs.pipe()\n\npw:writeln 'hello from the write end'\nprint(pr:readAll()) -- -\u003e hello from the write end\n```",
 	"parent": "hilbish",
 	"properties": [],
 	"fields": [],
@@ -38,158 +38,13 @@
 	],
 	"docs": [
 		{
-			"name": "sink.Flushes all buffered data, writing it to the underlying destination.",
-			"description": [],
-			"parent": "hilbish",
-			"interfaces": "sink",
-			"signature": "()",
-			"goFuncName": "luasinkflush",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "sink",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				]
-			}
-		},
-		{
-			"name": "sink.Reads a single line of input from the sink.",
-			"description": [],
-			"parent": "hilbish",
-			"interfaces": "sink",
-			"signature": "() -\u003e string",
-			"goFuncName": "luasinkread",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"returns": [
-				{
-					"Name": "line",
-					"Type": "string",
-					"Doc": [
-						"A",
-						"line",
-						"of",
-						"data",
-						"from",
-						"the",
-						"sink."
-					],
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				}
+			"name": "sink.autoFlush",
+			"description": [
+				"Sets whether the sink automatically flushes after every write."
 			],
-			"tags": {
-				"interface": [
-					{
-						"id": "sink",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				],
-				"return": [
-					{
-						"id": "string",
-						"fields": [
-							"line",
-							"A",
-							"line",
-							"of",
-							"data",
-							"from",
-							"the",
-							"sink."
-						],
-						"startIdx": 3
-					}
-				]
-			}
-		},
-		{
-			"name": "sink.Reads all buffered input from the sink.",
-			"description": [],
 			"parent": "hilbish",
 			"interfaces": "sink",
-			"signature": "() -\u003e string",
-			"goFuncName": "luasinkreadall",
-			"isInterface": true,
-			"isMember": true,
-			"isType": false,
-			"returns": [
-				{
-					"Name": "data",
-					"Type": "string",
-					"Doc": [
-						"All",
-						"data",
-						"read",
-						"from",
-						"the",
-						"sink."
-					],
-					"Default": "",
-					"IsOptional": false,
-					"Keys": null
-				}
-			],
-			"tags": {
-				"interface": [
-					{
-						"id": "sink",
-						"fields": [],
-						"startIdx": 0
-					}
-				],
-				"member": [
-					{
-						"id": "",
-						"fields": null,
-						"startIdx": 1
-					}
-				],
-				"return": [
-					{
-						"id": "string",
-						"fields": [
-							"data",
-							"All",
-							"data",
-							"read",
-							"from",
-							"the",
-							"sink."
-						],
-						"startIdx": 3
-					}
-				]
-			}
-		},
-		{
-			"name": "sink.Sets whether the sink automatically flushes after every write.",
-			"description": [],
-			"parent": "hilbish",
-			"interfaces": "sink",
-			"signature": "(auto)",
+			"signature": "autoFlush(auto)",
 			"goFuncName": "luasinkautoflush",
 			"isInterface": true,
 			"isMember": true,
@@ -240,30 +95,80 @@
 							"to",
 							"toggle."
 						],
-						"startIdx": 3
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "2.2.0",
+						"fields": [],
+						"startIdx": 5
 					}
 				]
-			}
+			},
+			"since": "2.2.0"
 		},
 		{
-			"name": "sink.Writes a string to the sink followed by a newline.",
-			"description": [],
+			"name": "sink.flush",
+			"description": [
+				"Flushes all buffered data, writing it to the underlying destination."
+			],
 			"parent": "hilbish",
 			"interfaces": "sink",
-			"signature": "(str)",
-			"goFuncName": "luasinkwriteln",
+			"signature": "flush()",
+			"goFuncName": "luasinkflush",
 			"isInterface": true,
 			"isMember": true,
 			"isType": false,
-			"params": [
+			"tags": {
+				"interface": [
+					{
+						"id": "sink",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				],
+				"since": [
+					{
+						"id": "2.2.0",
+						"fields": [],
+						"startIdx": 4
+					}
+				]
+			},
+			"since": "2.2.0"
+		},
+		{
+			"name": "sink.read",
+			"description": [
+				"Reads a single line of input from the sink."
+			],
+			"parent": "hilbish",
+			"interfaces": "sink",
+			"signature": "read() -\u003e string",
+			"goFuncName": "luasinkread",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"returns": [
 				{
-					"Name": "str",
+					"Name": "line",
 					"Type": "string",
 					"Doc": [
-						"The",
-						"string",
-						"to",
-						"write."
+						"A",
+						"line",
+						"of",
+						"data",
+						"from",
+						"the",
+						"sink."
 					],
 					"Default": "",
 					"IsOptional": false,
@@ -285,27 +190,109 @@
 						"startIdx": 1
 					}
 				],
-				"param": [
+				"return": [
 					{
-						"id": "str",
+						"id": "string",
 						"fields": [
-							"string",
-							"The",
-							"string",
-							"to",
-							"write."
+							"line",
+							"A",
+							"line",
+							"of",
+							"data",
+							"from",
+							"the",
+							"sink."
 						],
-						"startIdx": 3
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "2.2.0",
+						"fields": [],
+						"startIdx": 5
 					}
 				]
-			}
+			},
+			"since": "2.2.0"
 		},
 		{
-			"name": "sink.Writes a string to the sink.",
-			"description": [],
+			"name": "sink.readAll",
+			"description": [
+				"Reads all buffered input from the sink."
+			],
 			"parent": "hilbish",
 			"interfaces": "sink",
-			"signature": "(str)",
+			"signature": "readAll() -\u003e string",
+			"goFuncName": "luasinkreadall",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"returns": [
+				{
+					"Name": "data",
+					"Type": "string",
+					"Doc": [
+						"All",
+						"data",
+						"read",
+						"from",
+						"the",
+						"sink."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "sink",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"data",
+							"All",
+							"data",
+							"read",
+							"from",
+							"the",
+							"sink."
+						],
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "2.2.0",
+						"fields": [],
+						"startIdx": 5
+					}
+				]
+			},
+			"since": "2.2.0"
+		},
+		{
+			"name": "sink.write",
+			"description": [
+				"Writes a string to the sink."
+			],
+			"parent": "hilbish",
+			"interfaces": "sink",
+			"signature": "write(str)",
 			"goFuncName": "luasinkwrite",
 			"isInterface": true,
 			"isMember": true,
@@ -350,10 +337,83 @@
 							"to",
 							"write."
 						],
-						"startIdx": 3
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "2.1.0",
+						"fields": [],
+						"startIdx": 5
 					}
 				]
-			}
+			},
+			"since": "2.1.0"
+		},
+		{
+			"name": "sink.writeln",
+			"description": [
+				"Writes a string to the sink followed by a newline."
+			],
+			"parent": "hilbish",
+			"interfaces": "sink",
+			"signature": "writeln(str)",
+			"goFuncName": "luasinkwriteln",
+			"isInterface": true,
+			"isMember": true,
+			"isType": false,
+			"params": [
+				{
+					"Name": "str",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"string",
+						"to",
+						"write."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "sink",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"member": [
+					{
+						"id": "",
+						"fields": null,
+						"startIdx": 1
+					}
+				],
+				"param": [
+					{
+						"id": "str",
+						"fields": [
+							"string",
+							"The",
+							"string",
+							"to",
+							"write."
+						],
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "2.1.0",
+						"fields": [],
+						"startIdx": 5
+					}
+				]
+			},
+			"since": "2.1.0"
 		}
 	]
 }

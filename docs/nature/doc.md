@@ -7,6 +7,8 @@ menu:
     parent: "Nature"
 ---
 
+_Added in v2.2.0_
+
 ## Introduction
 
 The doc module contains a small set of functions

@@ -110,6 +110,26 @@
 					"Keys": null
 				}
 			]
+		},
+		{
+			"name": "command.preprocess",
+			"group": "command",
+			"description": [
+				"Thrown as soon as `hilbish.runner.run` is called, before Hilbish's command",
+				"processors (aliases, modifiers, wildcard warnings, etc.) run on the input."
+			],
+			"vars": [
+				{
+					"Name": "input",
+					"Type": "string",
+					"Doc": [
+						"The raw input string, exactly as passed to the runner."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
 		}
 	]
 }

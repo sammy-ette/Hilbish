@@ -28,9 +28,9 @@ end
 ## Static module fields
 
 :::fieldlist
-- `Family` `family`: name of the current OS
-- `Pretty` `name`: name of the current OS
-- `Version` `version`: of the current OS
+- `string` `family`: Family name of the current OS
+- `string` `name`: Pretty name of the current OS
+- `string` `version`: Version of the current OS
 
 :::
 

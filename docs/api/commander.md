@@ -118,6 +118,8 @@ commander.registry() -> table
 ```
 :::
 
+Since: `2.3.0`
+
 Returns all registered commanders. Returns a list of tables with the following keys:  
 
 - `exec`: The function used to run the commander. Commanders require args and sinks to be passed.  

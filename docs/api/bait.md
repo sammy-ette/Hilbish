@@ -114,6 +114,8 @@ bait.hooks(name) -> table<function>
 ```
 :::
 
+Since: `2.0.0`
+
 Returns a table of functions that are hooked on an event with the corresponding `name`.  
 
 #### Parameters
@@ -142,6 +144,8 @@ The name of the hook
 bait.release(name, catcher)
 ```
 :::
+
+Since: `2.0.0`
 
 Removes the `catcher` for the event with `name`.  
 For this to work, `catcher` has to be the same function used to catch  

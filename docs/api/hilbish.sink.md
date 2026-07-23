@@ -19,7 +19,7 @@ a Commander's callback receives `sinks.out`, `sinks.err`, and `sinks.input`
 (see the commander module doc), and `hilbish.run()`'s `streams` table accepts sinks
 for `out`, `err`, and `input` to redirect a command's I/O.
 
-`fs.pipe()`` creates a connected pair of sinks directly,
+`fs.pipe()` creates a connected pair of sinks directly,
 useful for piping data between commands manually.
 
 ```lua
@@ -50,69 +50,17 @@ uses sinks for command output and input streams.
 
 ---
 
-#### sink.Flushes all buffered data, writing it to the underlying destination.
+#### sink.autoFlush
 
 :::signature
 ```lua
-hilbish.sink:()
+hilbish.sink:autoFlush(auto)
 ```
 :::
 
+Since: `2.2.0`
 
-
-
----
-
-#### sink.Reads a single line of input from the sink.
-
-:::signature
-```lua
-hilbish.sink:() -> string
-```
-:::
-
-
-#### Returns
-
-:::returns
-`string`  
-A line of data from the sink.
-
-:::
-
-
-
----
-
-#### sink.Reads all buffered input from the sink.
-
-:::signature
-```lua
-hilbish.sink:() -> string
-```
-:::
-
-
-#### Returns
-
-:::returns
-`string`  
-All data read from the sink.
-
-:::
-
-
-
----
-
-#### sink.Sets whether the sink automatically flushes after every write.
-
-:::signature
-```lua
-hilbish.sink:(auto)
-```
-:::
-
+Sets whether the sink automatically flushes after every write.  
 
 #### Parameters
 
@@ -126,14 +74,81 @@ Whether to enable auto-flush. Omit to toggle.
 
 ---
 
-#### sink.Writes a string to the sink followed by a newline.
+#### sink.flush
 
 :::signature
 ```lua
-hilbish.sink:(str)
+hilbish.sink:flush()
 ```
 :::
 
+Since: `2.2.0`
+
+Flushes all buffered data, writing it to the underlying destination.  
+
+
+
+---
+
+#### sink.read
+
+:::signature
+```lua
+hilbish.sink:read() -> string
+```
+:::
+
+Since: `2.2.0`
+
+Reads a single line of input from the sink.  
+
+#### Returns
+
+:::returns
+`string`  
+A line of data from the sink.
+
+:::
+
+
+
+---
+
+#### sink.readAll
+
+:::signature
+```lua
+hilbish.sink:readAll() -> string
+```
+:::
+
+Since: `2.2.0`
+
+Reads all buffered input from the sink.  
+
+#### Returns
+
+:::returns
+`string`  
+All data read from the sink.
+
+:::
+
+
+
+---
+
+#### sink.write
+
+:::signature
+```lua
+hilbish.sink:write(str)
+```
+:::
+
+Since: `2.1.0`
+
+Writes a string to the sink.  
 
 #### Parameters
 
@@ -147,14 +162,17 @@ The string to write.
 
 ---
 
-#### sink.Writes a string to the sink.
+#### sink.writeln
 
 :::signature
 ```lua
-hilbish.sink:(str)
+hilbish.sink:writeln(str)
 ```
 :::
 
+Since: `2.1.0`
+
+Writes a string to the sink followed by a newline.  
 
 #### Parameters
 

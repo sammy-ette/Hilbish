@@ -49,6 +49,19 @@ This signal has no variables.
 <hr class="my-4">
 ```
 
+## hilbish.init
+
+Thrown once, right after the user's config file has finished loading
+successfully, in interactive sessions.
+
+#### Variables
+
+This signal has no variables.
+
+``` =html
+<hr class="my-4">
+```
+
 ## hilbish.notification
 
 Thrown when a [notification](../features/notifications) is sent.
@@ -56,7 +69,7 @@ Thrown when a [notification](../features/notifications) is sent.
 #### Variables
 
 `table` _notification_  
-The notificatione. See the notifications feature doc for its properties.
+The notification. See the notifications feature doc for its properties.
 
 
 ``` =html

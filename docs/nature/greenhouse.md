@@ -7,6 +7,8 @@ menu:
     parent: "Nature"
 ---
 
+_Added in v2.2.0_
+
 ## Introduction
 
 Greenhouse is a simple text scrolling handler (pager) for terminal programs.
@@ -90,6 +92,8 @@ Resizes Greenhouse to fit the terminal's size.
 greenhouse.scroll(direction, opts)
 ```
 :::
+
+Since: `2.2.2`
 
 Scrolls the currently active page by one line, or a page height if specified.  
 

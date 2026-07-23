@@ -168,7 +168,7 @@
 							"the",
 							"job."
 						],
-						"startIdx": 2
+						"startIdx": 3
 					},
 					{
 						"id": "running",
@@ -269,6 +269,13 @@
 						"startIdx": 0
 					}
 				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 2
+					}
+				],
 				"type": [
 					{
 						"id": "",
@@ -276,7 +283,8 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "1.2.0"
 		}
 	],
 	"docs": [
@@ -376,7 +384,7 @@
 						"fields": [
 							"hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')"
 						],
-						"startIdx": 10
+						"startIdx": 11
 					}
 				],
 				"interface": [
@@ -451,8 +459,16 @@
 						],
 						"startIdx": 8
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 9
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.all",
@@ -513,8 +529,16 @@
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "1.2.0"
 		},
 		{
 			"name": "jobs.background",
@@ -542,8 +566,16 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.disown",
@@ -598,8 +630,16 @@
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.foreground",
@@ -628,8 +668,16 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.get",
@@ -728,8 +776,16 @@
 						],
 						"startIdx": 4
 					}
+				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "1.2.0"
 		},
 		{
 			"name": "jobs.last",
@@ -794,8 +850,16 @@
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.start",
@@ -823,8 +887,16 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "1.2.0"
 		},
 		{
 			"name": "jobs.stop",
@@ -874,8 +946,16 @@
 						],
 						"startIdx": 4
 					}
+				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
 			},
+			"since": "1.2.0",
 			"notes": [
 				"Sends SIGTERM to the process. For immediate termination use os.exit on the job's process directly."
 			]
@@ -899,8 +979,16 @@
 						"fields": [],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		}
 	]
 }

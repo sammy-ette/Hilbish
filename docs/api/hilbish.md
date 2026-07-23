@@ -133,8 +133,6 @@ hilbish.cwd() -> string
 ```
 :::
 
-Since: `2.0`
-
 Returns the current directory of the shell.  
 
 #### Returns
@@ -155,8 +153,6 @@ Returns the current directory of the shell.
 hilbish.exec(cmd)
 ```
 :::
-
-Since: `2.0`
 
 Replaces the currently running Hilbish instance with the supplied command.  
 This can be used to do an in-place restart.  
@@ -179,8 +175,6 @@ This can be used to do an in-place restart.
 hilbish.interval(cb, time) -> Timer
 ```
 :::
-
-Since: `2.0`
 
 Runs the `cb` function every specified amount of `time`.  
 This creates a timer that ticking immediately.  
@@ -218,7 +212,7 @@ hilbish.lookpath(file) -> string
 ```
 :::
 
-Since: `2.0`
+Since: `3.0.0`
 
 Searches for `file` in $PATH and returns its full path.  
 Throws an error if it is not found.  
@@ -459,8 +453,6 @@ hilbish.run('wc -l', {
 hilbish.timeout(cb, time) -> Timer
 ```
 :::
-
-Since: `2.0`
 
 Executes the `cb` function after a period of `time`.  
 This creates a Timer that starts ticking immediately.  

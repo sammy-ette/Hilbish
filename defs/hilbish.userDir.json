@@ -9,6 +9,7 @@
 		{
 			"name": "config",
 			"description": [
+				"The",
 				"user's",
 				"config",
 				"directory"
@@ -16,11 +17,12 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
-			"type": "The"
+			"type": "string"
 		},
 		{
 			"name": "data",
 			"description": [
+				"The",
 				"user's",
 				"directory",
 				"for",
@@ -30,7 +32,7 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
-			"type": "The"
+			"type": "string"
 		}
 	],
 	"docs": null

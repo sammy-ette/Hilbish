@@ -80,3 +80,18 @@ The raw string the user typed, before alias expansion and argument substitution.
 `string` _cmdStr_  
 The command that will be directly executed by the current runner.
 
+
+``` =html
+<hr class="my-4">
+```
+
+## command.preprocess
+
+Thrown as soon as `hilbish.runner.run` is called, before Hilbish's command
+processors (aliases, modifiers, wildcard warnings, etc.) run on the input.
+
+#### Variables
+
+`string` _input_  
+The raw input string, exactly as passed to the runner.
+

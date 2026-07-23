@@ -33,7 +33,6 @@
 					"Keys": null
 				}
 			],
-			"since": "2.0",
 			"seeAlso": [
 				"hilbish.alias"
 			]

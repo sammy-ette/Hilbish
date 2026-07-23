@@ -66,6 +66,16 @@
 					"type": "string"
 				},
 				{
+					"name": "index",
+					"description": [
+						"Index assigned to the message once sent with `send`, used to reference it in `read` and `delete`."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "integer?"
+				},
+				{
 					"name": "read",
 					"description": [
 						"Whether the full message has been read or not."
@@ -74,6 +84,58 @@
 					"isMember": false,
 					"isType": false,
 					"type": "boolean?"
+				}
+			]
+		},
+		{
+			"name": "hilbish.messageIcons",
+			"description": [
+				"Predefined icons for the `icon` field of a message. Any code sending",
+				"notifications can use these, whether from user config or Hilbish itself."
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": true,
+			"properties": [
+				{
+					"name": "INFO",
+					"description": [
+						"Icon for informational messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "SUCCESS",
+					"description": [
+						"Icon for success messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "WARN",
+					"description": [
+						"Icon for warning messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "ERROR",
+					"description": [
+						"Icon for error messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
 				}
 			]
 		}
@@ -179,7 +241,9 @@
 				{
 					"Name": "message",
 					"Type": "hilbish.message",
-					"Doc": null,
+					"Doc": [
+						"The message to send."
+					],
 					"Default": "",
 					"IsOptional": false,
 					"Keys": null
@@ -208,5 +272,6 @@
 				}
 			]
 		}
-	]
+	],
+	"since": "2.2.0"
 }

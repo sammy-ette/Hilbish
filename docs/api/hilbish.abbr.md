@@ -7,7 +7,7 @@ menu:
     parent: "API"
 ---
 
-_Added in v3.0_
+_Added in v3.0.0_
 
 ## Introduction
 

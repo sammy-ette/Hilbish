@@ -95,7 +95,8 @@
 						}
 					]
 				}
-			]
+			],
+			"since": "2.2.2"
 		},
 		{
 			"name": "updateSpecial",
@@ -108,5 +109,6 @@
 			"isMember": false,
 			"isType": false
 		}
-	]
+	],
+	"since": "2.2.0"
 }

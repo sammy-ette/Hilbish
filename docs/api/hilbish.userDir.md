@@ -26,8 +26,8 @@ local myPluginDir = fs.join(hilbish.userDir.config, 'hilbish', 'myplugin')
 ## Static module fields
 
 :::fieldlist
-- `The` `config`: user's config directory
-- `The` `data`: user's directory for program data
+- `string` `config`: The user's config directory
+- `string` `data`: The user's directory for program data
 
 :::
 

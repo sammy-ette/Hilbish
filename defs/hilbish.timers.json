@@ -131,7 +131,7 @@
 							"timeout",
 							"(one-shot)."
 						],
-						"startIdx": 2
+						"startIdx": 3
 					},
 					{
 						"id": "running",
@@ -172,6 +172,13 @@
 						"startIdx": 0
 					}
 				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 2
+					}
+				],
 				"type": [
 					{
 						"id": "",
@@ -179,7 +186,8 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		}
 	],
 	"docs": [
@@ -336,8 +344,16 @@
 						],
 						"startIdx": 6
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 7
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "timers.get",
@@ -436,8 +452,16 @@
 						],
 						"startIdx": 4
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "timers.start",
@@ -465,8 +489,16 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "timers.stop",
@@ -494,8 +526,16 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "timers.wait",
@@ -516,8 +556,16 @@
 						"fields": [],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		}
 	]
 }

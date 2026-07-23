@@ -131,6 +131,7 @@
 					"Keys": null
 				}
 			],
+			"since": "3.0.0",
 			"seeAlso": [
 				"set"
 			]
@@ -175,7 +176,8 @@
 					"IsOptional": false,
 					"Keys": null
 				}
-			]
+			],
+			"since": "2.0.0"
 		},
 		{
 			"name": "get",
@@ -207,7 +209,8 @@
 					"IsOptional": false,
 					"Keys": null
 				}
-			]
+			],
+			"since": "2.0.0"
 		},
 		{
 			"name": "getCurrent",
@@ -229,7 +232,8 @@
 					"IsOptional": false,
 					"Keys": null
 				}
-			]
+			],
+			"since": "2.1.0"
 		},
 		{
 			"name": "lua",
@@ -262,7 +266,8 @@
 					"IsOptional": false,
 					"Keys": null
 				}
-			]
+			],
+			"since": "2.0.0"
 		},
 		{
 			"name": "run",
@@ -292,7 +297,8 @@
 					"IsOptional": true,
 					"Keys": null
 				}
-			]
+			],
+			"since": "3.0.0"
 		},
 		{
 			"name": "set",
@@ -322,7 +328,8 @@
 					"IsOptional": false,
 					"Keys": null
 				}
-			]
+			],
+			"since": "3.0.0"
 		},
 		{
 			"name": "setCurrent",
@@ -344,7 +351,8 @@
 					"IsOptional": false,
 					"Keys": null
 				}
-			]
+			],
+			"since": "2.0.0"
 		},
 		{
 			"name": "sh",
@@ -376,7 +384,8 @@
 					"IsOptional": false,
 					"Keys": null
 				}
-			]
+			],
+			"since": "2.0.0"
 		}
 	]
 }

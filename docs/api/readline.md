@@ -46,6 +46,8 @@ readline.fuzzySearch(needle, haystack) -> table
 ```
 :::
 
+Since: `3.0.0`
+
 Performs a fuzzy search of needle in haystack and returns matched strings.  
 
 #### Parameters
@@ -76,6 +78,8 @@ readline.new() -> Readline
 ```
 :::
 
+Since: `3.0.0`
+
 Creates a new readline instance.  
 
 #### Returns
@@ -96,6 +100,8 @@ Creates a new readline instance.
 readline.newHistory(path) -> table
 ```
 :::
+
+Since: `3.0.0`
 
 Creates a file-backed history handler.  
 
@@ -146,15 +152,16 @@ Clears the history.
 
 ---
 
-#### DeleteByAmount
+#### deleteByAmount
 
 :::signature
 ```lua
-readline:DeleteByAmount(amount)
+readline:deleteByAmount(amount)
 ```
 :::
 
-deleteByAmount(amount)  
+Since: `3.0.0`
+
 Deletes characters in the line by the given amount.  
 
 #### Parameters
@@ -168,13 +175,15 @@ Deletes characters in the line by the given amount.
 
 ---
 
-#### GetLine
+#### getLine
 
 :::signature
 ```lua
-readline:GetLine() -> string
+readline:getLine() -> string
 ```
 :::
+
+Since: `3.0.0`
 
 Returns the current input line.  
 
@@ -189,13 +198,15 @@ Returns the current input line.
 
 ---
 
-#### GetRegister
+#### getRegister
 
 :::signature
 ```lua
-readline:GetRegister(register) -> string
+readline:getRegister(register) -> string
 ```
 :::
+
+Since: `3.0.0`
 
 Returns the text that is at the register.  
 
@@ -217,15 +228,16 @@ Returns the text that is at the register.
 
 ---
 
-#### Insert
+#### insert
 
 :::signature
 ```lua
-readline:Insert(text)
+readline:insert(text)
 ```
 :::
 
-insert(text)  
+Since: `3.0.0`
+
 Inserts text into the Hilbish command line.  
 
 #### Parameters
@@ -239,13 +251,15 @@ Inserts text into the Hilbish command line.
 
 ---
 
-#### Log
+#### log
 
 :::signature
 ```lua
-readline:Log()
+readline:log()
 ```
 :::
+
+Since: `3.0.0`
 
 Prints a message *before* the prompt without it being interrupted by user input.  
 
@@ -253,59 +267,17 @@ Prints a message *before* the prompt without it being interrupted by user input.
 
 ---
 
-#### Prompt
+#### prompt
 
 :::signature
 ```lua
-readline:Prompt()
+readline:prompt()
 ```
 :::
+
+Since: `3.0.0`
 
 Sets the prompt of the line reader. This is the text that shows up before user input.  
-
-
-
----
-
-#### ReadChar
-
-:::signature
-```lua
-readline:ReadChar() -> string
-```
-:::
-
-Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L.  
-
-#### Returns
-
-:::returns
-`string`  
-
-:::
-
-
-
----
-
-#### SetRegister
-
-:::signature
-```lua
-readline:SetRegister(register, text)
-```
-:::
-
-Sets the vim register at `register` to hold the passed text.  
-
-#### Parameters
-
-:::params
-`string` _register_  
-
-`string` _text_  
-
-:::
 
 
 
@@ -318,6 +290,8 @@ Sets the vim register at `register` to hold the passed text.
 readline:read() -> string?
 ```
 :::
+
+Since: `3.0.0`
 
 Reads input from the user.  
 
@@ -333,6 +307,29 @@ Throws an error if the user hits Ctrl-D or another error occurs.
 
 ---
 
+#### readChar
+
+:::signature
+```lua
+readline:readChar() -> string
+```
+:::
+
+Since: `3.0.0`
+
+Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L.  
+
+#### Returns
+
+:::returns
+`string`  
+
+:::
+
+
+
+---
+
 #### refreshPrompt
 
 :::signature
@@ -340,6 +337,8 @@ Throws an error if the user hits Ctrl-D or another error occurs.
 readline:refreshPrompt()
 ```
 :::
+
+Since: `3.0.0`
 
 Refreshes the prompt, if the text has been updated.  
 This is called automatically on `hilbish.prompt`  
@@ -355,6 +354,8 @@ This is called automatically on `hilbish.prompt`
 readline:setCompleter(fn)
 ```
 :::
+
+Since: `3.0.0`
 
 Sets the tab completion handler.  
 
@@ -377,7 +378,8 @@ readline:setHighlighter(fn)
 ```
 :::
 
-setHighlighter(fn)  
+Since: `3.0.0`
+
 Sets the syntax highlighter function. Called on every key insert to style the input.  
 
 #### Parameters
@@ -399,6 +401,8 @@ readline:setHinter(fn)
 ```
 :::
 
+Since: `3.0.0`
+
 Sets the hinter function. Called on every key insert to provide inline hint text.  
 
 #### Parameters
@@ -419,6 +423,8 @@ Sets the hinter function. Called on every key insert to provide inline hint text
 readline:setHistory(handler)
 ```
 :::
+
+Since: `3.0.0`
 
 Sets the history handler.  
 Use newHistory(path) to get a file-backed handler, or supply your own.  
@@ -453,6 +459,8 @@ readline:setInputMode(mode)
 ```
 :::
 
+Since: `3.0.0`
+
 Sets the input mode.  
 
 #### Parameters
@@ -475,6 +483,8 @@ readline:setRawInputCallback(fn)
 ```
 :::
 
+Since: `3.0.0`
+
 Sets a function to be called on every raw input event (each keystroke).  
 fn receives the input string.  
 
@@ -489,6 +499,31 @@ fn receives the input string.
 
 ---
 
+#### setRegister
+
+:::signature
+```lua
+readline:setRegister(register, text)
+```
+:::
+
+Since: `3.0.0`
+
+Sets the vim register at `register` to hold the passed text.  
+
+#### Parameters
+
+:::params
+`string` _register_  
+
+`string` _text_  
+
+:::
+
+
+
+---
+
 #### setSearcher
 
 :::signature
@@ -496,6 +531,8 @@ fn receives the input string.
 readline:setSearcher(fn)
 ```
 :::
+
+Since: `3.0.0`
 
 Sets the searcher used for history search and completion filtering.  
 fn receives (needle string, haystack table) and returns a table of results,  
@@ -520,6 +557,8 @@ readline:setViActionCallback(fn)
 ```
 :::
 
+Since: `3.0.0`
+
 Sets the function called when a Vim action occurs (yank, paste).  
 fn receives (action string, args table).  
 
@@ -542,7 +581,8 @@ readline:setViModeCallback(fn)
 ```
 :::
 
-setViModeCallback(fn)  
+Since: `3.0.0`
+
 Sets the function called when the Vim mode changes.  
 fn receives the mode string: "insert", "normal", "delete", or "replace".  
 

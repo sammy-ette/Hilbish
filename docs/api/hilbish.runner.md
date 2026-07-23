@@ -68,6 +68,8 @@ hilbish.runner.add(name, runner)
 ```
 :::
 
+Since: `3.0.0`
+
 Adds a runner to the table of available runners. Errors if a runner  
 with `name` already exists. Use `set` to overwrite an existing runner.  
 
@@ -96,6 +98,8 @@ Unique name for the runner.
 hilbish.runner.exec(cmd, runnerName) -> RunnerResult
 ```
 :::
+
+Since: `2.0.0`
 
 Runs `cmd` using the named runner, or the current runner if `runnerName` is not given.  
 
@@ -129,6 +133,8 @@ hilbish.runner.get(name) -> Runner
 ```
 :::
 
+Since: `2.0.0`
+
 Get a runner by name. Throws an error if the runner does not exist.  
 
 #### Parameters
@@ -158,6 +164,8 @@ hilbish.runner.getCurrent() -> string
 ```
 :::
 
+Since: `2.1.0`
+
 Returns the name of the currently active runner.  
 
 #### Returns
@@ -179,6 +187,8 @@ The name of the current runner.
 hilbish.runner.lua(input) -> RunnerResult
 ```
 :::
+
+Since: `2.0.0`
 
 Evaluates `input` as Lua code. Equivalent to `load(input)()`, shaped  
 for the runner interface.  
@@ -210,6 +220,8 @@ hilbish.runner.run(input, priv)
 ```
 :::
 
+Since: `3.0.0`
+
 Runs `input` with the currently set Hilbish runner.  
 This method is how Hilbish executes commands.  
 `priv` is an optional boolean used to state if the input should be saved to history.  
@@ -236,6 +248,8 @@ hilbish.runner.set(name, runner)
 ```
 :::
 
+Since: `3.0.0`
+
 Sets (or replaces) a runner by name, without checking if one already exists.  
 
 #### Parameters
@@ -260,6 +274,8 @@ hilbish.runner.setCurrent(name)
 ```
 :::
 
+Since: `2.0.0`
+
 Sets Hilbish's active runner mode by name. Errors if the runner does not exist.  
 
 #### Parameters
@@ -281,6 +297,8 @@ Name of the runner to make active.
 hilbish.runner.sh(input) -> RunnerResult
 ```
 :::
+
+Since: `2.0.0`
 
 Runs `input` as a shell script using Hilbish's built-in shell interpreter.  
 

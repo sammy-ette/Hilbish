@@ -16,6 +16,13 @@
 			"isMember": false,
 			"isType": true,
 			"tags": {
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 1
+					}
+				],
 				"type": [
 					{
 						"id": "snail",
@@ -23,7 +30,8 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		}
 	],
 	"docs": [
@@ -84,8 +92,16 @@
 						],
 						"startIdx": 4
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "new",
@@ -125,8 +141,16 @@
 						],
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 2
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "run",
@@ -305,6 +329,13 @@
 						"startIdx": 4
 					}
 				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 10
+					}
+				],
 				"treturn": [
 					{
 						"id": "result",
@@ -383,7 +414,8 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "validate",
@@ -468,8 +500,16 @@
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		}
 	]
 }

@@ -44,6 +44,8 @@ snail.new() -> Snail
 ```
 :::
 
+Since: `3.0.0`
+
 Creates a new Snail shell interpreter instance.  
 
 #### Returns
@@ -65,6 +67,8 @@ The new Snail instance.
 snail.validate(input) -> boolean
 ```
 :::
+
+Since: `3.0.0`
 
 Checks if the input shell script is syntactically incomplete (e.g. unclosed quotes  
 or blocks). Returns true if the input is incomplete, false otherwise.  
@@ -108,6 +112,8 @@ snail:dir(path)
 ```
 :::
 
+Since: `3.0.0`
+
 Changes the working directory of this Snail instance.  
 The interpreter keeps its own directory state.  
 In Hilbish usage, this is called when `hilbish.cd` is emitted.  
@@ -131,6 +137,8 @@ The new working directory. Must be an absolute path.
 snail:run(command, streams) -> table
 ```
 :::
+
+Since: `3.0.0`
 
 Runs a shell script command. Works like `hilbish.run` but operates on this Snail instance.  
 

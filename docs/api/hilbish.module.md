@@ -63,6 +63,8 @@ hilbish.module.load(path)
 ```
 :::
 
+Since: `2.2.0`
+
 Loads a module at the designated `path`.  
 It will throw if any error occurs.  
 

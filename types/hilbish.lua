@@ -50,8 +50,16 @@ function Job:stop() end
 ---@field text any
 ---@field channel any
 ---@field summary any
+---@field index any
 ---@field read any
-local hilbish.message = {}
+hilbish.message = {}
+
+---@class hilbish.messageIcons
+---@field INFO any
+---@field SUCCESS any
+---@field WARN any
+---@field ERROR any
+hilbish.messageIcons = {}
 
 ---@class hilbish.messages
 ---@field all fun(): table
@@ -101,6 +109,23 @@ local RunnerResult = {}
 
 ---@class Sink
 local Sink = {}
+
+---@param auto? boolean
+function Sink:autoFlush(auto) end
+
+function Sink:flush() end
+
+---@return string line
+function Sink:read() end
+
+---@return string data
+function Sink:readAll() end
+
+---@param str string
+function Sink:write(str) end
+
+---@param str string
+function Sink:writeln(str) end
 
 ---@class hilbish.sink
 

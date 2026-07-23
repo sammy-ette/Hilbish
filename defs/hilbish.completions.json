@@ -434,8 +434,16 @@
 						],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 11
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "completions.dirs",
@@ -605,8 +613,16 @@
 						],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 9
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "completions.files",
@@ -874,7 +890,7 @@
 							"\tend",
 							"end"
 						],
-						"startIdx": 11
+						"startIdx": 12
 					}
 				],
 				"interface": [
@@ -937,8 +953,16 @@
 						],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 10
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		}
 	]
 }

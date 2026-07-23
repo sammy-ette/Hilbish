@@ -7,6 +7,8 @@ menu:
     parent: "Nature"
 ---
 
+_Added in v2.0.0_
+
 ## Introduction
 
 The dirs module defines a small set of functions to store and manage

@@ -4,31 +4,27 @@
 local Readline = {}
 
 ---@param amount number
-function Readline:DeleteByAmount(amount) end
+function Readline:deleteByAmount(amount) end
 
 ---@return string line
-function Readline:GetLine() end
+function Readline:getLine() end
 
 ---@param register string
 ---@return string text
-function Readline:GetRegister(register) end
+function Readline:getRegister(register) end
 
 ---@param text string
-function Readline:Insert(text) end
+function Readline:insert(text) end
 
-function Readline:Log() end
+function Readline:log() end
 
-function Readline:Prompt() end
-
----@return string keystroke
-function Readline:ReadChar() end
-
----@param register string
----@param text string
-function Readline:SetRegister(register, text) end
+function Readline:prompt() end
 
 ---@return string? input
 function Readline:read() end
+
+---@return string keystroke
+function Readline:readChar() end
 
 function Readline:refreshPrompt() end
 
@@ -49,6 +45,10 @@ function Readline:setInputMode(mode) end
 
 ---@param fn fun(...: any)
 function Readline:setRawInputCallback(fn) end
+
+---@param register string
+---@param text string
+function Readline:setRegister(register, text) end
 
 ---@param fn fun(needle:string,haystack:table<string>):table|nil
 function Readline:setSearcher(fn) end

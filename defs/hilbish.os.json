@@ -9,6 +9,7 @@
 		{
 			"name": "family",
 			"description": [
+				"Family",
 				"name",
 				"of",
 				"the",
@@ -18,11 +19,12 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
-			"type": "Family"
+			"type": "string"
 		},
 		{
 			"name": "name",
 			"description": [
+				"Pretty",
 				"name",
 				"of",
 				"the",
@@ -32,11 +34,12 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
-			"type": "Pretty"
+			"type": "string"
 		},
 		{
 			"name": "version",
 			"description": [
+				"Version",
 				"of",
 				"the",
 				"current",
@@ -45,7 +48,7 @@
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
-			"type": "Version"
+			"type": "string"
 		}
 	],
 	"docs": null

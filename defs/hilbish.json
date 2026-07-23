@@ -389,16 +389,8 @@
 						],
 						"startIdx": 1
 					}
-				],
-				"since": [
-					{
-						"id": "2.0",
-						"fields": [],
-						"startIdx": 2
-					}
 				]
-			},
-			"since": "2.0"
+			}
 		},
 		{
 			"name": "exec",
@@ -430,16 +422,8 @@
 						],
 						"startIdx": 2
 					}
-				],
-				"since": [
-					{
-						"id": "2.0",
-						"fields": [],
-						"startIdx": 3
-					}
 				]
-			},
-			"since": "2.0"
+			}
 		},
 		{
 			"name": "interval",
@@ -517,18 +501,10 @@
 					{
 						"id": "hilbish.timeout",
 						"fields": [],
-						"startIdx": 6
-					}
-				],
-				"since": [
-					{
-						"id": "2.0",
-						"fields": [],
 						"startIdx": 5
 					}
 				]
 			},
-			"since": "2.0",
 			"seeAlso": [
 				"hilbish.timeout"
 			]
@@ -585,13 +561,13 @@
 				],
 				"since": [
 					{
-						"id": "2.0",
+						"id": "3.0.0",
 						"fields": [],
 						"startIdx": 4
 					}
 				]
 			},
-			"since": "2.0"
+			"since": "3.0.0"
 		},
 		{
 			"name": "multiprompt",
@@ -941,18 +917,10 @@
 					{
 						"id": "hilbish.interval",
 						"fields": [],
-						"startIdx": 6
-					}
-				],
-				"since": [
-					{
-						"id": "2.0",
-						"fields": [],
 						"startIdx": 5
 					}
 				]
 			},
-			"since": "2.0",
 			"seeAlso": [
 				"hilbish.interval"
 			]

@@ -175,6 +175,8 @@ hilbish.completions.call(name, query, ctx, fields) -> table, string
 ```
 :::
 
+Since: `2.0.0`
+
 Calls a completer function.  
 This is mainly used to call a command completer, which will have a `name`  
 in the form of `command.name`, example: `command.git`.  
@@ -217,6 +219,8 @@ A table of completion groups.
 hilbish.completions.dirs(query, ctx, fields) -> table<string>, string
 ```
 :::
+
+Since: `3.0.0`
 
 Returns directory matches based on the provided parameters.  
 This function is meant to be used as a helper in a command completion handler.  
@@ -297,6 +301,8 @@ The prefix used for completions.
 hilbish.completions.handler(line, pos) -> string, table
 ```
 :::
+
+Since: `2.0.0`
 
 This function contains the general completion handler for Hilbish.  
 This function handles completion of everything,  

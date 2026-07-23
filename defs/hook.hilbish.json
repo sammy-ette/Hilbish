@@ -46,6 +46,14 @@
 			]
 		},
 		{
+			"name": "hilbish.init",
+			"group": "hilbish",
+			"description": [
+				"Thrown once, right after the user's config file has finished loading",
+				"successfully, in interactive sessions."
+			]
+		},
+		{
 			"name": "hilbish.notification",
 			"group": "hilbish",
 			"description": [
@@ -56,7 +64,7 @@
 					"Name": "notification",
 					"Type": "table",
 					"Doc": [
-						"The notificatione. See the notifications feature doc for its properties."
+						"The notification. See the notifications feature doc for its properties."
 					],
 					"Default": "",
 					"IsOptional": false,

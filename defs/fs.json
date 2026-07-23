@@ -73,13 +73,13 @@
 				],
 				"since": [
 					{
-						"id": "2.0",
+						"id": "2.0.0",
 						"fields": [],
 						"startIdx": 4
 					}
 				]
 			},
-			"since": "2.0"
+			"since": "2.0.0"
 		},
 		{
 			"name": "basename",
@@ -148,13 +148,13 @@
 				],
 				"since": [
 					{
-						"id": "2.0",
+						"id": "2.0.0",
 						"fields": [],
 						"startIdx": 4
 					}
 				]
 			},
-			"since": "2.0"
+			"since": "2.0.0"
 		},
 		{
 			"name": "cd",
@@ -196,16 +196,8 @@
 						],
 						"startIdx": 1
 					}
-				],
-				"since": [
-					{
-						"id": "2.0",
-						"fields": [],
-						"startIdx": 2
-					}
 				]
-			},
-			"since": "2.0"
+			}
 		},
 		{
 			"name": "dir",
@@ -272,13 +264,13 @@
 				],
 				"since": [
 					{
-						"id": "2.0",
+						"id": "2.0.0",
 						"fields": [],
 						"startIdx": 4
 					}
 				]
 			},
-			"since": "2.0"
+			"since": "2.0.0"
 		},
 		{
 			"name": "executable",
@@ -331,13 +323,13 @@
 				],
 				"since": [
 					{
-						"id": "2.0",
+						"id": "3.0.0",
 						"fields": [],
 						"startIdx": 3
 					}
 				]
 			},
-			"since": "2.0"
+			"since": "3.0.0"
 		},
 		{
 			"name": "glob",
@@ -402,7 +394,7 @@
 							"print(matches)",
 							"-- -\u003e {'init.lua', 'code.lua'}"
 						],
-						"startIdx": 5
+						"startIdx": 6
 					}
 				],
 				"param": [
@@ -434,8 +426,16 @@
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "join",
@@ -487,7 +487,7 @@
 							"print(fs.join(hilbish.userDir.config, 'hilbish'))",
 							"-- -\u003e '/home/user/.config/hilbish' on Linux"
 						],
-						"startIdx": 4
+						"startIdx": 5
 					}
 				],
 				"param": [
@@ -514,8 +514,16 @@
 						],
 						"startIdx": 2
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "mkdir",
@@ -678,8 +686,16 @@
 						],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.3.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.3.0"
 		},
 		{
 			"name": "readdir",

@@ -38,8 +38,6 @@ hilbish.aliases.add(alias, cmd)
 ```
 :::
 
-Since: `2.0`
-
 This is an alias (ha) for the [hilbish.alias](../#alias) function.  
 
 #### Parameters

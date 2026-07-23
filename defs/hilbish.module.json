@@ -85,8 +85,16 @@
 						],
 						"startIdx": 4
 					}
+				],
+				"since": [
+					{
+						"id": "2.2.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.2.0"
 		}
 	]
 }

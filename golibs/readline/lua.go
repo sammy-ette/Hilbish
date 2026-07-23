@@ -33,15 +33,15 @@ var rlMetaKey = moonlight.StringValue("__readline")
 func Loader(mlr *moonlight.Runtime) moonlight.Value {
 	rlMethods := moonlight.NewTable()
 	rlMethodss := map[string]moonlight.Export{
-		"deleteByAmount":      {Function: rlDeleteByAmount, ArgNum: 2, Variadic: false},
-		"getLine":             {Function: rlGetLine, ArgNum: 1, Variadic: false},
-		"getVimRegister":      {Function: rlGetRegister, ArgNum: 2, Variadic: false},
-		"insert":              {Function: rlInsert, ArgNum: 2, Variadic: false},
+		"deleteByAmount":      {Function: rldeleteByAmount, ArgNum: 2, Variadic: false},
+		"getLine":             {Function: rlgetLine, ArgNum: 1, Variadic: false},
+		"getVimRegister":      {Function: rlgetRegister, ArgNum: 2, Variadic: false},
+		"insert":              {Function: rlinsert, ArgNum: 2, Variadic: false},
 		"read":                {Function: rlread, ArgNum: 1, Variadic: false},
-		"readChar":            {Function: rlReadChar, ArgNum: 1, Variadic: false},
-		"setVimRegister":      {Function: rlSetRegister, ArgNum: 3, Variadic: false},
-		"log":                 {Function: rlLog, ArgNum: 2, Variadic: false},
-		"prompt":              {Function: rlPrompt, ArgNum: 2, Variadic: false},
+		"readChar":            {Function: rlreadChar, ArgNum: 1, Variadic: false},
+		"setVimRegister":      {Function: rlsetRegister, ArgNum: 3, Variadic: false},
+		"log":                 {Function: rllog, ArgNum: 2, Variadic: false},
+		"prompt":              {Function: rlprompt, ArgNum: 2, Variadic: false},
 		"refreshPrompt":       {Function: rlrefreshPrompt, ArgNum: 1, Variadic: false},
 		"setHinter":           {Function: rlsetHinter, ArgNum: 2, Variadic: false},
 		"setHighlighter":      {Function: rlsetHighlighter, ArgNum: 2, Variadic: false},
@@ -180,11 +180,10 @@ func rlnewHistory(mlr *moonlight.Runtime) error {
 }
 
 // @member
-// insert(text)
 // Inserts text into the Hilbish command line.
 // @param text string
 // @since 3.0.0
-func rlInsert(mlr *moonlight.Runtime) error {
+func rlinsert(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -236,7 +235,7 @@ func rlread(mlr *moonlight.Runtime) error {
 // @param register string
 // @param text string
 // @since 3.0.0
-func rlSetRegister(mlr *moonlight.Runtime) error {
+func rlsetRegister(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(3); err != nil {
 		return err
 	}
@@ -266,7 +265,7 @@ func rlSetRegister(mlr *moonlight.Runtime) error {
 // @param register string
 // @return string text
 // @since 3.0.0
-func rlGetRegister(mlr *moonlight.Runtime) error {
+func rlgetRegister(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -291,7 +290,7 @@ func rlGetRegister(mlr *moonlight.Runtime) error {
 // Returns the current input line.
 // @return string line
 // @since 3.0.0
-func rlGetLine(mlr *moonlight.Runtime) error {
+func rlgetLine(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
 	}
@@ -311,7 +310,7 @@ func rlGetLine(mlr *moonlight.Runtime) error {
 // Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L.
 // @return string keystroke
 // @since 3.0.0
-func rlReadChar(mlr *moonlight.Runtime) error {
+func rlreadChar(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
 	}
@@ -327,11 +326,10 @@ func rlReadChar(mlr *moonlight.Runtime) error {
 }
 
 // @member
-// deleteByAmount(amount)
 // Deletes characters in the line by the given amount.
 // @param amount number
 // @since 3.0.0
-func rlDeleteByAmount(mlr *moonlight.Runtime) error {
+func rldeleteByAmount(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -354,7 +352,7 @@ func rlDeleteByAmount(mlr *moonlight.Runtime) error {
 // @member
 // Prints a message *before* the prompt without it being interrupted by user input.
 // @since 3.0.0
-func rlLog(mlr *moonlight.Runtime) error {
+func rllog(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -377,7 +375,7 @@ func rlLog(mlr *moonlight.Runtime) error {
 // @member
 // Sets the prompt of the line reader. This is the text that shows up before user input.
 // @since 3.0.0
-func rlPrompt(mlr *moonlight.Runtime) error {
+func rlprompt(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -454,7 +452,6 @@ func rlsetHinter(mlr *moonlight.Runtime) error {
 }
 
 // @member
-// setHighlighter(fn)
 // Sets the syntax highlighter function. Called on every key insert to style the input.
 // @param fn fun(line:string):string
 // @since 3.0.0
@@ -587,7 +584,6 @@ func rlsetCompleter(mlr *moonlight.Runtime) error {
 }
 
 // @member
-// setViModeCallback(fn)
 // Sets the function called when the Vim mode changes.
 // fn receives the mode string: "insert", "normal", "delete", or "replace".
 // @param fn function

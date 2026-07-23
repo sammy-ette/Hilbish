@@ -240,8 +240,16 @@
 						],
 						"startIdx": 2
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "release",
@@ -302,7 +310,7 @@
 							"bait.release('event', hookCallback)",
 							"-- and now hookCallback will no longer be ran for the event."
 						],
-						"startIdx": 6
+						"startIdx": 7
 					}
 				],
 				"param": [
@@ -332,8 +340,16 @@
 						],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "throw",
