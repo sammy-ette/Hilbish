@@ -39,6 +39,12 @@
 --- @var input string The raw string the user typed, before alias expansion and argument substitution.
 --- @var cmdStr string The command that will be directly executed by the current runner.
 
+--- @hook command.preprocess
+--- @group command
+--- Thrown as soon as `hilbish.runner.run` is called, before Hilbish's command
+--- processors (aliases, modifiers, wildcard warnings, etc.) run on the input.
+--- @var input string The raw input string, exactly as passed to the runner.
+
 --- @hook hilbish.cancel
 --- @group hilbish
 --- Sent when the user cancels their command input with Ctrl-C.
@@ -54,10 +60,15 @@
 --- @group hilbish
 --- Sent when Hilbish is going to exit.
 
+--- @hook hilbish.init
+--- @group hilbish
+--- Thrown once, right after the user's config file has finished loading
+--- successfully, in interactive sessions.
+
 --- @hook hilbish.notification
 --- @group hilbish
 --- Thrown when a [notification](../features/notifications) is sent.
---- @var notification table The notificatione. See the notifications feature doc for its properties.
+--- @var notification table The notification. See the notifications feature doc for its properties.
 
 --- @hook hilbish.rawInput
 --- @group hilbish

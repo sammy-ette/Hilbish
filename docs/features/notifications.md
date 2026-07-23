@@ -9,7 +9,9 @@ menu:
 
 Hilbish has an internal notification system that shell features and plugins can
 use to surface information to the user. A notification is a small message with
-a title, body, icon, and channel (the source that sent it).
+a title, a short summary, full text, an icon, and a channel (the source that
+sent it). Each notification also starts out unread, so it can be marked read
+individually or all at once.
 
 By itself, Hilbish does not display notifications in any special way — what
 happens with a notification depends entirely on what your config does with it.

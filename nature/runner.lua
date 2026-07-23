@@ -170,7 +170,7 @@ end
 --- @default priv? false
 --- @since 3.0.0
 function hilbish.runner.run(input, priv)
-	bait.throw('command.preprocess', input)
+	bait.throw('command.preprocess', input) -- see nature/hooks.lua
 	local processed = hilbish.processors.execute(input, {
 		skip = hilbish.opts.processorSkipList
 	})

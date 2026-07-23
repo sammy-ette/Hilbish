@@ -1921,6 +1921,18 @@ func luaFunField(doc docPiece) string {
 
 // luaMethodDecl writes param/return annotations and a function declaration
 // for a member method on className.
+// luaClassAnchor returns the statement that gives a `---@class` block a
+// concrete variable to attach `function X:method() end` declarations to.
+// `local a.b = {}` is invalid Lua syntax, so dotted class names (e.g.
+// "hilbish.message") must be declared as a plain field assignment instead of
+// a local.
+func luaClassAnchor(className string) string {
+	if strings.Contains(className, ".") {
+		return fmt.Sprintf("%s = {}\n\n", className)
+	}
+	return fmt.Sprintf("local %s = {}\n\n", className)
+}
+
 func luaMethodDecl(className string, doc docPiece) string {
 	name := luaSigName(doc.FuncSig)
 	if name == "" {
@@ -1991,7 +2003,7 @@ func writeLuaModDef(mod module) {
 		for _, p := range typ.Properties {
 			b.WriteString(fmt.Sprintf("---@field %s any\n", p.FuncName))
 		}
-		b.WriteString(fmt.Sprintf("local %s = {}\n\n", typ.FuncName))
+		b.WriteString(luaClassAnchor(typ.FuncName))
 		for _, d := range memberDocs {
 			b.WriteString(luaMethodDecl(typ.FuncName, d))
 		}
@@ -2010,7 +2022,7 @@ func writeLuaModDef(mod module) {
 		}
 		b.WriteString(fmt.Sprintf("---@field %s %s\n", name, luaFunField(d)))
 	}
-	b.WriteString(fmt.Sprintf("local %s = {}\n\n", mod.Name))
+	b.WriteString(luaClassAnchor(mod.Name))
 	b.WriteString(fmt.Sprintf("return %s\n", mod.Name))
 
 	os.WriteFile(filepath.Join("types", mod.Name+".lua"), []byte(b.String()), 0644)
@@ -2044,7 +2056,7 @@ func writeLuaHilbishDef(mods []module) {
 		for _, p := range typ.Properties {
 			b.WriteString(fmt.Sprintf("---@field %s any\n", p.FuncName))
 		}
-		b.WriteString(fmt.Sprintf("local %s = {}\n\n", typ.FuncName))
+		b.WriteString(luaClassAnchor(typ.FuncName))
 		for _, d := range sinkMembers {
 			b.WriteString(luaMethodDecl(typ.FuncName, d))
 		}
@@ -2063,7 +2075,7 @@ func writeLuaHilbishDef(mods []module) {
 			for _, p := range typ.Properties {
 				b.WriteString(fmt.Sprintf("---@field %s any\n", p.FuncName))
 			}
-			b.WriteString(fmt.Sprintf("local %s = {}\n\n", typ.FuncName))
+			b.WriteString(luaClassAnchor(typ.FuncName))
 			for _, d := range memberDocs {
 				b.WriteString(luaMethodDecl(typ.FuncName, d))
 			}

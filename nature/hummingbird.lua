@@ -33,15 +33,23 @@ local M = {}
 local counter = 0
 local unread = 0
 M._messages = {}
-M.icons = {
+
+---@diagnostic disable-next-line: missing-fields
+hilbish.messages = {}
+
+--- Predefined icons for the `icon` field of a message. Any code sending
+--- notifications can use these, whether from user config or Hilbish itself.
+--- @class hilbish.messageIcons
+--- @field INFO string Icon for informational messages.
+--- @field SUCCESS string Icon for success messages.
+--- @field WARN string Icon for warning messages.
+--- @field ERROR string Icon for error messages.
+hilbish.messages.icons = {
 	INFO = '',
 	SUCCESS = '',
 	WARN = '',
 	ERROR = ''
 }
-
----@diagnostic disable-next-line: missing-fields
-hilbish.messages = {}
 
 --- Represents a Hilbish message.
 --- @class hilbish.message
@@ -50,6 +58,7 @@ hilbish.messages = {}
 --- @field text string Contents of the message.
 --- @field channel string Short identifier of the message. `hilbish` and `hilbish.*` is preserved for internal Hilbish messages.
 --- @field summary string A short summary of the message.
+--- @field index? integer Index assigned to the message once sent with `send`, used to reference it in `read` and `delete`.
 --- @field read? boolean Whether the full message has been read or not.
 
 local function expect(tbl, field)
@@ -60,7 +69,7 @@ end
 
 --- Sends a notification message and emits the `hilbish.notification` signal.
 --- Do *not* emit the `hilbish.notification` signal directly.
---- @param message hilbish.message
+--- @param message hilbish.message The message to send.
 function hilbish.messages.send(message)
 	expect(message, 'text')
 	expect(message, 'title')
