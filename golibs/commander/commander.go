@@ -106,6 +106,7 @@ func (c *Commander) cderegister(mlr *moonlight.Runtime) error {
 //
 // - `exec`: The function used to run the commander. Commanders require args and sinks to be passed.
 // @return table registry
+// @since 2.3.0
 func (c *Commander) cregistry(mlr *moonlight.Runtime) error {
 	registryLua := moonlight.NewTable()
 	for cmdName, cmd := range c.Commands {

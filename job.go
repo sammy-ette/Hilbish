@@ -19,6 +19,7 @@ var jobMetaKey = moonlight.StringValue("hshjob")
 
 // @type
 // @interface jobs
+// @since 1.2.0
 // @property cmd string The user entered command string for the job.
 // @property running boolean Whether the job is running or not.
 // @property id number The ID of the job in the job table
@@ -140,6 +141,7 @@ func (j *job) getProc() *os.Process {
 // @member
 // start()
 // Starts running the job.
+// @since 1.2.0
 func luaStartJob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -173,6 +175,7 @@ func luaStartJob(mlr *moonlight.Runtime) error {
 // stop()
 // Stops the job from running.
 // @note Sends SIGTERM to the process. For immediate termination use os.exit on the job's process directly.
+// @since 1.2.0
 func luaStopJob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -200,6 +203,7 @@ func luaStopJob(mlr *moonlight.Runtime) error {
 // foreground()
 // Puts a job in the foreground. This will cause it to run like it was
 // executed normally and wait for it to complete.
+// @since 2.0.0
 func luaForegroundJob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -247,6 +251,7 @@ func luaForegroundJob(mlr *moonlight.Runtime) error {
 // @member
 // background()
 // Puts a job in the background. This acts the same as initially running a job.
+// @since 2.0.0
 func luaBackgroundJob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -460,6 +465,7 @@ func jobUserData(j *job) *moonlight.UserData {
 // Get a job object via its ID.
 // @param id number The ID of the job to retrieve.
 // @return Job? job The job object, or nil if no job with that ID exists.
+// @since 1.2.0
 func (j *jobHandler) luaGetJob(mlr *moonlight.Runtime) error {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
@@ -490,6 +496,7 @@ func (j *jobHandler) luaGetJob(mlr *moonlight.Runtime) error {
 // @param args table Arguments for the commands. Has to include the name of the command.
 // @param execPath string Binary to use to run the command. Needs to be an absolute path.
 // @return Job job
+// @since 2.0.0
 /*
 @example
 hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')
@@ -529,6 +536,7 @@ func (j *jobHandler) luaAddJob(mlr *moonlight.Runtime) error {
 // all
 // Returns a table of all job objects.
 // @return table<Job> jobs A table of all job objects, keyed by job ID.
+// @since 1.2.0
 func (j *jobHandler) luaAllJobs(mlr *moonlight.Runtime) error {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
@@ -546,6 +554,7 @@ func (j *jobHandler) luaAllJobs(mlr *moonlight.Runtime) error {
 // disown
 // Disowns a job. Hilbish will no longer manage the job and its process.
 // @param id number The ID of the job to disown.
+// @since 2.0.0
 func (j *jobHandler) luaDisownJob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -567,6 +576,7 @@ func (j *jobHandler) luaDisownJob(mlr *moonlight.Runtime) error {
 // last() -> @Job
 // Returns the last added job to the table.
 // @return Job? job The most recently added job object, or nil if no jobs exist.
+// @since 2.0.0
 func (j *jobHandler) luaLastJob(mlr *moonlight.Runtime) error {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
@@ -583,6 +593,7 @@ func (j *jobHandler) luaLastJob(mlr *moonlight.Runtime) error {
 // @interface jobs
 // stopAll()
 // Stops all running jobs.
+// @since 2.0.0
 func (j *jobHandler) luaStopAll(mlr *moonlight.Runtime) error {
 	j.stopAll()
 	return nil

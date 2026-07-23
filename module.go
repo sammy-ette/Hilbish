@@ -9,6 +9,7 @@ import (
 
 // @interface module
 // native module loading
+// @since 2.2.0
 // @field paths table<string> A list of paths to search when loading native modules. This is in the style of Lua search paths and will be used when requiring native modules. Example: `?.so;?/?.so`
 /*
 The hilbish.module interface provides a function to load
@@ -56,6 +57,7 @@ func moduleLoader(mlr *moonlight.Runtime) *moonlight.Table {
 // Loads a module at the designated `path`.
 // It will throw if any error occurs.
 // @param path string
+// @since 2.2.0
 func moduleLoad(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err

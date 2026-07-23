@@ -66,6 +66,7 @@ func (th *timersModule) get(id int) *timer {
 // @param time number Time it takes for the callback to run, in milliseconds.
 // @param callback function The function to call when the timer fires.
 // @return Timer timer The created timer. Call `:start()` to run it.
+// @since 2.0.0
 func (th *timersModule) luaCreate(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(3); err != nil {
 		return err
@@ -94,6 +95,7 @@ func (th *timersModule) luaCreate(mlr *moonlight.Runtime) error {
 // Retrieves a timer.
 // @param id number The ID of the timer to retrieve.
 // @return Timer? timer The timer object, or nil if no timer with that ID exists.
+// @since 2.0.0
 func (th *timersModule) luaGet(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -115,12 +117,14 @@ func (th *timersModule) luaGet(mlr *moonlight.Runtime) error {
 // @interface timers
 // wait()
 // Waits for all timers to finish.
+// @since 2.0.0
 func (th *timersModule) luaWait(mlr *moonlight.Runtime) error {
 	th.wait()
 	return nil
 }
 
 // @interface timers
+// @since 2.0.0
 // @field INTERVAL Constant Interval timer type
 // @field TIMEOUT Constant Timeout timer type
 // timeout and interval API

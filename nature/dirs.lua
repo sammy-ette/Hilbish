@@ -1,4 +1,5 @@
 -- @module dirs
+-- @since 2.0.0
 -- internal directory management
 -- The dirs module defines a small set of functions to store and manage
 -- directories.

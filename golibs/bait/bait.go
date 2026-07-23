@@ -280,6 +280,7 @@ func (b *Bait) bcatchOnce(mlr *moonlight.Runtime) error {
 // Returns a table of functions that are hooked on an event with the corresponding `name`.
 // @param name string The name of the hook
 // @return table<function> hooks
+// @since 2.0.0
 func (b *Bait) bhooks(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -316,6 +317,7 @@ func (b *Bait) bhooks(mlr *moonlight.Runtime) error {
 // an event, like one saved to a variable.
 // @param name string Name of the event the hook is on
 // @param catcher function(...) Hook function to remove
+// @since 2.0.0
 /*
 @example
 local hookCallback = function() print 'hi' end

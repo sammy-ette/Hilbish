@@ -55,6 +55,7 @@ hilbish.runner = {}
 --- Get a runner by name. Throws an error if the runner does not exist.
 --- @param name string Name of the runner to retrieve.
 --- @return Runner runner
+--- @since 2.0.0
 function hilbish.runner.get(name)
 	local r = runners[name]
 
@@ -70,6 +71,7 @@ end
 --- @param name string Unique name for the runner.
 --- @param runner Runner
 --- @see set
+--- @since 3.0.0
 function hilbish.runner.add(name, runner)
 	if runners[name] then
 		error(string.format('runner %s already exists', name))
@@ -81,6 +83,7 @@ end
 --- Sets (or replaces) a runner by name, without checking if one already exists.
 --- @param name string Name of the runner to set.
 --- @param runner Runner
+--- @since 3.0.0
 function hilbish.runner.set(name, runner)
 	if type(name) ~= 'string' then
 		error 'expected runner name to be a string'
@@ -105,6 +108,7 @@ end
 --- @param cmd string The command string to run.
 --- @param runnerName? string The name of the runner to use. Defaults to the current runner.
 --- @return RunnerResult result
+--- @since 2.0.0
 function hilbish.runner.exec(cmd, runnerName)
 	if not runnerName then runnerName = currentRunner end
 
@@ -115,6 +119,7 @@ end
 
 --- Sets Hilbish's active runner mode by name. Errors if the runner does not exist.
 --- @param name string Name of the runner to make active.
+--- @since 2.0.0
 function hilbish.runner.setCurrent(name)
 	hilbish.runner.get(name) -- throws if it doesnt exist.
 	currentRunner = name
@@ -122,6 +127,7 @@ end
 
 --- Returns the name of the currently active runner.
 --- @return string name The name of the current runner.
+--- @since 2.1.0
 function hilbish.runner.getCurrent()
 	return currentRunner
 end
@@ -136,6 +142,7 @@ end
 --- @param newline boolean
 --- @return string|nil input
 --- @private
+--- @since 3.0.0
 function hilbish.runner.continuePrompt(prev, newline)
 	local multilinePrompt = hilbish.multiprompt()
 	-- the return of hilbish.read is nil when error or ctrl-d
@@ -161,6 +168,7 @@ end
 --- @param input string
 --- @param priv? boolean
 --- @default priv? false
+--- @since 3.0.0
 function hilbish.runner.run(input, priv)
 	bait.throw('command.preprocess', input)
 	local processed = hilbish.processors.execute(input, {
@@ -256,6 +264,7 @@ end
 --- Runs `input` as a shell script using Hilbish's built-in shell interpreter.
 --- @param input string The shell script to run.
 --- @return RunnerResult result
+--- @since 2.0.0
 function hilbish.runner.sh(input)
 	return hilbish.snail:run(input)
 end
@@ -264,6 +273,7 @@ end
 --- for the runner interface.
 --- @param input string The Lua code to evaluate.
 --- @return RunnerResult result
+--- @since 2.0.0
 function hilbish.runner.lua(input)
 	local fun, err = load(input)
 	if err then

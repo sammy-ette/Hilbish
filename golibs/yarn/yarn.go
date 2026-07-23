@@ -31,6 +31,7 @@ type Yarn struct {
 }
 
 // @type
+// @since 3.0.0
 // A thread is a Lua state that can be executed independently.
 // You call a thread object as a function to run the thread with the provided arguments.
 type Thread struct {
@@ -69,6 +70,7 @@ func (y *Yarn) init(th *Thread) {
 
 // Creates a new, fresh Yarn thread.
 // `fun` is the function that will run in the thread.
+// @since 3.0.0
 func yarnthread(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return nil

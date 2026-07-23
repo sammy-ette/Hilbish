@@ -105,6 +105,7 @@ func SinkLoader(mlr *moonlight.Runtime) *moonlight.Table {
 
 // Creates a new sink.
 // @return Sink
+// @since 3.0.0
 func luaSinkNew(mlr *moonlight.Runtime) error {
 	snk := NewSink(mlr, new(bytes.Buffer))
 
@@ -116,6 +117,7 @@ func luaSinkNew(mlr *moonlight.Runtime) error {
 // @member
 // Reads all buffered input from the sink.
 // @return string data All data read from the sink.
+// @since 2.2.0
 func luaSinkReadAll(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -154,6 +156,7 @@ func luaSinkReadAll(mlr *moonlight.Runtime) error {
 // @member
 // Reads a single line of input from the sink.
 // @return string line A line of data from the sink.
+// @since 2.2.0
 func luaSinkRead(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -174,6 +177,7 @@ func luaSinkRead(mlr *moonlight.Runtime) error {
 // @member
 // Writes a string to the sink.
 // @param str string The string to write.
+// @since 2.1.0
 func luaSinkWrite(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
@@ -200,6 +204,7 @@ func luaSinkWrite(mlr *moonlight.Runtime) error {
 // @member
 // Writes a string to the sink followed by a newline.
 // @param str string The string to write.
+// @since 2.1.0
 func luaSinkWriteln(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
@@ -225,6 +230,7 @@ func luaSinkWriteln(mlr *moonlight.Runtime) error {
 // @interface sink
 // @member
 // Flushes all buffered data, writing it to the underlying destination.
+// @since 2.2.0
 func luaSinkFlush(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -244,6 +250,7 @@ func luaSinkFlush(mlr *moonlight.Runtime) error {
 // @member
 // Sets whether the sink automatically flushes after every write.
 // @param auto? boolean Whether to enable auto-flush. Omit to toggle.
+// @since 2.2.0
 func luaSinkAutoFlush(mlr *moonlight.Runtime) error {
 	s, err := sinkArg(mlr, 0)
 	if err != nil {

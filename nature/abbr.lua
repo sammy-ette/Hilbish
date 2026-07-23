@@ -1,5 +1,5 @@
 -- @module hilbish.abbr
--- @since 3.0
+-- @since 3.0.0
 -- command line abbreviations
 -- The abbr module manages Hilbish abbreviations. These are words that can be replaced
 -- with longer command line strings when entered.

@@ -66,6 +66,7 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 
 // Creates a new Snail shell interpreter instance.
 // @return Snail snail The new Snail instance.
+// @since 3.0.0
 func snailnew(mlr *moonlight.Runtime) error {
 	s := New(mlr)
 
@@ -77,6 +78,7 @@ func snailnew(mlr *moonlight.Runtime) error {
 // or blocks). Returns true if the input is incomplete, false otherwise.
 // @param input string The shell script string to check.
 // @return boolean incomplete True if more input is needed to complete the statement.
+// @since 3.0.0
 func snailvalidate(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -101,6 +103,7 @@ func snailvalidate(mlr *moonlight.Runtime) error {
 // @treturn result stderr string Standard error output of the command, if not streamed.
 // @treturn result err string Error message, if one occurred.
 // @treturn result bg boolean Whether the command was run in the background.
+// @since 3.0.0
 func snailrun(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
@@ -176,6 +179,7 @@ func snailrun(mlr *moonlight.Runtime) error {
 // The interpreter keeps its own directory state.
 // In Hilbish usage, this is called when `hilbish.cd` is emitted.
 // @param path string The new working directory. Must be an absolute path.
+// @since 3.0.0
 func snaildir(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err

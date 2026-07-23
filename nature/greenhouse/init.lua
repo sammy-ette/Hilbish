@@ -1,4 +1,5 @@
 -- @module greenhouse
+-- @since 2.2.0
 -- Hilbish's environmentally friendly pager for long text
 -- Greenhouse is a simple text scrolling handler (pager) for terminal programs.
 -- It can be set a specific region to do its scrolling and paging job,
@@ -157,6 +158,7 @@ end
 --- @param direction string Either `up` or `down`
 --- @param opts table
 --- @tparam opts page boolean Whether the scroll amount should be the page height.
+--- @since 2.2.2
 function Greenhouse:scroll(direction, opts)
 	opts = opts or {}
 

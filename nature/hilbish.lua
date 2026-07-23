@@ -174,7 +174,7 @@ end
 --- @example
 --- hilbish.prependPath '~/go/bin'
 --- -- Will add ~/go/bin to the command path.
---- 
+---
 --- -- Or do multiple:
 --- hilbish.prependPath {
 --- 	'~/go/bin',

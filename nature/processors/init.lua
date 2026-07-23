@@ -1,4 +1,5 @@
 -- @module hilbish.processors
+-- @since 3.0.0
 -- command processing before execution
 -- The processors interface manages command processors, which are functions that
 -- can transform a command string before it is executed. Processors run in order

@@ -129,7 +129,6 @@ func getenv(key, fallback string) string {
 
 // Returns the current directory of the shell.
 // @return string cwd
-// @since 2.0
 func hlcwd(mlr *moonlight.Runtime) error {
 	cwd, _ := os.Getwd()
 
@@ -141,7 +140,7 @@ func hlcwd(mlr *moonlight.Runtime) error {
 // Throws an error if it is not found.
 // @param file string
 // @return string path
-// @since 2.0
+// @since 3.0.0
 func hllookpath(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -163,7 +162,6 @@ func hllookpath(mlr *moonlight.Runtime) error {
 // Replaces the currently running Hilbish instance with the supplied command.
 // This can be used to do an in-place restart.
 // @param cmd string
-// @since 2.0
 func hlexec(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -207,7 +205,6 @@ func hlexec(mlr *moonlight.Runtime) error {
 // @param cb function
 // @param time number Time to run in milliseconds.
 // @return Timer timer
-// @since 2.0
 // @see hilbish.interval
 func hltimeout(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
@@ -235,7 +232,6 @@ func hltimeout(mlr *moonlight.Runtime) error {
 // @param cb function
 // @param time number Time in milliseconds.
 // @return Timer timer
-// @since 2.0
 // @see hilbish.timeout
 func hlinterval(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {

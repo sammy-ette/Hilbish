@@ -59,7 +59,7 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 // This can be used to resolve short paths like `..` to `/home/user`.
 // @param path string
 // @return string abspath
-// @since 2.0
+// @since 2.0.0
 func fabs(mlr *moonlight.Runtime) error {
 	path, err := mlr.StringArg(0)
 	if err != nil {
@@ -80,7 +80,7 @@ func fabs(mlr *moonlight.Runtime) error {
 // If path is empty, `.` will be returned.
 // @param path string Path to get the base name of.
 // @return string basename
-// @since 2.0
+// @since 2.0.0
 func fbasename(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -96,7 +96,6 @@ func fbasename(mlr *moonlight.Runtime) error {
 
 // Changes Hilbish's directory to `dir`.
 // @param dir string Path to change directory to.
-// @since 2.0
 func fcd(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -129,7 +128,7 @@ func fcd(mlr *moonlight.Runtime) error {
 // If a file path like `~/Documents/doc.txt` then this function will return `~/Documents`.
 // @param path string Path to get the directory for.
 // @return string dir
-// @since 2.0
+// @since 2.0.0
 func fdir(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -146,7 +145,7 @@ func fdir(mlr *moonlight.Runtime) error {
 // Checks if `path` is an executable file.
 // @param path string
 // @return boolean executable
-// @since 2.0
+// @since 3.0.0
 func fexecutable(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -170,6 +169,7 @@ func fexecutable(mlr *moonlight.Runtime) error {
 // For the syntax' refer to Go's filepath.Match function: https://pkg.go.dev/path/filepath#Match
 // @param pattern string Pattern to compare files with.
 // @return table matches A list of file names/paths that match.
+// @since 2.0.0
 /*
 @example
 --[[
@@ -211,6 +211,7 @@ func fglob(mlr *moonlight.Runtime) error {
 // Takes any list of paths and joins them based on the operating system's path separator.
 // @param path ...string Paths to join together
 // @return string path The joined path.
+// @since 2.0.0
 /*
 @example
 -- This prints the directory for Hilbish's config!
@@ -276,6 +277,7 @@ func fmkdir(mlr *moonlight.Runtime) error {
 // This is mainly useful for piping output between commands.
 // @return Sink readEnd The read end of the pipe.
 // @return Sink writeEnd The write end of the pipe.
+// @since 2.3.0
 func fpipe(mlr *moonlight.Runtime) error {
 	rf, wf, err := os.Pipe()
 	if err != nil {

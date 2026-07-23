@@ -1,4 +1,5 @@
 -- @module hilbish.messages
+-- @since 2.2.0
 -- simplistic message passing
 -- The messages interface defines a way for Hilbish-integrated commands,
 -- user config and other tasks to send notifications to alert the user.

@@ -15,7 +15,6 @@ hilbish.aliases = {
 --- This is an alias (ha) for the [hilbish.alias](../#alias) function.
 --- @param alias string
 --- @param cmd string
---- @since 2.0
 --- @see hilbish.alias
 function hilbish.aliases.add(alias, cmd)
     hilbish.aliases.all[alias] = cmd

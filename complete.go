@@ -367,6 +367,7 @@ func hcmpBins(mlr *moonlight.Runtime) error {
 // @param fields table The command line split into fields by whitespace.
 // @return table completionGroups A table of completion groups.
 // @return string prefix
+// @since 2.0.0
 func hcmpCall(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(4); err != nil {
 		return err
@@ -441,6 +442,7 @@ func hcmpFiles(mlr *moonlight.Runtime) error {
 // @param fields table The command line split into fields by whitespace.
 // @return table<string> entries A list of entries.
 // @return string prefix The prefix used for completions.
+// @since 3.0.0
 func hcmpDirs(mlr *moonlight.Runtime) error {
 	query, ctx, fds, err := getCompleteParams(mlr)
 	if err != nil {
@@ -469,6 +471,7 @@ func hcmpDirs(mlr *moonlight.Runtime) error {
 // @param pos number Numerical position of the cursor
 // @return string prefix The common prefix of all completion items
 // @return table completionGroups A list of completion groups
+// @since 2.0.0
 /*
 @example
 -- stripped down version of the default implementation
