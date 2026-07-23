@@ -39,10 +39,9 @@
 		{
 			"name": "thread",
 			"description": [
-				"thread(fun) -\u003e @Thread",
 				"Creates a new, fresh Yarn thread."
 			],
-			"signature": "thread(fun)",
+			"signature": "thread(fun) -\u003e Thread",
 			"goFuncName": "yarnthread",
 			"isInterface": false,
 			"isMember": false,
@@ -66,6 +65,21 @@
 					"Keys": null
 				}
 			],
+			"returns": [
+				{
+					"Name": "thread",
+					"Type": "Thread",
+					"Doc": [
+						"The",
+						"created",
+						"yarn",
+						"thread."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
 			"tags": {
 				"param": [
 					{
@@ -81,6 +95,19 @@
 							"the",
 							"thread."
 						],
+						"startIdx": 2
+					}
+				],
+				"return": [
+					{
+						"id": "Thread",
+						"fields": [
+							"thread",
+							"The",
+							"created",
+							"yarn",
+							"thread."
+						],
 						"startIdx": 3
 					}
 				],
@@ -88,7 +115,7 @@
 					{
 						"id": "3.0.0",
 						"fields": [],
-						"startIdx": 2
+						"startIdx": 1
 					}
 				]
 			},

@@ -27,7 +27,7 @@ t 'printing from another lua state!'
 ## Functions
 
 :::funclist
-- [`yarn.thread(fun)`](#thread): thread(fun) -> @Thread
+- [`yarn.thread(fun) -> Thread`](#thread): Creates a new, fresh Yarn thread.
 
 :::
 
@@ -37,13 +37,12 @@ t 'printing from another lua state!'
 
 :::signature
 ```lua
-yarn.thread(fun)
+yarn.thread(fun) -> Thread
 ```
 :::
 
 Since: `3.0.0`
 
-thread(fun) -> @Thread  
 Creates a new, fresh Yarn thread.  
 
 #### Parameters
@@ -51,6 +50,14 @@ Creates a new, fresh Yarn thread.
 :::params
 `function` _fun_  
 The function that will run in the thread.
+
+:::
+
+#### Returns
+
+:::returns
+`Thread`  
+The created yarn thread.
 
 :::
 

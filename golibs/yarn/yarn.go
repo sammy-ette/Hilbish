@@ -68,10 +68,10 @@ func (y *Yarn) init(th *Thread) {
 	y.initializer(th.mlr)
 }
 
-// thread(fun) -> @Thread
 // Creates a new, fresh Yarn thread.
 // @since 3.0.0
 // @param fun function The function that will run in the thread.
+// @return Thread thread The created yarn thread.
 func yarnthread(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return nil
