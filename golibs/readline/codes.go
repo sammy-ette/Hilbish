@@ -40,22 +40,22 @@ const (
 
 // Escape sequences
 var (
-	seqUp           = string([]byte{27, 91, 65})
-	seqDown         = string([]byte{27, 91, 66})
-	seqForwards     = string([]byte{27, 91, 67})
-	seqBackwards    = string([]byte{27, 91, 68})
-	seqHome         = string([]byte{27, 91, 72})
-	seqHomeSc       = string([]byte{27, 91, 49, 126})
-	seqEnd          = string([]byte{27, 91, 70})
-	seqEndSc        = string([]byte{27, 91, 52, 126})
-	seqDelete       = string([]byte{27, 91, 51, 126})
-	seqDelete2      = string([]byte{27, 91, 80})
-	seqCtrlDelete   = string([]byte{27, 91, 51, 59, 53, 126})
-	seqCtrlDelete2  = string([]byte{27, 91, 77})
-	seqAltDelete    = string([]byte{27, 91, 51, 59, 51, 126})
-	seqShiftTab     = string([]byte{27, 91, 90})
-	seqPageUp       = string([]byte{27, 91, 53, 126})
-	seqPageDown     = string([]byte{27, 91, 54, 126})
+	seqUp          = string([]byte{27, 91, 65})
+	seqDown        = string([]byte{27, 91, 66})
+	seqForwards    = string([]byte{27, 91, 67})
+	seqBackwards   = string([]byte{27, 91, 68})
+	seqHome        = string([]byte{27, 91, 72})
+	seqHomeSc      = string([]byte{27, 91, 49, 126})
+	seqEnd         = string([]byte{27, 91, 70})
+	seqEndSc       = string([]byte{27, 91, 52, 126})
+	seqDelete      = string([]byte{27, 91, 51, 126})
+	seqDelete2     = string([]byte{27, 91, 80})
+	seqCtrlDelete  = string([]byte{27, 91, 51, 59, 53, 126})
+	seqCtrlDelete2 = string([]byte{27, 91, 77})
+	seqAltDelete   = string([]byte{27, 91, 51, 59, 51, 126})
+	seqShiftTab    = string([]byte{27, 91, 90})
+	seqPageUp      = string([]byte{27, 91, 53, 126})
+	seqPageDown    = string([]byte{27, 91, 54, 126})
 )
 
 const (
@@ -135,13 +135,95 @@ const (
 	seqCtermFg255 = "\033[48;5;255m"
 )
 
-// TODO: return whether its actually a sequence or not
-// remedies the edge case of someone literally typing Ctrl-A for example.
 func (rl *Readline) ReadChar() string {
 	b := make([]byte, 1024)
 	i, _ := os.Stdin.Read(b)
 	r := []rune(string(b))
 	s := string(r[:i])
 
-	return seqToKeyName(s)
+	switch b[0] {
+	case charCtrlA:
+		return "Ctrl-A"
+	case charCtrlB:
+		return "Ctrl-B"
+	case charCtrlC:
+		return "Ctrl-C"
+	case charEOF:
+		return "Ctrl-D"
+	case charCtrlE:
+		return "Ctrl-E"
+	case charCtrlF:
+		return "Ctrl-F"
+	case charCtrlG:
+		return "Ctrl-G"
+	case charBackspace, charBackspace2:
+		return "Backspace"
+	case charTab:
+		return "Tab"
+	case charCtrlK:
+		return "Ctrl-K"
+	case charCtrlL:
+		return "Ctrl-L"
+	case charCtrlN:
+		return "Ctrl-N"
+	case charCtrlO:
+		return "Ctrl-O"
+	case charCtrlP:
+		return "Ctrl-P"
+	case charCtrlQ:
+		return "Ctrl-Q"
+	case charCtrlR:
+		return "Ctrl-R"
+	case charCtrlS:
+		return "Ctrl-S"
+	case charCtrlT:
+		return "Ctrl-T"
+	case charCtrlU:
+		return "Ctrl-U"
+	case charCtrlV:
+		return "Ctrl-V"
+	case charCtrlW:
+		return "Ctrl-W"
+	case charCtrlX:
+		return "Ctrl-X"
+	case charCtrlY:
+		return "Ctrl-Y"
+	case charCtrlZ:
+		return "Ctrl-Z"
+	case '\r':
+		fallthrough
+	case '\n':
+		return "Enter"
+	case charEscape:
+		switch s {
+		case string(rune(charEscape)):
+			return "Escape"
+		case seqUp:
+			return "Up"
+		case seqDown:
+			return "Down"
+		case seqBackwards:
+			return "Left"
+		case seqForwards:
+			return "Right"
+		case seqCtrlLeftArrow:
+			return "Ctrl-Left"
+		case seqCtrlRightArrow:
+			return "Ctrl-Right"
+		case seqCtrlDelete, seqCtrlDelete2:
+			return "Ctrl-Delete"
+		case seqHome, seqHomeSc:
+			return "Home"
+		case seqEnd, seqEndSc:
+			return "End"
+		case seqDelete, seqDelete2:
+			return "Delete"
+		case seqPageUp:
+			return "Page-Up"
+		case seqPageDown:
+			return "Page-Down"
+		}
+	}
+
+	return s
 }

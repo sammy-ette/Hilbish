@@ -1,4 +1,5 @@
 -- @module dirs
+-- @since 2.0.0
 -- internal directory management
 -- The dirs module defines a small set of functions to store and manage
 -- directories.
@@ -40,6 +41,7 @@ end
 --- Look at `num` amount of recent directories, starting from the latest.
 --- This returns  a table of recent directories, up to the `num` amount.
 --- @param num? number
+--- @default num 1
 function dirs.peak(num)
 	return dirRecents(num)
 end
@@ -60,17 +62,19 @@ end
 
 --- Remove the specified amount of dirs from the recent directories list.
 --- @param num number
+--- @default num 1
 function dirs.pop(num)
 	return dirRecents(num, true)
 end
 
---- Get entry from recent directories list based on index.
+--- Get an entry from the recent directories list based on index.
 --- @param idx number
 function dirs.recent(idx)
 	return dirs.recentDirs[idx]
 end
 
 --- Sets the old directory string.
+--- This sets the OLDPWD environment variable.
 --- @param d string
 function dirs.setOld(d)
 	local ok, absDir = pcall(fs.abs, d)

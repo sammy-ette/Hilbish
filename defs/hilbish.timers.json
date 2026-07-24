@@ -2,44 +2,40 @@
 	"name": "hilbish.timers",
 	"section": "api",
 	"shortDescription": "timeout and interval API",
-	"description": "\nIf you ever want to run a piece of code on a timed interval, or want to wait\na few seconds, you don't have to rely on timing tricks, as Hilbish has a\ntimer API to set intervals and timeouts.\n\nThese are the simple functions `hilbish.interval` and `hilbish.timeout` (doc\naccessible with `doc hilbish`, or `Module hilbish` on the Website).\n\nAn example of usage:\n```lua\nlocal t = hilbish.timers.create(hilbish.timers.TIMEOUT, 5000, function()\n\tprint 'hello!'\nend)\n\nt:start()\nprint(t.running) // true\n```",
+	"description": "\nIf you ever want to run a piece of code on a timed interval, or want to wait\na few seconds to run a function, you can use Hilbish's simple timer API.\n\nFor the common cases, `hilbish.interval` and `hilbish.timeout` create and start a\ntimer in one simple call:\n\n```lua\nhilbish.timeout(function() print 'hello!' end, 5000)\n```\n\nThis interface, `hilbish.timers`, is the full API behind those two shorthands.\nRead it for documentation :), or use it when you need to create timers without them\nstarting immediately.\n\n```lua\nlocal t = hilbish.timers.create(hilbish.timers.TIMEOUT, 5000, function()\n\tprint 'hello!'\nend)\n\nt:start()\nprint(t.running) // true\n```",
 	"parent": "hilbish",
 	"properties": [],
 	"fields": [
 		{
 			"name": "INTERVAL",
 			"description": [
-				"Constant",
-				"for",
-				"an",
-				"interval",
+				"Interval",
 				"timer",
 				"type"
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "Constant"
 		},
 		{
 			"name": "TIMEOUT",
 			"description": [
-				"Constant",
-				"for",
-				"a",
-				"timeout",
+				"Timeout",
 				"timer",
 				"type"
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "Constant"
 		}
 	],
 	"types": [
 		{
 			"name": "Timer",
 			"description": [
-				"The Job type describes a Hilbish timer."
+				"The Timer type represents a Hilbish timer created with hilbish.timers.create."
 			],
 			"parent": "hilbish",
 			"interfaces": "timers",
@@ -51,28 +47,36 @@
 					"name": "type",
 					"description": [
 						"What",
-						"type",
+						"kind",
 						"of",
 						"timer",
 						"it",
-						"is"
+						"is:",
+						"interval",
+						"(repeating)",
+						"or",
+						"timeout",
+						"(one-shot)."
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "number"
 				},
 				{
 					"name": "running",
 					"description": [
-						"If",
+						"Whether",
 						"the",
 						"timer",
 						"is",
-						"running"
+						"currently",
+						"running."
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "boolean"
 				},
 				{
 					"name": "duration",
@@ -81,15 +85,30 @@
 						"duration",
 						"in",
 						"milliseconds",
-						"that",
+						"after",
+						"which",
 						"the",
-						"timer",
-						"will",
-						"run"
+						"callback",
+						"fires."
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "number"
+				},
+				{
+					"name": "id",
+					"description": [
+						"The",
+						"ID",
+						"of",
+						"the",
+						"timer."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "number"
 				}
 			],
 			"tags": {
@@ -104,40 +123,68 @@
 					{
 						"id": "type",
 						"fields": [
+							"number",
 							"What",
-							"type",
+							"kind",
 							"of",
 							"timer",
 							"it",
-							"is"
+							"is:",
+							"interval",
+							"(repeating)",
+							"or",
+							"timeout",
+							"(one-shot)."
 						],
-						"startIdx": 2
+						"startIdx": 3
 					},
 					{
 						"id": "running",
 						"fields": [
-							"If",
+							"boolean",
+							"Whether",
 							"the",
 							"timer",
 							"is",
-							"running"
+							"currently",
+							"running."
 						],
 						"startIdx": 0
 					},
 					{
 						"id": "duration",
 						"fields": [
+							"number",
 							"The",
 							"duration",
 							"in",
 							"milliseconds",
-							"that",
+							"after",
+							"which",
 							"the",
-							"timer",
-							"will",
-							"run"
+							"callback",
+							"fires."
 						],
 						"startIdx": 0
+					},
+					{
+						"id": "id",
+						"fields": [
+							"number",
+							"The",
+							"ID",
+							"of",
+							"the",
+							"timer."
+						],
+						"startIdx": 0
+					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 2
 					}
 				],
 				"type": [
@@ -147,18 +194,19 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		}
 	],
 	"docs": [
 		{
 			"name": "timers.create",
 			"description": [
-				"Creates a timer that runs based on the specified `time`."
+				"Creates a timer."
 			],
 			"parent": "hilbish",
 			"interfaces": "timers",
-			"signature": "create(type, time, callback) -\u003e @Timer",
+			"signature": "create(type, time, callback) -\u003e Timer",
 			"goFuncName": "luacreate",
 			"isInterface": true,
 			"isMember": false,
@@ -168,35 +216,34 @@
 					"Name": "type",
 					"Type": "number",
 					"Doc": [
-						"What",
-						"kind",
-						"of",
-						"timer",
-						"to",
-						"create,",
-						"can",
-						"either",
-						"be",
+						"Timer",
+						"type:",
 						"`hilbish.timers.INTERVAL`",
 						"or",
-						"`hilbish.timers.TIMEOUT`"
-					]
+						"`hilbish.timers.TIMEOUT`."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "time",
 					"Type": "number",
 					"Doc": [
-						"The",
-						"amount",
-						"of",
-						"time",
+						"Time",
+						"it",
+						"takes",
+						"for",
 						"the",
-						"function",
-						"should",
-						"run",
+						"callback",
+						"to",
+						"run,",
 						"in",
 						"milliseconds."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "callback",
@@ -205,11 +252,34 @@
 						"The",
 						"function",
 						"to",
-						"run",
-						"for",
+						"call",
+						"when",
 						"the",
-						"timer."
-					]
+						"timer",
+						"fires."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "timer",
+					"Type": "Timer",
+					"Doc": [
+						"The",
+						"created",
+						"timer.",
+						"Call",
+						"`:start()`",
+						"to",
+						"run",
+						"it."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -225,18 +295,11 @@
 						"id": "type",
 						"fields": [
 							"number",
-							"What",
-							"kind",
-							"of",
-							"timer",
-							"to",
-							"create,",
-							"can",
-							"either",
-							"be",
+							"Timer",
+							"type:",
 							"`hilbish.timers.INTERVAL`",
 							"or",
-							"`hilbish.timers.TIMEOUT`"
+							"`hilbish.timers.TIMEOUT`."
 						],
 						"startIdx": 3
 					},
@@ -244,14 +307,14 @@
 						"id": "time",
 						"fields": [
 							"number",
-							"The",
-							"amount",
-							"of",
-							"time",
+							"Time",
+							"it",
+							"takes",
+							"for",
 							"the",
-							"function",
-							"should",
-							"run",
+							"callback",
+							"to",
+							"run,",
 							"in",
 							"milliseconds."
 						],
@@ -264,24 +327,50 @@
 							"The",
 							"function",
 							"to",
-							"run",
-							"for",
+							"call",
+							"when",
 							"the",
-							"timer."
+							"timer",
+							"fires."
 						],
 						"startIdx": 0
 					}
+				],
+				"return": [
+					{
+						"id": "Timer",
+						"fields": [
+							"timer",
+							"The",
+							"created",
+							"timer.",
+							"Call",
+							"`:start()`",
+							"to",
+							"run",
+							"it."
+						],
+						"startIdx": 6
+					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 7
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "timers.get",
 			"description": [
-				"Retrieves a timer via its ID."
+				"Retrieves a timer."
 			],
 			"parent": "hilbish",
 			"interfaces": "timers",
-			"signature": "get(id) -\u003e @Timer",
+			"signature": "get(id) -\u003e Timer?",
 			"goFuncName": "luaget",
 			"isInterface": true,
 			"isMember": false,
@@ -290,7 +379,41 @@
 				{
 					"Name": "id",
 					"Type": "number",
-					"Doc": []
+					"Doc": [
+						"The",
+						"ID",
+						"of",
+						"the",
+						"timer",
+						"to",
+						"retrieve."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "timer",
+					"Type": "Timer?",
+					"Doc": [
+						"The",
+						"timer",
+						"object,",
+						"or",
+						"nil",
+						"if",
+						"no",
+						"timer",
+						"with",
+						"that",
+						"ID",
+						"exists."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -305,19 +428,48 @@
 					{
 						"id": "id",
 						"fields": [
-							"number"
+							"number",
+							"The",
+							"ID",
+							"of",
+							"the",
+							"timer",
+							"to",
+							"retrieve."
 						],
 						"startIdx": 3
 					}
 				],
-				"returns": [
+				"return": [
 					{
-						"id": "Timer",
-						"fields": [],
+						"id": "Timer?",
+						"fields": [
+							"timer",
+							"The",
+							"timer",
+							"object,",
+							"or",
+							"nil",
+							"if",
+							"no",
+							"timer",
+							"with",
+							"that",
+							"ID",
+							"exists."
+						],
 						"startIdx": 4
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "timers.start",
@@ -345,8 +497,16 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "timers.stop",
@@ -374,8 +534,16 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "timers.wait",
@@ -385,7 +553,7 @@
 			"parent": "hilbish",
 			"interfaces": "timers",
 			"signature": "wait()",
-			"goFuncName": "timerwait",
+			"goFuncName": "luawait",
 			"isInterface": true,
 			"isMember": false,
 			"isType": false,
@@ -396,8 +564,16 @@
 						"fields": [],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		}
 	]
 }

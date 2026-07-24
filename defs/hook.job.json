@@ -1,0 +1,62 @@
+{
+	"group": "job",
+	"hooks": [
+		{
+			"name": "job.add",
+			"group": "job",
+			"description": [
+				"Thrown when a new job is added to the job table."
+			],
+			"vars": [
+				{
+					"Name": "job",
+					"Type": "table",
+					"Doc": [
+						"The job object. See the [jobs API](../../api/hilbish/hilbish.jobs) for its properties."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "job.done",
+			"group": "job",
+			"description": [
+				"Thrown when a background job exits."
+			],
+			"vars": [
+				{
+					"Name": "job",
+					"Type": "table",
+					"Doc": [
+						"The job object. See the [jobs API](../../api/hilbish/hilbish.jobs) for its properties."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "job.start",
+			"group": "job",
+			"description": [
+				"Thrown when a new background job starts."
+			],
+			"vars": [
+				{
+					"Name": "job",
+					"Type": "table",
+					"Doc": [
+						"The job object. See the [jobs API](../../api/hilbish/hilbish.jobs) for its properties."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		}
+	]
+}

@@ -7,15 +7,7 @@ menu: docs
 
 ### Is Hilbish POSIX compliant?
 
-No, it is not. POSIX compliance is a non-goal. Perhaps in the future,
-someone would be able to write a native plugin to support shell scripting
-(which would be against its main goal, but ....)
-
-### Windows Support?
-
-It compiles for Windows (CI ensures it does), but otherwise it is not
-directly supported. If you'd like to improve this situation,
-checkout [the discussion](https://github.com/sammy-ette/Hilbish/discussions/165).
+No. It runs shell script. That is the extent of it.
 
 ### Why?
 

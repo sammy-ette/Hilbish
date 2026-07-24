@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 type Keymap map[string]string
@@ -55,6 +55,15 @@ func (rl *Readline) initActions() {
 		"history.prev":                 actionHistoryPrev,
 		"history.search":               actionHistorySearch,
 		"history.search-alt":           actionHistorySearchAlt,
+		"history.word-arg-1":           actionHistoryWordArg1,
+		"history.word-arg-2":           actionHistoryWordArg2,
+		"history.word-arg-3":           actionHistoryWordArg3,
+		"history.word-arg-4":           actionHistoryWordArg4,
+		"history.word-arg-5":           actionHistoryWordArg5,
+		"history.word-arg-6":           actionHistoryWordArg6,
+		"history.word-arg-7":           actionHistoryWordArg7,
+		"history.word-arg-8":           actionHistoryWordArg8,
+		"history.word-arg-9":           actionHistoryWordArg9,
 		"register.show":                actionRegistersShow,
 		"register.yank":                actionYank,
 		"screen.clear":                 actionClearScreen,
@@ -80,7 +89,7 @@ func (rl *Readline) removeAction(name string) {
 	delete(rl.actions, name)
 }
 
-func (rl *Readline) registerLuaAction(name string, fn *rt.Closure) {
+func (rl *Readline) registerLuaAction(name string, fn *moonlight.Closure) {
 	rl.customActions[name] = fn
 }
 
@@ -114,12 +123,12 @@ func (rl *Readline) dispatch(key string) (error, bool) {
 	return err, true
 }
 
-func (rl *Readline) callLuaAction(fn *rt.Closure) error {
+func (rl *Readline) callLuaAction(fn *moonlight.Closure) error {
 	if rl.luaRuntime == nil {
 		return nil
 	}
 
-	_, err := rt.Call1(rl.luaRuntime.MainThread(), rt.FunctionValue(fn))
+	_, err := rl.luaRuntime.Call1(moonlight.FunctionValue(fn))
 	return err
 }
 
@@ -166,9 +175,22 @@ func commonKeymap() Keymap {
 		keyNameToSeq("Alt-Backspace"): "delete.word-backward",
 		seqCtrlDelete:                 "delete.word-forward",
 		seqCtrlDelete2:                "delete.word-forward",
+		keyNameToSeq("Alt-D"):         "delete.word-forward",
 		keyNameToSeq("Alt-Delete"):    "delete.word-backward",
 		keyNameToSeq("Page-Up"):       "history.prev",
 		keyNameToSeq("Page-Down"):     "history.next",
+
+		// Alt+1..Alt+9 insert the Nth whitespace-separated token of the
+		// previous history line (bash/readline-style word designator).
+		keyNameToSeq("Alt-1"): "history.word-arg-1",
+		keyNameToSeq("Alt-2"): "history.word-arg-2",
+		keyNameToSeq("Alt-3"): "history.word-arg-3",
+		keyNameToSeq("Alt-4"): "history.word-arg-4",
+		keyNameToSeq("Alt-5"): "history.word-arg-5",
+		keyNameToSeq("Alt-6"): "history.word-arg-6",
+		keyNameToSeq("Alt-7"): "history.word-arg-7",
+		keyNameToSeq("Alt-8"): "history.word-arg-8",
+		keyNameToSeq("Alt-9"): "history.word-arg-9",
 	}
 }
 
@@ -710,5 +732,58 @@ func actionCursorMoveWordForward(rl *Readline) error {
 
 	rl.pos = rl.Buffer.EmacsWordForward(rl.pos)
 	rl.updateHelpers()
+	return nil
+}
+
+func actionHistoryWordArg1(rl *Readline) error { return insertHistoryWordArg(rl, '1') }
+func actionHistoryWordArg2(rl *Readline) error { return insertHistoryWordArg(rl, '2') }
+func actionHistoryWordArg3(rl *Readline) error { return insertHistoryWordArg(rl, '3') }
+func actionHistoryWordArg4(rl *Readline) error { return insertHistoryWordArg(rl, '4') }
+func actionHistoryWordArg5(rl *Readline) error { return insertHistoryWordArg(rl, '5') }
+func actionHistoryWordArg6(rl *Readline) error { return insertHistoryWordArg(rl, '6') }
+func actionHistoryWordArg7(rl *Readline) error { return insertHistoryWordArg(rl, '7') }
+func actionHistoryWordArg8(rl *Readline) error { return insertHistoryWordArg(rl, '8') }
+func actionHistoryWordArg9(rl *Readline) error { return insertHistoryWordArg(rl, '9') }
+
+// insertHistoryWordArg inserts the digit-th whitespace-separated token of the
+// previous history line, bash/readline style (Alt+1 inserts the 1st word,
+// etc). In Vim delete-pending mode it instead completes a vi delete motion
+// with digit as the operand, matching the pre-dispatch escape-sequence
+// handler this replaces.
+func insertHistoryWordArg(rl *Readline, digit byte) error {
+	if rl.modeTabFind {
+		return nil
+	}
+
+	if rl.modeViMode == VimDelete {
+		rl.viDelete(rune(digit))
+		return nil
+	}
+
+	if rl.mainHistory == nil {
+		rl.viUndoSkipAppend = true
+		return nil
+	}
+
+	line, err := rl.mainHistory.GetLine(rl.mainHistory.Len() - 1)
+	if err != nil {
+		rl.viUndoSkipAppend = true
+		return nil
+	}
+	if !rl.mainHist && rl.altHistory != nil {
+		line, err = rl.altHistory.GetLine(rl.altHistory.Len() - 1)
+		if err != nil {
+			rl.viUndoSkipAppend = true
+			return nil
+		}
+	}
+
+	tokens, _, _ := tokeniseSplitSpaces([]rune(line), 0)
+	pos := int(digit) - '0'
+	if pos > len(tokens) {
+		rl.viUndoSkipAppend = true
+		return nil
+	}
+	rl.insert([]rune(tokens[pos-1]))
 	return nil
 }

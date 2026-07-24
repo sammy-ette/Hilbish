@@ -1,0 +1,135 @@
+{
+	"group": "command",
+	"hooks": [
+		{
+			"name": "command.exit",
+			"group": "command",
+			"description": [
+				"Thrown after the user's ran command is finished."
+			],
+			"vars": [
+				{
+					"Name": "code",
+					"Type": "number",
+					"Doc": [
+						"The exit code of what was executed."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "cmdStr",
+					"Type": "string",
+					"Doc": [
+						"The command or code that was executed."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "command.not-executable",
+			"group": "command",
+			"description": [
+				"Thrown when the user attempts to run a file that is not executable",
+				"(like a text file, or a binary without +x permission)."
+			],
+			"vars": [
+				{
+					"Name": "cmdStr",
+					"Type": "string",
+					"Doc": [
+						"The name of the command."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "command.not-found",
+			"group": "command",
+			"description": [
+				"Thrown if the command attempted to execute was not found.",
+				"This can be used to customize the text printed when a command is not found."
+			],
+			"vars": [
+				{
+					"Name": "cmdStr",
+					"Type": "string",
+					"Doc": [
+						"The name of the command."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"example": [
+				"local bait = require 'bait'",
+				"-- Remove any present handlers on `command.not-found`",
+				"local notFoundHooks = bait.hooks 'command.not-found'",
+				"for _, hook in ipairs(notFoundHooks) do",
+				"\tbait.release('command.not-found', hook)",
+				"end",
+				"-- then assign custom",
+				"bait.catch('command.not-found', function(cmd)",
+				"\tprint(string.format('The command \"%s\" was not found.', cmd))",
+				"end)"
+			]
+		},
+		{
+			"name": "command.preexec",
+			"group": "command",
+			"description": [
+				"Thrown right before a command is executed."
+			],
+			"vars": [
+				{
+					"Name": "input",
+					"Type": "string",
+					"Doc": [
+						"The raw string the user typed, before alias expansion and argument substitution."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "cmdStr",
+					"Type": "string",
+					"Doc": [
+						"The command that will be directly executed by the current runner."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "command.preprocess",
+			"group": "command",
+			"description": [
+				"Thrown as soon as `hilbish.runner.run` is called, before Hilbish's command",
+				"processors (aliases, modifiers, wildcard warnings, etc.) run on the input."
+			],
+			"vars": [
+				{
+					"Name": "input",
+					"Type": "string",
+					"Doc": [
+						"The raw input string, exactly as passed to the runner."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		}
+	]
+}

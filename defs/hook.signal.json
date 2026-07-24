@@ -1,0 +1,33 @@
+{
+	"group": "signal",
+	"hooks": [
+		{
+			"name": "signal.resize",
+			"group": "signal",
+			"description": [
+				"Thrown when the terminal is resized."
+			]
+		},
+		{
+			"name": "signal.sigint",
+			"group": "signal",
+			"description": [
+				"Thrown when Hilbish receives the SIGINT signal (Ctrl-C)."
+			]
+		},
+		{
+			"name": "signal.sigusr1",
+			"group": "signal",
+			"description": [
+				"Thrown when SIGUSR1 is sent to Hilbish."
+			]
+		},
+		{
+			"name": "signal.sigusr2",
+			"group": "signal",
+			"description": [
+				"Thrown when SIGUSR2 is sent to Hilbish."
+			]
+		}
+	]
+}

@@ -1,8 +1,20 @@
 // shell script interpreter library
 /*
 The snail library houses Hilbish's Lua wrapper of its shell script interpreter.
-It's not very useful other than running shell scripts, which can be done with other
-Hilbish functions.
+`hilbish.run` and `hilbish.runner.sh` both run scripts through Hilbish's shared,
+global Snail instance (available at `hilbish.snail`), which is what you should be using
+almost all the time.
+
+Reach for an independent snail instance directly only when you need
+an isolated interpreter with its own working directory.
+
+```lua
+local snail = require 'snail'
+
+local interp = snail.new()
+local result = interp:run 'echo hello from an isolated snail'
+print(result.stdout)
+```
 */
 package snail
 
@@ -12,113 +24,120 @@ import (
 	"io"
 	"strings"
 
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 
 	"github.com/arnodel/golua/lib/iolib"
-	"github.com/arnodel/golua/lib/packagelib"
-	rt "github.com/arnodel/golua/runtime"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 )
 
-var snailMetaKey = rt.StringValue("hshsnail")
-var Loader = packagelib.Loader{
-	Load: loaderFunc,
-	Name: "snail",
-}
+var snailMetaKey = moonlight.StringValue("hshsnail")
 
-func loaderFunc(rtm *rt.Runtime) (rt.Value, func()) {
-	snailMeta := rt.NewTable()
-	snailMethods := rt.NewTable()
-	snailFuncs := map[string]util.LuaExport{
+func Loader(mlr *moonlight.Runtime) moonlight.Value {
+	snailMeta := moonlight.NewTable()
+	snailMethods := moonlight.NewTable()
+	snailFuncs := map[string]moonlight.Export{
 		"run": {Function: snailrun, ArgNum: 3, Variadic: false},
 		"dir": {Function: snaildir, ArgNum: 2, Variadic: false},
 	}
-	util.SetExports(rtm, snailMethods, snailFuncs)
+	mlr.SetExports(snailMethods, snailFuncs)
 
-	snailIndex := func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		arg := c.Arg(1)
+	snailIndex := func(mlr *moonlight.Runtime) error {
+		arg := mlr.Arg(1)
 		val := snailMethods.Get(arg)
 
-		return c.PushingNext1(t.Runtime, val), nil
+		mlr.PushNext1(val)
+		return nil
 	}
-	snailMeta.Set(rt.StringValue("__index"), rt.FunctionValue(rt.NewGoFunction(snailIndex, "__index", 2, false)))
-	rtm.SetRegistry(snailMetaKey, rt.TableValue(snailMeta))
+	snailMeta.Set(moonlight.StringValue("__index"), moonlight.FunctionValue(moonlight.NewGoFunction(mlr, snailIndex, "__index", 2, false)))
+	mlr.SetRegistry(snailMetaKey, moonlight.TableValue(snailMeta))
 
-	exports := map[string]util.LuaExport{
+	exports := map[string]moonlight.Export{
 		"new":      {Function: snailnew, ArgNum: 0, Variadic: false},
 		"validate": {Function: snailvalidate, ArgNum: 1, Variadic: false},
 	}
 
-	mod := rt.NewTable()
-	util.SetExports(rtm, mod, exports)
+	mod := moonlight.NewTable()
+	mlr.SetExports(mod, exports)
 
-	return rt.TableValue(mod), nil
+	return moonlight.TableValue(mod)
 }
 
-// new() -> @Snail
-// Creates a new Snail instance.
-func snailnew(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	s := New(t.Runtime)
-	return c.PushingNext1(t.Runtime, rt.UserDataValue(snailUserData(s))), nil
+// Creates a new Snail shell interpreter instance.
+// @return Snail snail The new Snail instance.
+// @since 3.0.0
+func snailnew(mlr *moonlight.Runtime) error {
+	s := New(mlr)
+
+	mlr.PushNext1(moonlight.UserDataValue(snailUserData(s)))
+	return nil
 }
 
-// validate(input)
-// Checks if input is incomplete. Does not error otherwise.
-// #param input string
-func snailvalidate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// Checks if the input shell script is syntactically incomplete (e.g. unclosed quotes
+// or blocks). Returns true if the input is incomplete, false otherwise.
+// @param input string The shell script string to check.
+// @return boolean incomplete True if more input is needed to complete the statement.
+// @since 3.0.0
+func snailvalidate(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	input, err := c.StringArg(0)
+	input, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.PushingNext1(t.Runtime, rt.BoolValue(Validate(input))), nil
+	mlr.PushNext1(moonlight.BoolValue(Validate(input)))
+	return nil
 }
 
-// #member
-// run(command, streams)
-// Runs a shell command. Works the same as `hilbish.run`, but only accepts a table of streams.
-// #param command string
-// #param streams? table
-// #returns table
-func snailrun(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @member
+// Runs a shell script command. Works like `hilbish.run` but operates on this Snail instance.
+// @param command string The shell command or script to run.
+// @param streams? table Optional table of I/O streams with keys `out`, `err`, `input` (each a Sink).
+// @return table result The result of running the command.
+// @treturn result exitCode number The exit code of the command.
+// @treturn result stdout string Standard output of the command, if not streamed.
+// @treturn result stderr string Standard error output of the command, if not streamed.
+// @treturn result err string Error message, if one occurred.
+// @treturn result bg boolean Whether the command was run in the background.
+// @since 3.0.0
+func snailrun(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	s, err := snailArg(c, 0)
+	s, err := snailArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	cmd, err := c.StringArg(1)
+	cmd, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	streams := &util.Streams{}
-	thirdArg := c.Arg(2)
+	thirdArg := mlr.Arg(2)
 	switch thirdArg.Type() {
-	case rt.TableType:
+	case moonlight.TableType:
 		args := thirdArg.AsTable()
 
-		if luastreams, ok := args.Get(rt.StringValue("sinks")).TryTable(); ok {
-			handleStream(luastreams.Get(rt.StringValue("out")), streams, false, false)
-			handleStream(luastreams.Get(rt.StringValue("err")), streams, true, false)
-			handleStream(luastreams.Get(rt.StringValue("input")), streams, false, true)
+		if luastreams, ok := args.Get(moonlight.StringValue("sinks")).TryTable(); ok {
+			handleStream(luastreams.Get(moonlight.StringValue("out")), streams, false, false)
+			handleStream(luastreams.Get(moonlight.StringValue("err")), streams, true, false)
+			handleStream(luastreams.Get(moonlight.StringValue("input")), streams, false, true)
 		}
-	case rt.NilType: // noop
+	case moonlight.NilType: // noop
 	default:
-		return nil, errors.New("expected 3rd arg to be a table")
+		return errors.New("expected 3rd arg to be a table")
 	}
 
 	var newline bool
 	var cont bool
-	var luaErr rt.Value = rt.NilValue
+	var luaErr moonlight.Value = moonlight.NilValue
 	exitCode := 0
 	bg, _, _, err := s.Run(cmd, streams)
 	if err != nil {
@@ -139,48 +158,49 @@ func snailrun(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 				if exErr, ok := util.IsExecError(err); ok {
 					exitCode = exErr.Code
 				}
-				luaErr = rt.StringValue(err.Error())
+				luaErr = moonlight.StringValue(err.Error())
 			}
 		}
 	}
-	runnerRet := rt.NewTable()
-	runnerRet.Set(rt.StringValue("input"), rt.StringValue(cmd))
-	runnerRet.Set(rt.StringValue("exitCode"), rt.IntValue(int64(exitCode)))
-	runnerRet.Set(rt.StringValue("continue"), rt.BoolValue(cont))
-	runnerRet.Set(rt.StringValue("newline"), rt.BoolValue(newline))
-	runnerRet.Set(rt.StringValue("err"), luaErr)
+	runnerRet := moonlight.NewTable()
+	runnerRet.Set(moonlight.StringValue("input"), moonlight.StringValue(cmd))
+	runnerRet.Set(moonlight.StringValue("exitCode"), moonlight.IntValue(int64(exitCode)))
+	runnerRet.Set(moonlight.StringValue("continue"), moonlight.BoolValue(cont))
+	runnerRet.Set(moonlight.StringValue("newline"), moonlight.BoolValue(newline))
+	runnerRet.Set(moonlight.StringValue("err"), luaErr)
+	runnerRet.Set(moonlight.StringValue("bg"), moonlight.BoolValue(bg))
 
-	runnerRet.Set(rt.StringValue("bg"), rt.BoolValue(bg))
-	return c.PushingNext1(t.Runtime, rt.TableValue(runnerRet)), nil
+	mlr.PushNext(moonlight.TableValue(runnerRet))
+	return nil
 }
 
-// #member
-// dir(path)
-// Changes the directory of the snail instance.
-// The interpreter keeps its set directory even when the Hilbish process changes
-// directory, so this should be called on the `hilbish.cd` hook.
-// #param path string Has to be an absolute path.
-func snaildir(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @member
+// Changes the working directory of this Snail instance.
+// The interpreter keeps its own directory state.
+// In Hilbish usage, this is called when `hilbish.cd` is emitted.
+// @param path string The new working directory. Must be an absolute path.
+// @since 3.0.0
+func snaildir(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	s, err := snailArg(c, 0)
+	s, err := snailArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	dir, err := c.StringArg(1)
+	dir, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	interp.Dir(dir)(s.runner)
-	return c.Next(), nil
+	return nil
 }
 
-func handleStream(v rt.Value, strms *util.Streams, errStream, inStream bool) error {
-	if v == rt.NilValue {
+func handleStream(v moonlight.Value, strms *util.Streams, errStream, inStream bool) error {
+	if v == moonlight.NilValue {
 		return nil
 	}
 
@@ -214,8 +234,8 @@ func handleStream(v rt.Value, strms *util.Streams, errStream, inStream bool) err
 	return nil
 }
 
-func snailArg(c *rt.GoCont, arg int) (*Snail, error) {
-	s, ok := valueToSnail(c.Arg(arg))
+func snailArg(mlr *moonlight.Runtime, arg int) (*Snail, error) {
+	s, ok := valueToSnail(mlr.Arg(arg))
 	if !ok {
 		return nil, fmt.Errorf("#%d must be a snail", arg+1)
 	}
@@ -223,7 +243,7 @@ func snailArg(c *rt.GoCont, arg int) (*Snail, error) {
 	return s, nil
 }
 
-func valueToSnail(val rt.Value) (*Snail, bool) {
+func valueToSnail(val moonlight.Value) (*Snail, bool) {
 	u, ok := val.TryUserData()
 	if !ok {
 		return nil, false
@@ -233,7 +253,7 @@ func valueToSnail(val rt.Value) (*Snail, bool) {
 	return s, ok
 }
 
-func snailUserData(s *Snail) *rt.UserData {
+func snailUserData(s *Snail) *moonlight.UserData {
 	snailMeta := s.runtime.Registry(snailMetaKey)
-	return rt.NewUserData(s, snailMeta.AsTable())
+	return moonlight.NewUserData(s, moonlight.ToTable(snailMeta))
 }

@@ -1,4 +1,9 @@
 -- @module hilbish.processors
+-- @since 3.0.0
+-- command processing before execution
+-- The processors interface manages command processors, which are functions that
+-- can transform a command string before it is executed. Processors run in order
+-- of priority, lowest number first.
 
 ---@diagnostic disable-next-line: missing-fields
 hilbish.processors = {
@@ -6,6 +11,20 @@ hilbish.processors = {
 	sorted = {}
 }
 
+--- Registers a command processor. A processor is a table with at minimum a
+--- `name` and a `func` field. The `func` receives the command string and may
+--- return a table with any of: `command` (the new command string), `continue`
+--- (whether to abort execution if false), and [`modifiers`](../features/modifiers).
+--- @param processor table A table with `name` (string), `func` (function), and optional `priority` (number, default 0).
+--- @example
+--- hilbish.processors.add({
+--- 	name = 'my-processor',
+--- 	priority = 0,
+--- 	func = function(cmd)
+--- 		-- do something with cmd
+--- 	end
+--- })
+--- @example
 function hilbish.processors.add(processor)
 	if not processor.name then
 		error 'processor is missing name'
@@ -31,23 +50,31 @@ local function contains(search, needle)
 	return false
 end
 
---- Run all command processors, in order by priority.
---- It returns the processed command (which may be the same as the passed command)
---- and a boolean which states whether to proceed with command execution.
---- @return table
+--- Runs all registered processors against the provided command in priority order.
+--- @param command string The command string to process.
+--- @param opts? table
+--- @tparam opts? skip? table<string> A list of processor names to skip.
+--- @return table result The (possibly modified) result of running the processors.
+--- @treturn result command string The processed command string.
+--- @treturn result continue boolean Whether execution should proceed.
+--- @treturn result modifiers table Any modifier flags set by processors.
 function hilbish.processors.execute(command, opts)
 	opts = opts or {}
 	opts.skip = opts.skip or {}
 
 	local continue = true
-	local history
+	local modifiers = {}
 	for _, processor in ipairs(hilbish.processors.list) do
 		if not contains(opts.skip, processor.name) then
 			local processed = processor.func(command)
 			if processed then
-				if processed.history ~= nil then history = processed.history end
 				if processed.command then command = processed.command end
-				if not processed.continue then
+				if processed.modifiers then
+					for k, v in pairs(processed.modifiers) do
+						modifiers[k] = v
+					end
+				end
+				if processed.continue == false then
 					continue = false
 					break
 				end
@@ -58,6 +85,6 @@ function hilbish.processors.execute(command, opts)
 	return {
 		command = command,
 		continue = continue,
-		history = history
+		modifiers = modifiers
 	}
 end

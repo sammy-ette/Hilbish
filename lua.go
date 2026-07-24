@@ -5,44 +5,41 @@ import (
 	"os"
 	"path/filepath"
 
-	"hilbish/golibs/bait"
-	"hilbish/golibs/commander"
-	"hilbish/golibs/fs"
-	"hilbish/golibs/readline"
-	"hilbish/golibs/snail"
-	"hilbish/golibs/terminal"
-	"hilbish/golibs/yarn"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/golibs/bait"
+	"github.com/sammy-ette/hilbish/golibs/commander"
+	"github.com/sammy-ette/hilbish/golibs/fs"
+	"github.com/sammy-ette/hilbish/golibs/readline"
+	"github.com/sammy-ette/hilbish/golibs/snail"
+	"github.com/sammy-ette/hilbish/golibs/terminal"
+	"github.com/sammy-ette/hilbish/golibs/yarn"
+	"github.com/sammy-ette/hilbish/moonlight"
 
-	"github.com/arnodel/golua/lib"
-	"github.com/arnodel/golua/lib/debuglib"
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/pborman/getopt"
 )
 
 func luaInit() {
-	l = rt.New(os.Stdout)
+	l = moonlight.NewRuntime()
 
 	loadLibs(l)
-	luaArgs := rt.NewTable()
+	luaArgs := moonlight.NewTable()
 	for i, arg := range getopt.Args() {
-		luaArgs.Set(rt.IntValue(int64(i)), rt.StringValue(arg))
+		luaArgs.Set(moonlight.IntValue(int64(i)), moonlight.StringValue(arg))
 	}
 
-	l.GlobalEnv().Set(rt.StringValue("args"), rt.TableValue(luaArgs))
+	l.GlobalTable().Set(moonlight.StringValue("args"), moonlight.TableValue(luaArgs))
 
 	yarnPool := yarn.New(yarnloadLibs)
-	lib.LoadLibs(l, yarnPool.Loader)
+	l.LoadLibrary(yarnPool.Loader, "yarn")
 
 	// Add more paths that Lua can require from
-	_, err := util.DoString(l, "package.path = package.path .. "+requirePaths)
+	_, err := l.DoString("package.path = package.path .. " + requirePaths)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Could not add Hilbish require paths! Libraries will be missing. This shouldn't happen.")
 	}
 
-	err1 := util.DoFile(l, "nature/init.lua")
+	err1 := l.DoFile("nature/init.lua")
 	if err1 != nil {
-		err2 := util.DoFile(l, filepath.Join(dataDir, "nature", "init.lua"))
+		err2 := l.DoFile(filepath.Join(dataDir, "nature", "init.lua"))
 		if err2 != nil {
 			fmt.Fprintln(os.Stderr, "Missing nature module, some functionality and builtins will be missing.")
 			fmt.Fprintln(os.Stderr, "local error:", err1)
@@ -51,51 +48,41 @@ func luaInit() {
 	}
 }
 
-func loadLibs(r *rt.Runtime) {
-	r.PushContext(rt.RuntimeContextDef{
-		MessageHandler: debuglib.Traceback,
-	})
-	lib.LoadAll(r)
-
-	lib.LoadLibs(r, hilbishLoader)
+func loadLibs(r *moonlight.Runtime) {
+	l.LoadLibrary(hilbishLoader, "hilbish")
 	// yes this is stupid, i know
-	util.DoString(r, "hilbish = require 'hilbish'")
+	l.DoString("hilbish = require 'hilbish'")
 
 	hooks = bait.New(r)
 	hooks.SetRecoverer(func(event string, handler *bait.Listener, err interface{}) {
 		fmt.Println("Error in `error` hook handler:", err)
 		hooks.Off(event, handler)
 	})
-	lib.LoadLibs(r, hooks.Loader)
+	l.LoadLibrary(hooks.Loader, "bait")
 
 	// Add Ctrl-C handler
-	hooks.On("signal.sigint", func(...interface{}) rt.Value {
+	hooks.On("signal.sigint", func(...any) moonlight.Value {
 		if !interactive {
 			os.Exit(0)
 		}
-		return rt.NilValue
+		return moonlight.NilValue
 	})
 
-	lib.LoadLibs(r, fs.Loader)
-	lib.LoadLibs(r, terminal.Loader)
-	lib.LoadLibs(r, snail.Loader)
+	l.LoadLibrary(fs.Loader, "fs")
+	l.LoadLibrary(terminal.Loader, "terminal")
+	l.LoadLibrary(snail.Loader, "snail")
 
 	cmds = commander.New(r)
-	lib.LoadLibs(r, cmds.Loader)
-	lib.LoadLibs(l, readline.Loader)
+	l.LoadLibrary(cmds.Loader, "commander")
+	l.LoadLibrary(readline.Loader, "readline")
 }
 
-func yarnloadLibs(r *rt.Runtime) {
-	r.PushContext(rt.RuntimeContextDef{
-		MessageHandler: debuglib.Traceback,
-	})
-	lib.LoadAll(r)
-
-	lib.LoadLibs(r, hilbishLoader)
-	lib.LoadLibs(r, hooks.Loader)
-	lib.LoadLibs(r, fs.Loader)
-	lib.LoadLibs(r, terminal.Loader)
-	lib.LoadLibs(r, snail.Loader)
-	lib.LoadLibs(r, cmds.Loader)
-	lib.LoadLibs(r, readline.Loader)
+func yarnloadLibs(r *moonlight.Runtime) {
+	l.LoadLibrary(hilbishLoader, "hilbish")
+	l.LoadLibrary(hooks.Loader, "bait")
+	l.LoadLibrary(fs.Loader, "fs")
+	l.LoadLibrary(terminal.Loader, "terminal")
+	l.LoadLibrary(snail.Loader, "snail")
+	l.LoadLibrary(cmds.Loader, "commander")
+	l.LoadLibrary(readline.Loader, "readline")
 }

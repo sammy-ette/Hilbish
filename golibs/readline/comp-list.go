@@ -32,10 +32,15 @@ func (g *CompletionGroup) initList(rl *Readline) {
 		g.tcMaxX = 2
 	}
 
-	if len(g.Items) > g.MaxLength {
+	totalRows := len(g.Items)
+	if totalRows > g.MaxLength {
 		g.tcMaxY = g.MaxLength
 	} else {
-		g.tcMaxY = len(g.Items)
+		g.tcMaxY = totalRows
+	}
+
+	if heightLimit := rl.groupHeightLimit(totalRows); g.tcMaxY > heightLimit {
+		g.tcMaxY = heightLimit
 	}
 
 	g.tcPosX = 0
@@ -158,6 +163,13 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 		return
 	}
 
+	totalRows := len(g.Items)
+	needsScrollbar := totalRows > g.tcMaxY
+
+	if needsScrollbar {
+		termWidth -= 2
+	}
+
 	// Suggestion cells dimensions
 	maxLength := g.tcMaxLength
 	if maxLength > termWidth-9 {
@@ -181,11 +193,14 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 		return ""
 	}
 
+	thumbStart, thumbH := scrollbarThumb(totalRows, g.tcMaxY, g.tcOffset)
+
 	// For each line in completions
 	y := 0
 	for i := g.tcOffset; i < len(g.Items); i++ {
 		y++ // Consider next item
 		if y > g.tcMaxY {
+			y--
 			break
 		}
 
@@ -215,25 +230,37 @@ func (g *CompletionGroup) writeList(rl *Readline) (comp string) {
 		// Description (use visible width, ignoring styling)
 		description := g.Items[i].Description
 		if printWidth(description) > maxDescWidth {
-			description = truncateDisplay(description, maxDescWidth) + RESET + "\n"
-		} else {
-			description += "\n"
+			description = truncateDisplay(description, maxDescWidth) + RESET
 		}
 
 		// Total completion line
 		comp += sugg + seqReset + alt + " " + seqReset + description
+		if needsScrollbar {
+			comp += scrollbarChar(y-1, thumbStart, thumbH)
+		}
+		comp += "\n"
+	}
+
+	if needsScrollbar {
+		firstItem := g.tcOffset + 1
+		lastItem := g.tcOffset + y
+		if lastItem > len(g.Items) {
+			lastItem = len(g.Items)
+		}
+		comp += footerRange("items", firstItem, lastItem, len(g.Items))
+		rl.tcUsedY++
 	}
 
 	// Add the equivalent of this group's size to final screen clearing
 	// Can be set and used only if no alterative completions have been given.
 	if !g.hasAliases() {
-		if len(g.Items) > g.MaxLength {
+		if g.MaxLength < y {
 			rl.tcUsedY += g.MaxLength
 		} else {
-			rl.tcUsedY += len(g.Items)
+			rl.tcUsedY += y
 		}
 	} else {
-		rl.tcUsedY += len(g.Items)
+		rl.tcUsedY += y
 	}
 
 	return

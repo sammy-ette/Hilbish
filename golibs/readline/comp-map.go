@@ -7,7 +7,7 @@ import (
 
 // initMap - Map display details. Called each time we want to be sure to have
 // a working completion group either immediately, or later on. Generally defered.
-func (g *CompletionGroup) initMap() {
+func (g *CompletionGroup) initMap(rl *Readline) {
 
 	// Compute size of each completion item box. Group independent (display width, not byte length)
 	g.tcMaxLength = 1
@@ -23,10 +23,15 @@ func (g *CompletionGroup) initMap() {
 	g.tcOffset = 0
 
 	// Number of lines allowed to be printed for group
-	if len(g.Items) > g.MaxLength {
+	totalRows := len(g.Items)
+	if totalRows > g.MaxLength {
 		g.tcMaxY = g.MaxLength
 	} else {
-		g.tcMaxY = len(g.Items)
+		g.tcMaxY = totalRows
+	}
+
+	if heightLimit := rl.groupHeightLimit(totalRows); g.tcMaxY > heightLimit {
+		g.tcMaxY = heightLimit
 	}
 }
 
@@ -83,6 +88,13 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 		return
 	}
 
+	totalRows := len(g.Items)
+	needsScrollbar := totalRows > g.tcMaxY
+
+	if needsScrollbar {
+		termWidth -= 2
+	}
+
 	// Set all necessary dimensions
 	maxLength := g.tcMaxLength
 	if maxLength > termWidth-9 {
@@ -99,11 +111,14 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 		return ""
 	}
 
+	thumbStart, thumbH := scrollbarThumb(totalRows, g.tcMaxY, g.tcOffset)
+
 	// String formating
 	var item, description string
 	for i := g.tcOffset; i < len(g.Items); i++ {
 		y++ // Consider new item
 		if y > g.tcMaxY {
+			y--
 			break
 		}
 
@@ -121,14 +136,29 @@ func (g *CompletionGroup) writeMap(rl *Readline) (comp string) {
 			descPadding = 0
 		}
 
-		comp += "\r" + description + strings.Repeat(" ", descPadding) + " " + highlight(y) + item + strings.Repeat(" ", itemPadding) + " " + seqReset + "\n"
+		comp += "\r" + description + strings.Repeat(" ", descPadding) + " " + highlight(y) + item + strings.Repeat(" ", itemPadding) + " " + seqReset
+		if needsScrollbar {
+			comp += scrollbarChar(y-1, thumbStart, thumbH)
+		}
+		comp += "\n"
+	}
+
+	// Footer: show item range when scrollable.
+	if needsScrollbar {
+		firstItem := g.tcOffset + 1
+		lastItem := g.tcOffset + y
+		if lastItem > len(g.Items) {
+			lastItem = len(g.Items)
+		}
+		comp += footerRange("items", firstItem, lastItem, len(g.Items))
+		rl.tcUsedY++
 	}
 
 	// Add the equivalent of this group's size to final screen clearing
-	if len(g.Items) > g.MaxLength {
+	if g.MaxLength < y {
 		rl.tcUsedY += g.MaxLength
 	} else {
-		rl.tcUsedY += len(g.Items)
+		rl.tcUsedY += y
 	}
 
 	return

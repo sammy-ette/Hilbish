@@ -28,7 +28,10 @@
 						"of",
 						"the",
 						"hook."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "cb",
@@ -45,7 +48,10 @@
 						"hook",
 						"is",
 						"thrown."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -57,7 +63,7 @@
 							"\tprint 'Goodbye Hilbish!'",
 							"end)"
 						],
-						"startIdx": 5
+						"startIdx": 4
 					}
 				],
 				"param": [
@@ -71,7 +77,7 @@
 							"the",
 							"hook."
 						],
-						"startIdx": 2
+						"startIdx": 1
 					},
 					{
 						"id": "cb",
@@ -114,7 +120,10 @@
 						"of",
 						"the",
 						"event"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "cb",
@@ -131,7 +140,10 @@
 						"event",
 						"is",
 						"thrown."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -146,7 +158,7 @@
 							"the",
 							"event"
 						],
-						"startIdx": 2
+						"startIdx": 1
 					},
 					{
 						"id": "cb",
@@ -174,7 +186,7 @@
 			"description": [
 				"Returns a table of functions that are hooked on an event with the corresponding `name`."
 			],
-			"signature": "hooks(name) -\u003e table",
+			"signature": "hooks(name) -\u003e table\u003cfunction\u003e",
 			"goFuncName": "bhooks",
 			"isInterface": false,
 			"isMember": false,
@@ -189,7 +201,20 @@
 						"of",
 						"the",
 						"hook"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "hooks",
+					"Type": "table\u003cfunction\u003e",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -204,17 +229,27 @@
 							"the",
 							"hook"
 						],
+						"startIdx": 1
+					}
+				],
+				"return": [
+					{
+						"id": "table\u003cfunction\u003e",
+						"fields": [
+							"hooks"
+						],
 						"startIdx": 2
 					}
 				],
-				"returns": [
+				"since": [
 					{
-						"id": "table\u003cfunction\u003e",
+						"id": "2.0.0",
 						"fields": [],
 						"startIdx": 3
 					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "release",
@@ -243,7 +278,10 @@
 						"hook",
 						"is",
 						"on"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "catcher",
@@ -253,7 +291,10 @@
 						"function",
 						"to",
 						"remove"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -286,7 +327,7 @@
 							"is",
 							"on"
 						],
-						"startIdx": 4
+						"startIdx": 3
 					},
 					{
 						"id": "catcher",
@@ -299,8 +340,16 @@
 						],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "throw",
@@ -324,7 +373,10 @@
 						"of",
 						"the",
 						"hook."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "args",
@@ -337,7 +389,10 @@
 						"to",
 						"the",
 						"hook."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -352,7 +407,7 @@
 							"\tprint('Hello ' .. greetTo)",
 							"end)"
 						],
-						"startIdx": 5
+						"startIdx": 4
 					}
 				],
 				"param": [
@@ -366,7 +421,7 @@
 							"the",
 							"hook."
 						],
-						"startIdx": 1
+						"startIdx": 0
 					},
 					{
 						"id": "args",

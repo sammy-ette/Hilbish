@@ -1,6 +1,3 @@
-> [!TIP]
-> Check out [Hilbish: Midnight Edition](https://github.com/sammy-ette/Hilbish/tree/midnight-edition) if you want to use C Lua, LuaJIT or anything related!
-
 <img src="./assets/hilbish-logo-and-text.png" width=512><br>
 <blockquote>
 🌓 The Moon-powered shell! A comfy and extensible shell for Lua fans! 🌺 ✨
@@ -46,7 +43,7 @@ Otherwise, continue reading for steps on compiling.
 - [Go 1.22+](https://go.dev)
 - [Task](https://taskfile.dev/installation/) (**Go on the hyperlink here to see Task's install method for your OS.**)
 
-## Build
+# Compiling
 First, clone Hilbish. The recursive is required, as some Lua libraries
 are submodules.  
 ```sh
@@ -55,6 +52,16 @@ cd Hilbish
 go get -d ./...
 ```  
 
+## Editions
+Hilbish comes in 2 editions: Standard and Midnight edition.
+
+The standard edition of Hilbish uses a pure-Go written Lua implementation and is the default.
+
+Midnight edition uses a binding to the original C Lua to run Lua code instead.
+
+Midnight edition is offered as a nice feature in case you want to use a Lua library written in C, or LuaJIT, but should not be used for other reasons.
+
+### Standard Edition
 To build, run:
 ```
 task
@@ -66,6 +73,22 @@ git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
 task build
 ```  
 
+### Midnight Edition
+To build midnight edition, run:
+```
+task midnight
+```
+
+To change the Lua version used, you can use the LUA environment variable. Fedora users require this to compile with the right Lua library:
+```
+LUA=lua54,lluadash task midnight
+```
+
+Note that Hilbish is only officially supported on Lua 5.4.
+
+`lluadash` is used incase the Lua library on your system is named something like `liblua-5.4` (with a dash, which it is on Fedora).
+
+## Install
 After you did all that, run `sudo task install` to install Hilbish globally.
 
 # Contributing

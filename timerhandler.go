@@ -5,13 +5,11 @@ import (
 	"sync"
 	"time"
 
-	"hilbish/util"
-
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 var timers *timersModule
-var timerMetaKey = rt.StringValue("hshtimer")
+var timerMetaKey = moonlight.StringValue("hshtimer")
 
 type timersModule struct {
 	mu       *sync.RWMutex
@@ -34,7 +32,7 @@ func (th *timersModule) wait() {
 	th.wg.Wait()
 }
 
-func (th *timersModule) create(typ timerType, dur time.Duration, fun *rt.Closure) *timer {
+func (th *timersModule) create(typ timerType, dur time.Duration, fun *moonlight.Closure) *timer {
 	th.mu.Lock()
 	defer th.mu.Unlock()
 
@@ -61,69 +59,90 @@ func (th *timersModule) get(id int) *timer {
 	return th.timers[id]
 }
 
-// #interface timers
-// create(type, time, callback) -> @Timer
-// Creates a timer that runs based on the specified `time`.
-// #param type number What kind of timer to create, can either be `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`
-// #param time number The amount of time the function should run in milliseconds.
-// #param callback function The function to run for the timer.
-func (th *timersModule) luaCreate(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(3); err != nil {
-		return nil, err
+// @interface timers
+// create
+// Creates a timer.
+// @param type number Timer type: `hilbish.timers.INTERVAL` or `hilbish.timers.TIMEOUT`.
+// @param time number Time it takes for the callback to run, in milliseconds.
+// @param callback function The function to call when the timer fires.
+// @return Timer timer The created timer. Call `:start()` to run it.
+// @since 2.0.0
+func (th *timersModule) luaCreate(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(3); err != nil {
+		return err
 	}
-	timerTypInt, err := c.IntArg(0)
+	timerTypInt, err := mlr.IntArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	ms, err := c.IntArg(1)
+	ms, err := mlr.IntArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	cb, err := c.ClosureArg(2)
+	cb, err := mlr.ClosureArg(2)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	timerTyp := timerType(timerTypInt)
 	tmr := th.create(timerTyp, time.Duration(ms)*time.Millisecond, cb)
-	return c.PushingNext1(t.Runtime, rt.UserDataValue(tmr.ud)), nil
+	mlr.PushNext1(moonlight.UserDataValue(tmr.ud))
+	return nil
 }
 
-// #interface timers
-// get(id) -> @Timer
-// Retrieves a timer via its ID.
-// #param id number
-// #returns Timer
-func (th *timersModule) luaGet(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// @interface timers
+// get
+// Retrieves a timer.
+// @param id number The ID of the timer to retrieve.
+// @return Timer? timer The timer object, or nil if no timer with that ID exists.
+// @since 2.0.0
+func (th *timersModule) luaGet(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
-	id, err := c.IntArg(0)
+	id, err := mlr.IntArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	t := th.get(int(id))
 	if t != nil {
-		return c.PushingNext1(thr.Runtime, rt.UserDataValue(t.ud)), nil
+		mlr.PushNext1(moonlight.UserDataValue(t.ud))
+		return nil
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #interface timers
-// #field INTERVAL Constant for an interval timer type
-// #field TIMEOUT Constant for a timeout timer type
+// @interface timers
+// wait()
+// Waits for all timers to finish.
+// @since 2.0.0
+func (th *timersModule) luaWait(mlr *moonlight.Runtime) error {
+	th.wait()
+	return nil
+}
+
+// @interface timers
+// @since 2.0.0
+// @field INTERVAL Constant Interval timer type
+// @field TIMEOUT Constant Timeout timer type
 // timeout and interval API
 /*
 If you ever want to run a piece of code on a timed interval, or want to wait
-a few seconds, you don't have to rely on timing tricks, as Hilbish has a
-timer API to set intervals and timeouts.
+a few seconds to run a function, you can use Hilbish's simple timer API.
 
-These are the simple functions `hilbish.interval` and `hilbish.timeout` (doc
-accessible with `doc hilbish`, or `Module hilbish` on the Website).
+For the common cases, `hilbish.interval` and `hilbish.timeout` create and start a
+timer in one simple call:
 
-An example of usage:
+```lua
+hilbish.timeout(function() print 'hello!' end, 5000)
+```
+
+This interface, `hilbish.timers`, is the full API behind those two shorthands.
+Read it for documentation :), or use it when you need to create timers without them
+starting immediately.
+
 ```lua
 local t = hilbish.timers.create(hilbish.timers.TIMEOUT, 5000, function()
 	print 'hello!'
@@ -133,61 +152,65 @@ t:start()
 print(t.running) // true
 ```
 */
-func (th *timersModule) loader(rtm *rt.Runtime) *rt.Table {
-	timerMethods := rt.NewTable()
-	timerFuncs := map[string]util.LuaExport{
+func (th *timersModule) loader() *moonlight.Table {
+	timerMethods := moonlight.NewTable()
+	timerFuncs := map[string]moonlight.Export{
 		"start": {Function: timerStart, ArgNum: 1, Variadic: false},
 		"stop":  {Function: timerStop, ArgNum: 1, Variadic: false},
 	}
-	util.SetExports(rtm, timerMethods, timerFuncs)
+	l.SetExports(timerMethods, timerFuncs)
 
-	timerMeta := rt.NewTable()
-	timerIndex := func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		ti, _ := timerArg(c, 0)
+	timerMeta := moonlight.NewTable()
+	timerIndex := func(mlr *moonlight.Runtime) error {
+		ti, _ := timerArg(mlr, 0)
 
-		arg := c.Arg(1)
+		arg := mlr.Arg(1)
 		val := timerMethods.Get(arg)
 
-		if val != rt.NilValue {
-			return c.PushingNext1(t.Runtime, val), nil
+		if val != moonlight.NilValue {
+			mlr.PushNext1(val)
+			return nil
 		}
 
 		keyStr, _ := arg.TryString()
 
 		switch keyStr {
 		case "type":
-			val = rt.IntValue(int64(ti.typ))
+			val = moonlight.IntValue(int64(ti.typ))
 		case "running":
 			ti.mu.Lock()
-			val = rt.BoolValue(ti.running)
+			val = moonlight.BoolValue(ti.running)
 			ti.mu.Unlock()
 		case "duration":
-			val = rt.IntValue(int64(ti.dur / time.Millisecond))
+			val = moonlight.IntValue(int64(ti.dur / time.Millisecond))
+		case "id":
+			val = moonlight.IntValue(int64(ti.id))
 		}
 
-		return c.PushingNext1(t.Runtime, val), nil
+		mlr.PushNext1(val)
+		return nil
 	}
 
-	timerMeta.Set(rt.StringValue("__index"), rt.FunctionValue(rt.NewGoFunction(timerIndex, "__index", 2, false)))
-	l.SetRegistry(timerMetaKey, rt.TableValue(timerMeta))
+	timerMeta.Set(moonlight.StringValue("__index"), moonlight.FunctionValue(moonlight.NewGoFunction(l, timerIndex, "__index", 2, false)))
+	l.SetRegistry(timerMetaKey, moonlight.TableValue(timerMeta))
 
-	thExports := map[string]util.LuaExport{
+	thExports := map[string]moonlight.Export{
 		"create": {Function: th.luaCreate, ArgNum: 3, Variadic: false},
 		"get":    {Function: th.luaGet, ArgNum: 1, Variadic: false},
-		"wait":   {Function: timerWait, ArgNum: 0, Variadic: false},
+		"wait":   {Function: th.luaWait, ArgNum: 0, Variadic: false},
 	}
 
-	luaTh := rt.NewTable()
-	util.SetExports(rtm, luaTh, thExports)
+	luaTh := moonlight.NewTable()
+	l.SetExports(luaTh, thExports)
 
-	util.SetField(luaTh, "INTERVAL", rt.IntValue(0))
-	util.SetField(luaTh, "TIMEOUT", rt.IntValue(1))
+	luaTh.SetField("INTERVAL", moonlight.IntValue(0))
+	luaTh.SetField("TIMEOUT", moonlight.IntValue(1))
 
 	return luaTh
 }
 
-func timerArg(c *rt.GoCont, arg int) (*timer, error) {
-	j, ok := valueToTimer(c.Arg(arg))
+func timerArg(mlr *moonlight.Runtime, arg int) (*timer, error) {
+	j, ok := valueToTimer(mlr.Arg(arg))
 	if !ok {
 		return nil, fmt.Errorf("#%d must be a timer", arg+1)
 	}
@@ -195,7 +218,7 @@ func timerArg(c *rt.GoCont, arg int) (*timer, error) {
 	return j, nil
 }
 
-func valueToTimer(val rt.Value) (*timer, bool) {
+func valueToTimer(val moonlight.Value) (*timer, bool) {
 	u, ok := val.TryUserData()
 	if !ok {
 		return nil, false
@@ -205,15 +228,7 @@ func valueToTimer(val rt.Value) (*timer, bool) {
 	return j, ok
 }
 
-func timerUserData(j *timer) *rt.UserData {
+func timerUserData(j *timer) *moonlight.UserData {
 	timerMeta := l.Registry(timerMetaKey)
-	return rt.NewUserData(j, timerMeta.AsTable())
-}
-
-// #interface timers
-// wait()
-// Waits for all timers to finish.
-func timerWait(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	timers.wait()
-	return c.Next(), nil
+	return moonlight.NewUserData(j, moonlight.ToTable(timerMeta))
 }

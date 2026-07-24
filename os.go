@@ -1,26 +1,37 @@
 package main
 
 import (
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
+	//"github.com/sammy-ette/hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/blackfireio/osinfo"
 )
 
-// #interface os
+// @interface os
 // operating system info
 // Provides simple text information properties about the current operating system.
 // This mainly includes the name and version.
-// #field family Family name of the current OS
-// #field name Pretty name of the current OS
-// #field version Version of the current OS
-func hshosLoader() *rt.Table {
+// <nl>
+// This is commonly used to branch config behavior per platform, for example
+// picking a different package manager completer or prompt icon:
+// <nl>
+// ```lua
+// if hilbish.os.family == 'windows' then
+// 	hilbish.prompt '%u@%h %d>'
+// else
+// 	hilbish.prompt '%u@%h %d $'
+// end
+// ```
+// @field family string Family name of the current OS
+// @field name string Pretty name of the current OS
+// @field version string Version of the current OS
+func hshosLoader() *moonlight.Table {
 	info, _ := osinfo.GetOSInfo()
-	mod := rt.NewTable()
+	mod := moonlight.NewTable()
 
-	util.SetField(mod, "family", rt.StringValue(info.Family))
-	util.SetField(mod, "name", rt.StringValue(info.Name))
-	util.SetField(mod, "version", rt.StringValue(info.Version))
+	mod.SetField("family", moonlight.StringValue(info.Family))
+	mod.SetField("name", moonlight.StringValue(info.Name))
+	mod.SetField("version", moonlight.StringValue(info.Version))
 
 	return mod
 }

@@ -60,6 +60,7 @@ var keyNames = map[string]string{
 	"Alt-R":         string([]byte{27, 114}),
 	"Alt-Backspace": string([]byte{27, 127}),
 	"Alt-Delete":    seqAltDelete,
+	"Ctrl-Delete":   seqCtrlDelete,
 }
 
 // reverseKeyNames maps byte sequences back to key names
@@ -70,6 +71,14 @@ func init() {
 	for name, seq := range keyNames {
 		reverseKeyNames[seq] = name
 	}
+
+	// Terminals report some keys with more than one escape sequence
+	// (e.g. depending on modifier-key encoding support); map every
+	// variant to the same name so ReadChar() recognizes all of them.
+	reverseKeyNames[seqCtrlDelete2] = "Ctrl-Delete"
+	reverseKeyNames[seqDelete2] = "Delete"
+	reverseKeyNames[seqHomeSc] = "Home"
+	reverseKeyNames[seqEndSc] = "End"
 }
 
 func keyNameToSeq(name string) string {

@@ -21,7 +21,10 @@
 					"Type": "string",
 					"Doc": [
 						"Code/text to do highlighting on."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
@@ -40,7 +43,10 @@
 				{
 					"Name": "text",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
@@ -60,14 +66,21 @@
 					"Type": "string",
 					"Doc": [
 						"Type of info block. The only one specially styled is the `warning`."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "text",
 					"Type": "string",
-					"Doc": null
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		}
-	]
+	],
+	"since": "2.2.0"
 }

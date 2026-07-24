@@ -7,13 +7,13 @@ while hilbish.interactive do
 
 	local ok, res = pcall(function() return hilbish.editor:read() end)
 	if not ok and tostring(res):lower():match 'eof' then
-		bait.throw 'hilbish.exit'
+		bait.throw 'hilbish.exit' -- see nature/hooks.lua
 		os.exit(0)
 	end
 	if not ok then
 		if tostring(res):lower():match 'ctrl%+c' then
 			print '^C'
-			bait.throw 'hilbish.cancel'
+			bait.throw 'hilbish.cancel' -- see nature/hooks.lua
 		else
 			print(tostring(res))
 			_ = io.read()

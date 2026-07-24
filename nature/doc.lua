@@ -1,4 +1,5 @@
 -- @module doc
+-- @since 2.2.0
 -- command-line doc rendering
 -- The doc module contains a small set of functions
 -- used by the Greenhouse pager to render parts of the documentation pages.

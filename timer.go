@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 type timerType int64
@@ -17,22 +17,24 @@ const (
 	timerTimeout
 )
 
-// #type
-// #interface timers
-// #property type What type of timer it is
-// #property running If the timer is running
-// #property duration The duration in milliseconds that the timer will run
-// The Job type describes a Hilbish timer.
+// @type
+// @interface timers
+// @since 2.0.0
+// @property type number What kind of timer it is: interval (repeating) or timeout (one-shot).
+// @property running boolean Whether the timer is currently running.
+// @property duration number The duration in milliseconds after which the callback fires.
+// @property id number The ID of the timer.
+// The Timer type represents a Hilbish timer created with hilbish.timers.create.
 type timer struct {
 	mu      sync.Mutex
 	id      int
 	typ     timerType
 	running bool
 	dur     time.Duration
-	fun     *rt.Closure
+	fun     *moonlight.Closure
 	th      *timersModule
 	ticker  *time.Ticker
-	ud      *rt.UserData
+	ud      *moonlight.UserData
 	channel chan struct{}
 }
 
@@ -59,7 +61,7 @@ func (t *timer) start() error {
 		for {
 			select {
 			case <-t.ticker.C:
-				_, err := rt.Call1(l.MainThread(), rt.FunctionValue(t.fun))
+				_, err := l.Call1(moonlight.FunctionValue(t.fun))
 				if err != nil {
 					fmt.Fprintln(os.Stderr, "Error in function:\n", err)
 					t.stop()
@@ -96,46 +98,48 @@ func (t *timer) stop() error {
 	return nil
 }
 
-// #interface timers
-// #member
+// @interface timers
+// @member
 // start()
 // Starts a timer.
-func timerStart(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// @since 2.0.0
+func timerStart(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	t, err := timerArg(c, 0)
+	t, err := timerArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = t.start()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #interface timers
-// #member
+// @interface timers
+// @member
 // stop()
 // Stops a timer.
-func timerStop(thr *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// @since 2.0.0
+func timerStop(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	t, err := timerArg(c, 0)
+	t, err := timerArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	err = t.stop()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.Next(), nil
+	return nil
 }

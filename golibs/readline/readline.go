@@ -176,6 +176,15 @@ func (rl *Readline) Readline() (string, error) {
 			continue
 		}
 
+		// An escape sequence that isn't in the keymap (e.g. an unbound function
+		// key) is dropped rather than falling into the paste/insert path below:
+		// multi-byte sequences there are treated as a paste burst and would get
+		// inserted into the line as literal garbage.
+		if b[0] == charEscape && i > 1 {
+			rl.viUndoSkipAppend = true
+			continue
+		}
+
 		rl.resetVirtualComp(false)
 		// Distinguish a paste burst (more than one rune) from a single
 		// keystroke by rune count, so a lone multi-byte character isn't

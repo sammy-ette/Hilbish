@@ -2,7 +2,6 @@
 local _ = require 'succulent' -- Function additions
 local bait = require 'bait'
 local fs = require 'fs'
-local terminal = require 'terminal'
 
 hilbish.initialized = false
 
@@ -19,17 +18,22 @@ end
 package.path = package.path .. ';' .. hilbish.dataDir .. '/?/init.lua'
 .. ';' .. hilbish.dataDir .. '/?/?.lua' .. ";" .. hilbish.dataDir .. '/?.lua'
 
-hilbish.module.paths = '?.so;?/?.so;'
-.. hilbish.userDir.data .. 'hilbish/libs/?/?.so'
-.. ";" .. hilbish.userDir.data .. 'hilbish/libs/?.so'
+if not hilbish.midnightEdition then
+	hilbish.module.paths = '?.so;?/?.so;'
+	.. hilbish.userDir.data .. 'hilbish/libs/?/?.so'
+	.. ";" .. hilbish.userDir.data .. 'hilbish/libs/?.so'
 
-table.insert(package.searchers, function(module)
-	local path = package.searchpath(module, hilbish.module.paths)
-	if not path then return nil end
+	table.insert(package.searchers, function(module)
+		local path = package.searchpath(module, hilbish.module.paths)
+		if not path then return nil end
 
-	-- it didnt work normally, idk
-	return function() return hilbish.module.load(path) end, path
-end)
+		-- it didnt work normally, idk
+		return function() return hilbish.module.load(path) end, path
+	end)
+else
+---@diagnostic disable-next-line: undefined-global
+	pcall = unsafe_pcall
+end
 
 require 'nature.editor'
 require 'nature.aliases'
@@ -37,6 +41,7 @@ require 'nature.hilbish'
 
 require 'nature.processors'
 require 'nature.processors.wildcardWarn'
+require 'nature.processors.modifiers'
 
 require 'nature.commands'
 require 'nature.completions'
@@ -54,6 +59,7 @@ else
 	os.setenv('SHLVL', '0')
 end
 
+--[[
 do
 	local startSearchPath = hilbish.userDir.data .. '/hilbish/start/?/init.lua;'
 	.. hilbish.userDir.data .. '/hilbish/start/?.lua'
@@ -70,6 +76,7 @@ do
 
 	package.path = package.path .. ';' .. startSearchPath
 end
+]]--
 
 bait.catch('error', function(event, handler, err)
 	print(string.format('Encountered an error in %s handler\n%s', event, err:sub(8)))
@@ -92,7 +99,7 @@ local function runConfig(path)
 		print 'An error has occurred while loading your config!\n'
 		hilbish.prompt '& '
 	else
-		bait.throw 'hilbish.init'
+		bait.throw 'hilbish.init' -- see nature/hooks.lua
 	end
 end
 

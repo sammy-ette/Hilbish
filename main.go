@@ -10,19 +10,19 @@ import (
 	"strings"
 	"sync"
 
-	"hilbish/golibs/bait"
-	"hilbish/golibs/commander"
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/golibs/bait"
+	"github.com/sammy-ette/hilbish/golibs/commander"
+	"github.com/sammy-ette/hilbish/moonlight"
+	"github.com/sammy-ette/hilbish/util"
 
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/pborman/getopt"
 	"golang.org/x/term"
 )
 
 var (
-	l *rt.Runtime
+	l *moonlight.Runtime
 
-	luaCompletions   = map[string]*rt.Closure{}
+	luaCompletions   = map[string]*moonlight.Closure{}
 	luaCompletionsMu sync.RWMutex
 
 	confDir     string
@@ -87,12 +87,10 @@ func main() {
 	configflag := getopt.StringLong("config", 'C', defaultConfPath, "Sets the path to Hilbish's config")
 	getopt.BoolLong("login", 'l', "Force Hilbish to be a login shell")
 	getopt.BoolLong("interactive", 'i', "Force Hilbish to be an interactive shell")
-	getopt.BoolLong("noexec", 'n', "Don't execute and only report Lua syntax errors")
 
 	getopt.Parse()
 	loginshflag := getopt.Lookup('l').Seen()
 	interactiveflag := getopt.Lookup('i').Seen()
-	noexecflag := getopt.Lookup('n').Seen()
 	cmdString = *cmdflag
 	confPath = *configflag
 
@@ -111,10 +109,6 @@ func main() {
 
 	if getopt.NArgs() > 0 {
 		interactive = false
-	}
-
-	if noexecflag {
-		noexecute = true
 	}
 
 	// first arg, first character
@@ -176,14 +170,21 @@ func getVersion() string {
 
 	v.WriteString(ver)
 	if gitBranch != "" && gitBranch != "HEAD" {
-		v.WriteString("-" + gitBranch)
+		v.WriteString("-")
+		v.WriteString(gitBranch)
 	}
 
 	if gitCommit != "" {
-		v.WriteString("." + gitCommit)
+		v.WriteString(".")
+		v.WriteString(gitCommit)
 	}
 
-	v.WriteString(" (" + releaseName + ")")
+	v.WriteString(" (")
+	v.WriteString(releaseName)
+	if moonlight.IsMidnight() {
+		v.WriteString(" / Midnight Edition")
+	}
+	v.WriteString(")")
 
 	return v.String()
 }

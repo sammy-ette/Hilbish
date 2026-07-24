@@ -6,14 +6,15 @@ import (
 	"regexp"
 	"sync"
 
-	rt "github.com/arnodel/golua/runtime"
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // Instance is used to encapsulate the parameter group and run time of any given
 // readline instance so that you can reuse the readline API for multiple entry
 // captures without having to repeatedly unload configuration.
 
-// #type
+// @type
+// @since 3.0.0
 type Readline struct {
 	// Buffer is the core text-editing model (line []rune, pos int) and its
 	// fields/methods are promoted directly onto Readline.
@@ -197,8 +198,8 @@ type Readline struct {
 	// Keybinding system
 	keymap        Keymap
 	actions       map[string]func(*Readline) error
-	customActions map[string]*rt.Closure
-	luaRuntime    *rt.Runtime
+	customActions map[string]*moonlight.Closure
+	luaRuntime    *moonlight.Runtime
 
 	// event
 	evtKeyPress map[string]func(string, []rune, int) *EventReturn
@@ -234,7 +235,7 @@ func NewInstance() *Readline {
 
 	// History
 	rl.mainHistory = new(ExampleHistory) // In-memory history by default.
-	rl.HistoryAutoWrite = true
+	rl.HistoryAutoWrite = false
 
 	// Others
 	rl.InfoFormatting = seqFgBlue
@@ -266,7 +267,7 @@ func NewInstance() *Readline {
 	rl.bufferedOut = bufio.NewWriter(os.Stdout)
 
 	// Keybinding system
-	rl.customActions = make(map[string]*rt.Closure)
+	rl.customActions = make(map[string]*moonlight.Closure)
 	rl.initKeymap()
 
 	// Registers

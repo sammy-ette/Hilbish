@@ -4,6 +4,18 @@
 // including all the interactive features of Hilbish like history search,
 // syntax highlighting, everything. The global Hilbish readline instance
 // is usable at `hilbish.editor`.
+//
+// Customizing `hilbish.editor` is the common path. Creating a custom readline instance
+// is only  needed when you want a fully separate line reader.
+//
+// ```lua
+// hilbish.editor:setHinter(function(line, pos)
+//
+//	if line == '' then return end
+//	return ' (type something!)'
+//
+// end)
+// ```
 package readline
 
 import (
@@ -11,369 +23,376 @@ import (
 	"io"
 	"strings"
 
-	"hilbish/util"
+	"github.com/sammy-ette/hilbish/moonlight"
 
-	"github.com/arnodel/golua/lib/packagelib"
-	rt "github.com/arnodel/golua/runtime"
 	"github.com/sahilm/fuzzy"
 )
 
-var rlMetaKey = rt.StringValue("__readline")
+var rlMetaKey = moonlight.StringValue("__readline")
 
-// Loader is the package-level readline module loader. Use this with lib.LoadLibs.
-var Loader = packagelib.Loader{
-	Load: luaLoader,
-	Name: "readline",
-}
-
-func luaLoader(rtm *rt.Runtime) (rt.Value, func()) {
-	rlMethods := rt.NewTable()
-	rlMethodss := map[string]util.LuaExport{
-		"deleteByAmount":      {Function: rlDeleteByAmount, ArgNum: 2, Variadic: false},
-		"getLine":             {Function: rlGetLine, ArgNum: 1, Variadic: false},
-		"getVimRegister":      {Function: rlGetRegister, ArgNum: 2, Variadic: false},
-		"insert":              {Function: rlInsert, ArgNum: 2, Variadic: false},
-		"read":                {Function: rlRead, ArgNum: 1, Variadic: false},
-		"readChar":            {Function: rlReadChar, ArgNum: 1, Variadic: false},
-		"setVimRegister":      {Function: rlSetRegister, ArgNum: 3, Variadic: false},
-		"log":                 {Function: rlLog, ArgNum: 2, Variadic: false},
-		"prompt":              {Function: rlPrompt, ArgNum: 2, Variadic: false},
-		"refreshPrompt":       {Function: rlRefreshPrompt, ArgNum: 1, Variadic: false},
-		"setHinter":           {Function: rlSetHinter, ArgNum: 2, Variadic: false},
-		"setHighlighter":      {Function: rlSetHighlighter, ArgNum: 2, Variadic: false},
-		"setCompleter":        {Function: rlSetCompleter, ArgNum: 2, Variadic: false},
-		"setViModeCallback":   {Function: rlSetViModeCallback, ArgNum: 2, Variadic: false},
-		"setViActionCallback": {Function: rlSetViActionCallback, ArgNum: 2, Variadic: false},
-		"setInputMode":        {Function: rlSetInputMode, ArgNum: 2, Variadic: false},
-		"setHistory":          {Function: rlSetHistory, ArgNum: 2, Variadic: false},
-		"setRawInputCallback": {Function: rlSetRawInputCallback, ArgNum: 2, Variadic: false},
-		"setSearcher":         {Function: rlSetSearcher, ArgNum: 2, Variadic: false},
-		"bindKey":             {Function: rlBindKey, ArgNum: 3, Variadic: false},
-		"unbindKey":           {Function: rlUnbindKey, ArgNum: 2, Variadic: false},
-		"addAction":           {Function: rlAddAction, ArgNum: 3, Variadic: false},
-		"removeAction":        {Function: rlRemoveAction, ArgNum: 2, Variadic: false},
-		"getBindings":         {Function: rlGetBindings, ArgNum: 1, Variadic: false},
+func Loader(mlr *moonlight.Runtime) moonlight.Value {
+	rlMethods := moonlight.NewTable()
+	rlMethodss := map[string]moonlight.Export{
+		"deleteByAmount":      {Function: rldeleteByAmount, ArgNum: 2, Variadic: false},
+		"getLine":             {Function: rlgetLine, ArgNum: 1, Variadic: false},
+		"getVimRegister":      {Function: rlgetRegister, ArgNum: 2, Variadic: false},
+		"insert":              {Function: rlinsert, ArgNum: 2, Variadic: false},
+		"read":                {Function: rlread, ArgNum: 1, Variadic: false},
+		"readChar":            {Function: rlreadChar, ArgNum: 1, Variadic: false},
+		"setVimRegister":      {Function: rlsetRegister, ArgNum: 3, Variadic: false},
+		"log":                 {Function: rllog, ArgNum: 2, Variadic: false},
+		"prompt":              {Function: rlprompt, ArgNum: 2, Variadic: false},
+		"refreshPrompt":       {Function: rlrefreshPrompt, ArgNum: 1, Variadic: false},
+		"setHinter":           {Function: rlsetHinter, ArgNum: 2, Variadic: false},
+		"setHighlighter":      {Function: rlsetHighlighter, ArgNum: 2, Variadic: false},
+		"setCompleter":        {Function: rlsetCompleter, ArgNum: 2, Variadic: false},
+		"setViModeCallback":   {Function: rlsetViModeCallback, ArgNum: 2, Variadic: false},
+		"setViActionCallback": {Function: rlsetViActionCallback, ArgNum: 2, Variadic: false},
+		"setInputMode":        {Function: rlsetInputMode, ArgNum: 2, Variadic: false},
+		"setHistory":          {Function: rlsetHistory, ArgNum: 2, Variadic: false},
+		"setRawInputCallback": {Function: rlsetRawInputCallback, ArgNum: 2, Variadic: false},
+		"setSearcher":         {Function: rlsetSearcher, ArgNum: 2, Variadic: false},
+		"bindKey":             {Function: rlbindKey, ArgNum: 3, Variadic: false},
+		"unbindKey":           {Function: rlunbindKey, ArgNum: 2, Variadic: false},
+		"addAction":           {Function: rladdAction, ArgNum: 3, Variadic: false},
+		"removeAction":        {Function: rlremoveAction, ArgNum: 2, Variadic: false},
+		"getBindings":         {Function: rlgetBindings, ArgNum: 1, Variadic: false},
 	}
-	util.SetExports(rtm, rlMethods, rlMethodss)
+	mlr.SetExports(rlMethods, rlMethodss)
 
-	rlMeta := rt.NewTable()
-	rlIndex := func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		_, err := rlArg(c, 0)
+	rlMeta := moonlight.NewTable()
+	rlIndex := func(mlr *moonlight.Runtime) error {
+		_, err := rlArg(mlr, 0)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		arg := c.Arg(1)
+		arg := mlr.Arg(1)
 		val := rlMethods.Get(arg)
 
-		return c.PushingNext1(t.Runtime, val), nil
+		mlr.PushNext(val)
+		return nil
 	}
 
-	rlMeta.Set(rt.StringValue("__index"), rt.FunctionValue(rt.NewGoFunction(rlIndex, "__index", 2, false)))
-	rtm.SetRegistry(rlMetaKey, rt.TableValue(rlMeta))
+	rlMeta.Set(moonlight.StringValue("__index"), moonlight.FunctionValue(moonlight.NewGoFunction(mlr, rlIndex, "__index", 2, false)))
+	mlr.SetRegistry(rlMetaKey, moonlight.TableValue(rlMeta))
 
-	rlFuncs := map[string]util.LuaExport{
-		"new":         {Function: rlNew, ArgNum: 0, Variadic: false},
-		"newHistory":  {Function: rlNewHistory, ArgNum: 1, Variadic: false},
-		"fuzzySearch": {Function: rlFuzzySearch, ArgNum: 2, Variadic: false},
+	rlFuncs := map[string]moonlight.Export{
+		"new":         {Function: rlnew, ArgNum: 0, Variadic: false},
+		"newHistory":  {Function: rlnewHistory, ArgNum: 1, Variadic: false},
+		"fuzzySearch": {Function: rlfuzzySearch, ArgNum: 2, Variadic: false},
 	}
 
-	luaRl := rt.NewTable()
-	util.SetExports(rtm, luaRl, rlFuncs)
+	luaRl := moonlight.NewTable()
+	mlr.SetExports(luaRl, rlFuncs)
 
-	return rt.TableValue(luaRl), nil
+	return moonlight.TableValue(luaRl)
 }
 
-// new() -> @Readline
 // Creates a new readline instance.
-func rlNew(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
+// @return Readline
+// @since 3.0.0
+func rlnew(mlr *moonlight.Runtime) error {
 	rl := NewInstance()
-	ud := rlUserData(t.Runtime, rl)
+	ud := rlUserData(mlr, rl)
 
-	return c.PushingNext1(t.Runtime, rt.UserDataValue(ud)), nil
+	mlr.PushNext1(moonlight.UserDataValue(ud))
+	return nil
 }
 
-// newHistory(path) -> table
-// Creates a file-backed history handler. Returns a table with
-// add, get, size, clear, and all functions. Pass it to setHistory.
-// #param path string
-func rlNewHistory(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// Creates a file-backed history handler.
+// @param path string
+// @return table handler
+// @see setHistory
+// @treturn handler add function The add handler, which adds a line to the history.
+// @treturn handler get function Gets a command line from the history based on the index passed to it.
+// @treturn handler size function Returns the size of the history, how many commands the history has.
+// @treturn handler clear function Clears the history.
+// @since 3.0.0
+func rlnewHistory(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
-	path, err := c.StringArg(0)
+	path, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	hist := newFileHistory(path)
-	rtm := t.Runtime
-	tbl := rt.NewTable()
+	tbl := moonlight.NewTable()
 
-	rtm.SetEnvGoFunc(tbl, "add", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		if err := c.Check1Arg(); err != nil {
-			return nil, err
-		}
-		cmd, err := c.StringArg(0)
-		if err != nil {
-			return nil, err
-		}
-		n, werr := hist.Write(cmd)
-		if werr != nil {
-			return nil, werr
-		}
-		return c.PushingNext1(t.Runtime, rt.IntValue(int64(n))), nil
-	}, 1, false)
+	exports := map[string]moonlight.Export{
+		"add": {Function: func(mlr *moonlight.Runtime) error {
+			if err := mlr.Check1Arg(); err != nil {
+				return err
+			}
+			cmd, err := mlr.StringArg(0)
+			if err != nil {
+				return err
+			}
+			n, err := hist.Write(cmd)
+			if err != nil {
+				return err
+			}
+			mlr.PushNext1(moonlight.IntValue(int64(n)))
+			return nil
+		}, ArgNum: 1, Variadic: false},
+		"get": {Function: func(mlr *moonlight.Runtime) error {
+			if err := mlr.Check1Arg(); err != nil {
+				return err
+			}
+			idx, err := mlr.IntArg(0)
+			if err != nil {
+				return err
+			}
+			line, _ := hist.GetLine(idx)
+			mlr.PushNext1(moonlight.StringValue(line))
+			return nil
+		}, ArgNum: 1, Variadic: false},
+		"size": {Function: func(mlr *moonlight.Runtime) error {
+			mlr.PushNext1(moonlight.IntValue(int64(hist.Len())))
+			return nil
+		}, ArgNum: 0, Variadic: false},
+		"clear": {Function: func(mlr *moonlight.Runtime) error {
+			hist.clear()
+			return nil
+		}, ArgNum: 0, Variadic: false},
+		"delete": {Function: func(mlr *moonlight.Runtime) error {
+			if err := mlr.Check1Arg(); err != nil {
+				return err
+			}
+			idx, err := mlr.IntArg(0)
+			if err != nil {
+				return err
+			}
+			return hist.Delete(idx)
+		}, ArgNum: 1, Variadic: false},
+		"all": {Function: func(mlr *moonlight.Runtime) error {
+			allTbl := moonlight.NewTable()
+			size := hist.Len()
+			for i := 0; i < size; i++ {
+				cmd, _ := hist.GetLine(i)
+				allTbl.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(cmd))
+			}
+			mlr.PushNext1(moonlight.TableValue(allTbl))
+			return nil
+		}, ArgNum: 0, Variadic: false},
+	}
+	mlr.SetExports(tbl, exports)
 
-	rtm.SetEnvGoFunc(tbl, "get", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		if err := c.Check1Arg(); err != nil {
-			return nil, err
-		}
-		idx, err := c.IntArg(0)
-		if err != nil {
-			return nil, err
-		}
-		line, _ := hist.GetLine(int(idx))
-		return c.PushingNext1(t.Runtime, rt.StringValue(line)), nil
-	}, 1, false)
-
-	rtm.SetEnvGoFunc(tbl, "size", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		return c.PushingNext1(t.Runtime, rt.IntValue(int64(hist.Len()))), nil
-	}, 0, false)
-
-	rtm.SetEnvGoFunc(tbl, "clear", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		hist.clear()
-		return c.Next(), nil
-	}, 0, false)
-
-	rtm.SetEnvGoFunc(tbl, "delete", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		if err := c.Check1Arg(); err != nil {
-			return nil, err
-		}
-		idx, err := c.IntArg(0)
-		if err != nil {
-			return nil, err
-		}
-		if err := hist.Delete(int(idx)); err != nil {
-			return nil, err
-		}
-		return c.Next(), nil
-	}, 1, false)
-
-	rtm.SetEnvGoFunc(tbl, "all", func(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-		allTbl := rt.NewTable()
-		size := hist.Len()
-		for i := 0; i < size; i++ {
-			cmd, _ := hist.GetLine(i)
-			allTbl.Set(rt.IntValue(int64(i+1)), rt.StringValue(cmd))
-		}
-		return c.PushingNext1(t.Runtime, rt.TableValue(allTbl)), nil
-	}, 0, false)
-
-	return c.PushingNext1(t.Runtime, rt.TableValue(tbl)), nil
+	mlr.PushNext1(moonlight.TableValue(tbl))
+	return nil
 }
 
-// #member
-// insert(text)
+// @member
 // Inserts text into the Hilbish command line.
-// #param text string
-func rlInsert(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param text string
+// @since 3.0.0
+func rlinsert(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	text, err := c.StringArg(1)
+	text, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rl.insert([]rune(text))
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// read() -> string
+// @member
 // Reads input from the user.
-func rlRead(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// @return string? input Throws an error if the user hits Ctrl-D or another error occurs.
+// @since 3.0.0
+func rlread(mlr *moonlight.Runtime) error {
+	// TODO: make this return nil on Ctrl-D instead of throwing
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	inp, err := rl.Readline()
 	if err == EOF {
 		fmt.Println("")
-		return nil, io.EOF
+		return io.EOF
 	} else if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c.PushingNext1(t.Runtime, rt.StringValue(inp)), nil
+	mlr.PushNext1(moonlight.StringValue(inp))
+	return nil
 }
 
-// #member
-// setVimRegister(register, text)
+// @member
 // Sets the vim register at `register` to hold the passed text.
-// #param register string
-// #param text string
-func rlSetRegister(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(3); err != nil {
-		return nil, err
+// @param register string
+// @param text string
+// @since 3.0.0
+func rlsetRegister(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(3); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	register, err := c.StringArg(1)
+	register, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	text, err := c.StringArg(2)
+	text, err := mlr.StringArg(2)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rl.SetRegisterBuf(register, []rune(text))
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// getVimRegister(register) -> string
+// @member
 // Returns the text that is at the register.
-// #param register string
-func rlGetRegister(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param register string
+// @return string text
+// @since 3.0.0
+func rlgetRegister(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	register, err := c.StringArg(1)
+	register, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	buf := rl.GetFromRegister(register)
+	mlr.PushNext1(moonlight.StringValue(string(buf)))
 
-	return c.PushingNext1(t.Runtime, rt.StringValue(string(buf))), nil
+	return nil
 }
 
-// #member
-// getLine() -> string
+// @member
 // Returns the current input line.
-// #returns string
-func rlGetLine(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// @return string line
+// @since 3.0.0
+func rlgetLine(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	buf := rl.GetLine()
+	mlr.PushNext1(moonlight.StringValue(string(buf)))
 
-	return c.PushingNext1(t.Runtime, rt.StringValue(string(buf))), nil
+	return nil
 }
 
-// #member
-// readChar() -> string
-// Reads a keystroke from the user. This is in a format of something like Ctrl-L.
-func rlReadChar(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// @member
+// Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L.
+// @return string keystroke
+// @since 3.0.0
+func rlreadChar(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	buf := rl.ReadChar()
+	mlr.PushNext1(moonlight.StringValue(string(buf)))
 
-	return c.PushingNext1(t.Runtime, rt.StringValue(string(buf))), nil
+	return nil
 }
 
-// #member
-// deleteByAmount(amount)
+// @member
 // Deletes characters in the line by the given amount.
-// #param amount number
-func rlDeleteByAmount(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param amount number
+// @since 3.0.0
+func rldeleteByAmount(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	amount, err := c.IntArg(1)
+	amount, err := mlr.IntArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rl.DeleteByAmount(int(amount))
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// log(text)
+// @member
 // Prints a message *before* the prompt without it being interrupted by user input.
-func rlLog(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @since 3.0.0
+func rllog(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	logText, err := c.StringArg(1)
+	logText, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rl.RefreshPromptLog(logText)
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// prompt(text)
+// @member
 // Sets the prompt of the line reader. This is the text that shows up before user input.
-func rlPrompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @since 3.0.0
+func rlprompt(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	p, err := c.StringArg(1)
+	p, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	halfPrompt := strings.Split(p, "\n")
@@ -387,70 +406,72 @@ func rlPrompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		rl.SetPrompt(p)
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-func rlRefreshPrompt(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// @member
+// Refreshes the prompt, if the text has been updated.
+// This is called automatically on `hilbish.prompt`
+// @since 3.0.0
+func rlrefreshPrompt(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rl.RefreshPromptInPlace("")
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// setHinter(fn)
+// @member
 // Sets the hinter function. Called on every key insert to provide inline hint text.
-// #param fn fun(line:string,pos:integer):string
-func rlSetHinter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param fn fun(line:string,pos:integer):string
+// @since 3.0.0
+func rlsetHinter(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	fn := c.Arg(1)
-	rtm := t.Runtime
+	fn := mlr.Arg(1)
 
 	rl.HintText = func(line []rune, pos int) []rune {
-		retVal, err := rt.Call1(rtm.MainThread(), fn,
-			rt.StringValue(string(line)), rt.IntValue(int64(pos)))
+		retVal, err := mlr.Call1(fn, moonlight.StringValue(string(line)), moonlight.IntValue(int64(pos)))
 		if err != nil {
 			fmt.Println(err)
 			return []rune{}
 		}
+
 		hintText, _ := retVal.TryString()
 		return []rune(hintText)
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// setHighlighter(fn)
+// @member
 // Sets the syntax highlighter function. Called on every key insert to style the input.
-// #param fn fun(line:string):string
-func rlSetHighlighter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param fn fun(line:string):string
+// @since 3.0.0
+func rlsetHighlighter(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	fn := c.Arg(1)
-	rtm := t.Runtime
+	fn := mlr.Arg(1)
 
 	rl.SyntaxHighlighter = func(line []rune) string {
-		retVal, err := rt.Call1(rtm.MainThread(), fn, rt.StringValue(string(line)))
+		retVal, err := mlr.Call1(fn, moonlight.StringValue(string(line)))
 		if err != nil {
 			fmt.Println(err)
 			return string(line)
@@ -459,66 +480,58 @@ func rlSetHighlighter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return highlighted
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// setCompleter(fn)
-// Sets the tab completion handler. fn receives (line, pos) and returns (groups, prefix).
-// #param fn fun(line:string,pos:integer):table,string
-func rlSetCompleter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @member
+// Sets the tab completion handler.
+// @param fn fun(line:string,pos:integer):table,string
+// @since 3.0.0
+func rlsetCompleter(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	fn := c.Arg(1)
-	rtm := t.Runtime
+	fn := mlr.Arg(1)
 
 	rl.TabCompleter = func(line []rune, pos int, _ DelayedTabContext) (string, []*CompletionGroup) {
-		term := rt.NewTerminationWith(rtm.MainThread().CurrentCont(), 2, false)
-		err := rt.Call(rtm.MainThread(), fn, []rt.Value{
-			rt.StringValue(string(line)),
-			rt.IntValue(int64(pos)),
-		}, term)
+		results, err := mlr.Call(fn, moonlight.StringValue(string(line)), moonlight.IntValue(int64(pos)))
 
 		var compGroups []*CompletionGroup
-		if err != nil {
+		if err != nil || len(results) < 2 {
 			return "", compGroups
 		}
 
-		luaCompGroups := term.Get(0)
-		luaPrefix := term.Get(1)
+		luaCompGroups := results[0]
+		luaPrefix := results[1]
 
-		if luaCompGroups.Type() != rt.TableType {
+		if luaCompGroups.Type() != moonlight.TableType {
 			return "", compGroups
 		}
 
-		groups := luaCompGroups.AsTable()
+		groups := moonlight.ToTable(luaCompGroups)
 		pfx, _ := luaPrefix.TryString()
 
-		util.ForEach(groups, func(key rt.Value, val rt.Value) {
-			if key.Type() != rt.IntType || val.Type() != rt.TableType {
+		moonlight.ForEach(groups, func(key moonlight.Value, val moonlight.Value) {
+			if key.Type() != moonlight.IntType || val.Type() != moonlight.TableType {
 				return
 			}
 
 			valTbl := val.AsTable()
-			luaCompType := valTbl.Get(rt.StringValue("type"))
-			luaCompItems := valTbl.Get(rt.StringValue("items"))
+			luaCompType := valTbl.Get(moonlight.StringValue("type"))
+			luaCompItems := valTbl.Get(moonlight.StringValue("items"))
 
-			if luaCompType.Type() != rt.StringType || luaCompItems.Type() != rt.TableType {
+			if luaCompType.Type() != moonlight.StringType || luaCompItems.Type() != moonlight.TableType {
 				return
 			}
 
 			menuItems := []MenuItem{}
 
-			util.ForEach(luaCompItems.AsTable(), func(lkey rt.Value, lval rt.Value) {
-				if keytyp := lkey.Type(); keytyp == rt.StringType {
-					// TODO: remove in 3.0
-					// ['--flag'] = {'description', '--flag-alias'}
-					// OR
+			moonlight.ForEach(moonlight.ToTable(luaCompItems), func(lkey moonlight.Value, lval moonlight.Value) {
+				if keytyp := lkey.Type(); keytyp == moonlight.StringType {
 					// ['--flag'] = {description = '', alias = '', display = ''}
 					itemName, ok := lkey.TryString()
 					vlTbl, okk := lval.TryTable()
@@ -529,27 +542,27 @@ func rlSetCompleter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 
 					item := MenuItem{Value: itemName}
 
-					itemDescription, ok := vlTbl.Get(rt.IntValue(1)).TryString()
+					itemDescription, ok := vlTbl.Get(moonlight.IntValue(1)).TryString()
 					if !ok {
 						// if we can't get it by number index, try by string key
-						itemDescription, _ = vlTbl.Get(rt.StringValue("description")).TryString()
+						itemDescription, _ = vlTbl.Get(moonlight.StringValue("description")).TryString()
 					}
 					item.Description = itemDescription
 
 					// display
-					if itemDisplay, ok := vlTbl.Get(rt.StringValue("display")).TryString(); ok {
+					if itemDisplay, ok := vlTbl.Get(moonlight.StringValue("display")).TryString(); ok {
 						item.Display = itemDisplay
 					}
 
-					itemAlias, ok := vlTbl.Get(rt.IntValue(2)).TryString()
+					itemAlias, ok := vlTbl.Get(moonlight.IntValue(2)).TryString()
 					if !ok {
 						// if we can't get it by number index, try by string key
-						itemAlias, _ = vlTbl.Get(rt.StringValue("alias")).TryString()
+						itemAlias, _ = vlTbl.Get(moonlight.StringValue("alias")).TryString()
 					}
 					item.Alias = itemAlias
 
 					menuItems = append(menuItems, item)
-				} else if keytyp == rt.IntType {
+				} else if keytyp == moonlight.IntType {
 					vlStr, ok := lval.TryString()
 					if !ok {
 						// TODO: error
@@ -583,24 +596,23 @@ func rlSetCompleter(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return pfx, compGroups
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// setViModeCallback(fn)
+// @member
 // Sets the function called when the Vim mode changes.
 // fn receives the mode string: "insert", "normal", "delete", or "replace".
-// #param fn function
-func rlSetViModeCallback(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param fn function
+// @since 3.0.0
+func rlsetViModeCallback(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	fn := c.Arg(1)
-	rtm := t.Runtime
+	fn := mlr.Arg(1)
 
 	rl.ViModeCallback = func(mode ViMode) {
 		modeStr := ""
@@ -614,27 +626,26 @@ func rlSetViModeCallback(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		case VimReplaceOnce, VimReplaceMany:
 			modeStr = "replace"
 		}
-		rt.Call1(rtm.MainThread(), fn, rt.StringValue(modeStr))
+		mlr.Call1(fn, moonlight.StringValue(modeStr))
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// setViActionCallback(fn)
+// @member
 // Sets the function called when a Vim action occurs (yank, paste).
 // fn receives (action string, args table).
-// #param fn function
-func rlSetViActionCallback(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param fn function
+// @since 3.0.0
+func rlsetViActionCallback(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	fn := c.Arg(1)
-	rtm := t.Runtime
+	fn := mlr.Arg(1)
 
 	rl.ViActionCallback = func(action ViAction, args []string) {
 		actionStr := ""
@@ -644,31 +655,31 @@ func rlSetViActionCallback(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		case VimActionYank:
 			actionStr = "yank"
 		}
-		luaArgs := rt.NewTable()
+		luaArgs := moonlight.NewTable()
 		for i, arg := range args {
-			luaArgs.Set(rt.IntValue(int64(i+1)), rt.StringValue(arg))
+			luaArgs.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(arg))
 		}
-		rt.Call1(rtm.MainThread(), fn, rt.StringValue(actionStr), rt.TableValue(luaArgs))
+		mlr.Call1(fn, moonlight.StringValue(actionStr), moonlight.TableValue(luaArgs))
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// setInputMode(mode)
-// Sets the input mode. Accepted values: "emacs", "vim".
-// #param mode string
-func rlSetInputMode(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @member
+// Sets the input mode.
+// @param mode string Either `emacs` or `vim`.
+// @since 3.0.0
+func rlsetInputMode(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	mode, err := c.StringArg(1)
+	mode, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	switch mode {
@@ -677,128 +688,131 @@ func rlSetInputMode(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 	case "vim":
 		rl.InputMode = Vim
 	default:
-		return nil, fmt.Errorf("setInputMode: expected emacs or vim, got %s", mode)
+		return fmt.Errorf("setInputMode: expected emacs or vim, got %s", mode)
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// setRawInputCallback(fn)
+// @member
 // Sets a function to be called on every raw input event (each keystroke).
 // fn receives the input string.
-// #param fn function
-func rlSetRawInputCallback(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param fn function
+// @since 3.0.0
+func rlsetRawInputCallback(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	fn := c.Arg(1)
-	rtm := t.Runtime
+	fn := mlr.Arg(1)
 
 	rl.RawInputCallback = func(rn []rune) {
-		rt.Call1(rtm.MainThread(), fn, rt.StringValue(string(rn)))
+		mlr.Call1(fn, moonlight.StringValue(string(rn)))
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// setHistory(handler)
-// Sets the history handler. handler is a table with add, get, size, clear, all functions.
+// @member
+// Sets the history handler.
 // Use newHistory(path) to get a file-backed handler, or supply your own.
-// #param handler table
-func rlSetHistory(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param handler table
+// @tparam handler add function
+// @tparam handler get function
+// @tparam handler size function
+// @tparam handler clear function
+// @since 3.0.0
+func rlsetHistory(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	handler := c.Arg(1)
-	if handler.Type() != rt.TableType {
-		return nil, fmt.Errorf("setHistory: expected a table, got %s", handler.TypeName())
+	handler := mlr.Arg(1)
+	if handler.Type() != moonlight.TableType {
+		return fmt.Errorf("setHistory: expected a table, got %s", handler.TypeName())
 	}
 
 	wrapper := &luaHistoryWrapper{
 		handler: handler,
-		rtm:     t.Runtime,
+		mlr:     mlr,
 	}
 	rl.SetHistoryCtrlR("History", wrapper)
 
-	return c.Next(), nil
+	return nil
 }
 
-// fuzzySearch(needle, haystack) -> table
 // Performs a fuzzy search of needle in haystack and returns matched strings.
-// #param needle string
-// #param haystack table
-// #returns table
-func rlFuzzySearch(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param needle string
+// @param haystack table
+// @return table matches
+// @since 3.0.0
+func rlfuzzySearch(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	needle, err := c.StringArg(0)
+	needle, err := mlr.StringArg(0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	haystackVal, err := c.TableArg(1)
+	haystackVal, err := mlr.TableArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	haystack := []string{}
-	util.ForEach(haystackVal, func(_ rt.Value, v rt.Value) {
+	moonlight.ForEach(haystackVal, func(_ moonlight.Value, v moonlight.Value) {
 		if s, ok := v.TryString(); ok {
 			haystack = append(haystack, s)
 		}
 	})
 
 	matches := fuzzy.Find(needle, haystack)
-	tbl := rt.NewTable()
+	tbl := moonlight.NewTable()
 	for i, m := range matches {
-		tbl.Set(rt.IntValue(int64(i+1)), rt.StringValue(m.Str))
+		tbl.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(m.Str))
 	}
 
-	return c.PushingNext1(t.Runtime, rt.TableValue(tbl)), nil
+	mlr.PushNext1(moonlight.TableValue(tbl))
+	return nil
 }
 
-// #member
-// setSearcher(fn)
+// @member
 // Sets the searcher used for history search and completion filtering.
 // fn receives (needle string, haystack table) and returns a table of results,
 // or nil to fall back to the default regex searcher.
-// #param fn fun(needle:string,haystack:table<string>):table|nil
-func rlSetSearcher(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param fn fun(needle:string,haystack:table<string>):table|nil
+// @since 3.0.0
+func rlsetSearcher(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	fn := c.Arg(1)
-	rtm := t.Runtime
+	fn := mlr.Arg(1)
 	defaultSearcher := rl.Searcher
 
 	rl.Searcher = func(needle string, haystack []string) []string {
-		haystackTbl := rt.NewTable()
+		haystackTbl := moonlight.NewTable()
 		for i, s := range haystack {
-			haystackTbl.Set(rt.IntValue(int64(i+1)), rt.StringValue(s))
+			haystackTbl.Set(moonlight.IntValue(int64(i+1)), moonlight.StringValue(s))
 		}
 
-		retVal, err := rt.Call1(rtm.MainThread(), fn,
-			rt.StringValue(needle), rt.TableValue(haystackTbl))
-		if err != nil || retVal.Type() != rt.TableType {
+		retVal, err := mlr.Call1(fn,
+			moonlight.StringValue(needle), moonlight.TableValue(haystackTbl))
+		if err != nil || retVal.Type() != moonlight.TableType {
 			return defaultSearcher(needle, haystack)
 		}
 
 		result := []string{}
-		util.ForEach(retVal.AsTable(), func(_ rt.Value, v rt.Value) {
+		moonlight.ForEach(moonlight.ToTable(retVal), func(_ moonlight.Value, v moonlight.Value) {
 			if s, ok := v.TryString(); ok {
 				result = append(result, s)
 			}
@@ -806,150 +820,151 @@ func rlSetSearcher(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
 		return result
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// bindKey(key, action)
+// @member
 // Binds a key to an action name or a custom function.
-// #param key string key name like "Ctrl-A" or raw sequence
-// #param action string|function action name or custom function
-func rlBindKey(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(3); err != nil {
-		return nil, err
+// @param key string key name like "Ctrl-A" or a raw sequence
+// @param action string|function action name or a custom function
+// @since 3.0.0
+func rlbindKey(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(3); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	keyName, err := c.StringArg(1)
+	keyName, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	keySeq := keyNameToSeq(keyName)
-	arg := c.Arg(2)
+	arg := mlr.Arg(2)
 
 	if s, ok := arg.TryString(); ok {
 		rl.bindKey(keySeq, s)
 	} else if fn, ok := arg.TryClosure(); ok {
 		actionName := "__custom_" + keyName
 		rl.customActions[actionName] = fn
-		rl.luaRuntime = t.Runtime
+		rl.luaRuntime = mlr
 		rl.bindKey(keySeq, actionName)
 	}
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// unbindKey(key)
+// @member
 // Unbinds a key from any action.
-// #param key string key name like "Ctrl-A" or raw sequence
-func rlUnbindKey(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param key string key name like "Ctrl-A" or a raw sequence
+// @since 3.0.0
+func rlunbindKey(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	keyName, err := c.StringArg(1)
+	keyName, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Convert key name to raw sequence
 	keySeq := keyNameToSeq(keyName)
 	rl.unbindKey(keySeq)
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// addAction(name, function)
+// @member
 // Registers or overrides an action with a custom Lua function.
-// #param name string
-// #param fn function
-func rlAddAction(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(3); err != nil {
-		return nil, err
+// @param name string
+// @param fn function
+// @since 3.0.0
+func rladdAction(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(3); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	name, err := c.StringArg(1)
+	name, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	fn, err := c.ClosureArg(2)
+	fn, err := mlr.ClosureArg(2)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	rl.registerLuaAction(name, fn)
-	rl.luaRuntime = t.Runtime
+	rl.luaRuntime = mlr
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// removeAction(name)
+// @member
 // Removes a keybind action.
-// #param name string
-func rlRemoveAction(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.CheckNArgs(2); err != nil {
-		return nil, err
+// @param name string
+// @since 3.0.0
+func rlremoveAction(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	name, err := c.StringArg(1)
+	name, err := mlr.StringArg(1)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	rl.removeAction(name)
 	rl.removeLuaAction(name)
 
-	return c.Next(), nil
+	return nil
 }
 
-// #member
-// getBindings() -> table
+// @member
 // Returns the current key-to-action bindings for this readline instance.
-// #returns table<string,string>
-func rlGetBindings(t *rt.Thread, c *rt.GoCont) (rt.Cont, error) {
-	if err := c.Check1Arg(); err != nil {
-		return nil, err
+// @return table<string,string> bindings
+// @since 3.0.0
+func rlgetBindings(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
 	}
 
-	rl, err := rlArg(c, 0)
+	rl, err := rlArg(mlr, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	tbl := rt.NewTable()
+	tbl := moonlight.NewTable()
 	for keySeq, action := range rl.keymap {
 		keyName := seqToKeyName(keySeq)
-		tbl.Set(rt.StringValue(keyName), rt.StringValue(action))
+		tbl.Set(moonlight.StringValue(keyName), moonlight.StringValue(action))
 	}
 
-	return c.PushingNext1(t.Runtime, rt.TableValue(tbl)), nil
+	mlr.PushNext1(moonlight.TableValue(tbl))
+	return nil
 }
 
-func rlArg(c *rt.GoCont, arg int) (*Readline, error) {
-	j, ok := valueToRl(c.Arg(arg))
+func rlArg(mlr *moonlight.Runtime, arg int) (*Readline, error) {
+	j, ok := valueToRl(mlr.Arg(arg))
 	if !ok {
 		return nil, fmt.Errorf("#%d must be readline", arg+1)
 	}
@@ -957,8 +972,8 @@ func rlArg(c *rt.GoCont, arg int) (*Readline, error) {
 	return j, nil
 }
 
-func valueToRl(val rt.Value) (*Readline, bool) {
-	u, ok := val.TryUserData()
+func valueToRl(val moonlight.Value) (*Readline, bool) {
+	u, ok := moonlight.TryUserData(val)
 	if !ok {
 		return nil, false
 	}
@@ -967,7 +982,7 @@ func valueToRl(val rt.Value) (*Readline, bool) {
 	return j, ok
 }
 
-func rlUserData(rtm *rt.Runtime, rl *Readline) *rt.UserData {
-	rlMeta := rtm.Registry(rlMetaKey)
-	return rt.NewUserData(rl, rlMeta.AsTable())
+func rlUserData(mlr *moonlight.Runtime, rl *Readline) *moonlight.UserData {
+	rlMeta := mlr.Registry(rlMetaKey)
+	return moonlight.NewUserData(rl, moonlight.ToTable(rlMeta))
 }
