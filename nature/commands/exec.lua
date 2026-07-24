@@ -1,4 +1,5 @@
 local commander = require 'commander'
+local hilbish = require 'hilbish'
 
 commander.register('exec', function(args)
 	if #args == 0 then

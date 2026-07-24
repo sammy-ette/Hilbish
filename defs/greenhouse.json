@@ -1,11 +1,103 @@
 {
 	"name": "greenhouse",
 	"section": "nature",
-	"shortDescription": "Greenhouse is a simple text scrolling handler (pager) for terminal programs.",
-	"description": "The idea is that it can be set a region to do its scrolling and paging\njob and then the user can draw whatever outside it.\nThis reduces code duplication for the message viewer\nand flowerbook.",
+	"shortDescription": "Hilbish's environmentally friendly pager for long text",
+	"description": "Greenhouse is a simple text scrolling handler (pager) for terminal programs.\nIt can be set a specific region to do its scrolling and paging job,\nthen the user can draw whatever outside it. You may use this as some kind\nof terminal UI library.",
 	"properties": null,
 	"fields": null,
 	"docs": [
+		{
+			"name": "new",
+			"description": [
+				"Creates a new Greenhouse pager."
+			],
+			"signature": "new(sink) -\u003e nature.object",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "sink",
+					"Type": "hilbish.sink",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "",
+					"Type": "nature.object",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "render",
+			"description": [
+				"This should be overloaded to render extra UI around Greenhouse."
+			],
+			"signature": "render()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "resize",
+			"description": [
+				"Resizes Greenhouse to fit the terminal's size."
+			],
+			"signature": "resize()",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false
+		},
+		{
+			"name": "scroll",
+			"description": [
+				"Scrolls the currently active page by one line, or a page height if specified."
+			],
+			"signature": "scroll(direction, opts)",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "direction",
+					"Type": "string",
+					"Doc": [
+						"Either `up` or `down`"
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "opts",
+					"Type": "table",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": [
+						{
+							"Name": "page",
+							"Type": "boolean",
+							"Doc": [
+								"Whether the scroll amount should be the page height."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						}
+					]
+				}
+			],
+			"since": "2.2.2"
+		},
 		{
 			"name": "updateSpecial",
 			"description": [
@@ -17,5 +109,6 @@
 			"isMember": false,
 			"isType": false
 		}
-	]
+	],
+	"since": "2.2.0"
 }

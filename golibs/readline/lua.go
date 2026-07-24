@@ -4,6 +4,18 @@
 // including all the interactive features of Hilbish like history search,
 // syntax highlighting, everything. The global Hilbish readline instance
 // is usable at `hilbish.editor`.
+//
+// Customizing `hilbish.editor` is the common path. Creating a custom readline instance
+// is only  needed when you want a fully separate line reader.
+//
+// ```lua
+// hilbish.editor:setHinter(function(line, pos)
+//
+//	if line == '' then return end
+//	return ' (type something!)'
+//
+// end)
+// ```
 package readline
 
 import (
@@ -21,25 +33,25 @@ var rlMetaKey = moonlight.StringValue("__readline")
 func Loader(mlr *moonlight.Runtime) moonlight.Value {
 	rlMethods := moonlight.NewTable()
 	rlMethodss := map[string]moonlight.Export{
-		"deleteByAmount":      {Function: rlDeleteByAmount, ArgNum: 2, Variadic: false},
-		"getLine":             {Function: rlGetLine, ArgNum: 1, Variadic: false},
-		"getVimRegister":      {Function: rlGetRegister, ArgNum: 2, Variadic: false},
-		"insert":              {Function: rlInsert, ArgNum: 2, Variadic: false},
-		"read":                {Function: rlRead, ArgNum: 1, Variadic: false},
-		"readChar":            {Function: rlReadChar, ArgNum: 1, Variadic: false},
-		"setVimRegister":      {Function: rlSetRegister, ArgNum: 3, Variadic: false},
-		"log":                 {Function: rlLog, ArgNum: 2, Variadic: false},
-		"prompt":              {Function: rlPrompt, ArgNum: 2, Variadic: false},
-		"refreshPrompt":       {Function: rlRefreshPrompt, ArgNum: 1, Variadic: false},
-		"setHinter":           {Function: rlSetHinter, ArgNum: 2, Variadic: false},
-		"setHighlighter":      {Function: rlSetHighlighter, ArgNum: 2, Variadic: false},
-		"setCompleter":        {Function: rlSetCompleter, ArgNum: 2, Variadic: false},
-		"setViModeCallback":   {Function: rlSetViModeCallback, ArgNum: 2, Variadic: false},
-		"setViActionCallback": {Function: rlSetViActionCallback, ArgNum: 2, Variadic: false},
-		"setInputMode":        {Function: rlSetInputMode, ArgNum: 2, Variadic: false},
-		"setHistory":          {Function: rlSetHistory, ArgNum: 2, Variadic: false},
-		"setRawInputCallback": {Function: rlSetRawInputCallback, ArgNum: 2, Variadic: false},
-		"setSearcher":         {Function: rlSetSearcher, ArgNum: 2, Variadic: false},
+		"deleteByAmount":      {Function: rldeleteByAmount, ArgNum: 2, Variadic: false},
+		"getLine":             {Function: rlgetLine, ArgNum: 1, Variadic: false},
+		"getVimRegister":      {Function: rlgetRegister, ArgNum: 2, Variadic: false},
+		"insert":              {Function: rlinsert, ArgNum: 2, Variadic: false},
+		"read":                {Function: rlread, ArgNum: 1, Variadic: false},
+		"readChar":            {Function: rlreadChar, ArgNum: 1, Variadic: false},
+		"setVimRegister":      {Function: rlsetRegister, ArgNum: 3, Variadic: false},
+		"log":                 {Function: rllog, ArgNum: 2, Variadic: false},
+		"prompt":              {Function: rlprompt, ArgNum: 2, Variadic: false},
+		"refreshPrompt":       {Function: rlrefreshPrompt, ArgNum: 1, Variadic: false},
+		"setHinter":           {Function: rlsetHinter, ArgNum: 2, Variadic: false},
+		"setHighlighter":      {Function: rlsetHighlighter, ArgNum: 2, Variadic: false},
+		"setCompleter":        {Function: rlsetCompleter, ArgNum: 2, Variadic: false},
+		"setViModeCallback":   {Function: rlsetViModeCallback, ArgNum: 2, Variadic: false},
+		"setViActionCallback": {Function: rlsetViActionCallback, ArgNum: 2, Variadic: false},
+		"setInputMode":        {Function: rlsetInputMode, ArgNum: 2, Variadic: false},
+		"setHistory":          {Function: rlsetHistory, ArgNum: 2, Variadic: false},
+		"setRawInputCallback": {Function: rlsetRawInputCallback, ArgNum: 2, Variadic: false},
+		"setSearcher":         {Function: rlsetSearcher, ArgNum: 2, Variadic: false},
 	}
 	mlr.SetExports(rlMethods, rlMethodss)
 
@@ -61,9 +73,9 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 	mlr.SetRegistry(rlMetaKey, moonlight.TableValue(rlMeta))
 
 	rlFuncs := map[string]moonlight.Export{
-		"new":         {Function: rlNew, ArgNum: 0, Variadic: false},
-		"newHistory":  {Function: rlNewHistory, ArgNum: 1, Variadic: false},
-		"fuzzySearch": {Function: rlFuzzySearch, ArgNum: 2, Variadic: false},
+		"new":         {Function: rlnew, ArgNum: 0, Variadic: false},
+		"newHistory":  {Function: rlnewHistory, ArgNum: 1, Variadic: false},
+		"fuzzySearch": {Function: rlfuzzySearch, ArgNum: 2, Variadic: false},
 	}
 
 	luaRl := moonlight.NewTable()
@@ -72,9 +84,10 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 	return moonlight.TableValue(luaRl)
 }
 
-// new() -> @Readline
 // Creates a new readline instance.
-func rlNew(mlr *moonlight.Runtime) error {
+// @return Readline
+// @since 3.0.0
+func rlnew(mlr *moonlight.Runtime) error {
 	rl := NewInstance()
 	ud := rlUserData(mlr, rl)
 
@@ -82,11 +95,16 @@ func rlNew(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// newHistory(path) -> table
-// Creates a file-backed history handler. Returns a table with
-// add, get, size, clear, and all functions. Pass it to setHistory.
-// #param path string
-func rlNewHistory(mlr *moonlight.Runtime) error {
+// Creates a file-backed history handler.
+// @param path string
+// @return table handler
+// @see setHistory
+// @treturn handler add function The add handler, which adds a line to the history.
+// @treturn handler get function Gets a command line from the history based on the index passed to it.
+// @treturn handler size function Returns the size of the history, how many commands the history has.
+// @treturn handler clear function Clears the history.
+// @since 3.0.0
+func rlnewHistory(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
 	}
@@ -161,11 +179,11 @@ func rlNewHistory(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// insert(text)
+// @member
 // Inserts text into the Hilbish command line.
-// #param text string
-func rlInsert(mlr *moonlight.Runtime) error {
+// @param text string
+// @since 3.0.0
+func rlinsert(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -185,10 +203,12 @@ func rlInsert(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// read() -> string
+// @member
 // Reads input from the user.
-func rlRead(mlr *moonlight.Runtime) error {
+// @return string? input Throws an error if the user hits Ctrl-D or another error occurs.
+// @since 3.0.0
+func rlread(mlr *moonlight.Runtime) error {
+	// TODO: make this return nil on Ctrl-D instead of throwing
 	if err := mlr.Check1Arg(); err != nil {
 		return err
 	}
@@ -210,12 +230,12 @@ func rlRead(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setVimRegister(register, text)
+// @member
 // Sets the vim register at `register` to hold the passed text.
-// #param register string
-// #param text string
-func rlSetRegister(mlr *moonlight.Runtime) error {
+// @param register string
+// @param text string
+// @since 3.0.0
+func rlsetRegister(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(3); err != nil {
 		return err
 	}
@@ -240,11 +260,12 @@ func rlSetRegister(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// getVimRegister(register) -> string
+// @member
 // Returns the text that is at the register.
-// #param register string
-func rlGetRegister(mlr *moonlight.Runtime) error {
+// @param register string
+// @return string text
+// @since 3.0.0
+func rlgetRegister(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -265,11 +286,11 @@ func rlGetRegister(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// getLine() -> string
+// @member
 // Returns the current input line.
-// #returns string
-func rlGetLine(mlr *moonlight.Runtime) error {
+// @return string line
+// @since 3.0.0
+func rlgetLine(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
 	}
@@ -285,10 +306,11 @@ func rlGetLine(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// readChar() -> string
-// Reads a keystroke from the user. This is in a format of something like Ctrl-L.
-func rlReadChar(mlr *moonlight.Runtime) error {
+// @member
+// Reads a keystroke from the user. This is in a format of something like Modifier-Key, like Ctrl-L.
+// @return string keystroke
+// @since 3.0.0
+func rlreadChar(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
 	}
@@ -303,11 +325,11 @@ func rlReadChar(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// deleteByAmount(amount)
+// @member
 // Deletes characters in the line by the given amount.
-// #param amount number
-func rlDeleteByAmount(mlr *moonlight.Runtime) error {
+// @param amount number
+// @since 3.0.0
+func rldeleteByAmount(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -327,10 +349,10 @@ func rlDeleteByAmount(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// log(text)
+// @member
 // Prints a message *before* the prompt without it being interrupted by user input.
-func rlLog(mlr *moonlight.Runtime) error {
+// @since 3.0.0
+func rllog(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -350,10 +372,10 @@ func rlLog(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// prompt(text)
+// @member
 // Sets the prompt of the line reader. This is the text that shows up before user input.
-func rlPrompt(mlr *moonlight.Runtime) error {
+// @since 3.0.0
+func rlprompt(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -382,7 +404,11 @@ func rlPrompt(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-func rlRefreshPrompt(mlr *moonlight.Runtime) error {
+// @member
+// Refreshes the prompt, if the text has been updated.
+// This is called automatically on `hilbish.prompt`
+// @since 3.0.0
+func rlrefreshPrompt(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
 	}
@@ -397,11 +423,11 @@ func rlRefreshPrompt(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setHinter(fn)
+// @member
 // Sets the hinter function. Called on every key insert to provide inline hint text.
-// #param fn fun(line:string,pos:integer):string
-func rlSetHinter(mlr *moonlight.Runtime) error {
+// @param fn fun(line:string,pos:integer):string
+// @since 3.0.0
+func rlsetHinter(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -425,11 +451,11 @@ func rlSetHinter(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setHighlighter(fn)
+// @member
 // Sets the syntax highlighter function. Called on every key insert to style the input.
-// #param fn fun(line:string):string
-func rlSetHighlighter(mlr *moonlight.Runtime) error {
+// @param fn fun(line:string):string
+// @since 3.0.0
+func rlsetHighlighter(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -452,11 +478,11 @@ func rlSetHighlighter(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setCompleter(fn)
-// Sets the tab completion handler. fn receives (line, pos) and returns (groups, prefix).
-// #param fn fun(line:string,pos:integer):table,string
-func rlSetCompleter(mlr *moonlight.Runtime) error {
+// @member
+// Sets the tab completion handler.
+// @param fn fun(line:string,pos:integer):table,string
+// @since 3.0.0
+func rlsetCompleter(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -557,12 +583,12 @@ func rlSetCompleter(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setViModeCallback(fn)
+// @member
 // Sets the function called when the Vim mode changes.
 // fn receives the mode string: "insert", "normal", "delete", or "replace".
-// #param fn function
-func rlSetViModeCallback(mlr *moonlight.Runtime) error {
+// @param fn function
+// @since 3.0.0
+func rlsetViModeCallback(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -590,12 +616,12 @@ func rlSetViModeCallback(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setViActionCallback(fn)
+// @member
 // Sets the function called when a Vim action occurs (yank, paste).
 // fn receives (action string, args table).
-// #param fn function
-func rlSetViActionCallback(mlr *moonlight.Runtime) error {
+// @param fn function
+// @since 3.0.0
+func rlsetViActionCallback(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -623,11 +649,11 @@ func rlSetViActionCallback(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setInputMode(mode)
-// Sets the input mode. Accepted values: "emacs", "vim".
-// #param mode string
-func rlSetInputMode(mlr *moonlight.Runtime) error {
+// @member
+// Sets the input mode.
+// @param mode string Either `emacs` or `vim`.
+// @since 3.0.0
+func rlsetInputMode(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -652,12 +678,12 @@ func rlSetInputMode(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setRawInputCallback(fn)
+// @member
 // Sets a function to be called on every raw input event (each keystroke).
 // fn receives the input string.
-// #param fn function
-func rlSetRawInputCallback(mlr *moonlight.Runtime) error {
+// @param fn function
+// @since 3.0.0
+func rlsetRawInputCallback(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -674,12 +700,16 @@ func rlSetRawInputCallback(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setHistory(handler)
-// Sets the history handler. handler is a table with add, get, size, clear, all functions.
+// @member
+// Sets the history handler.
 // Use newHistory(path) to get a file-backed handler, or supply your own.
-// #param handler table
-func rlSetHistory(mlr *moonlight.Runtime) error {
+// @param handler table
+// @tparam handler add function
+// @tparam handler get function
+// @tparam handler size function
+// @tparam handler clear function
+// @since 3.0.0
+func rlsetHistory(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -701,12 +731,12 @@ func rlSetHistory(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// fuzzySearch(needle, haystack) -> table
 // Performs a fuzzy search of needle in haystack and returns matched strings.
-// #param needle string
-// #param haystack table
-// #returns table
-func rlFuzzySearch(mlr *moonlight.Runtime) error {
+// @param needle string
+// @param haystack table
+// @return table matches
+// @since 3.0.0
+func rlfuzzySearch(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
@@ -736,13 +766,13 @@ func rlFuzzySearch(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// setSearcher(fn)
+// @member
 // Sets the searcher used for history search and completion filtering.
 // fn receives (needle string, haystack table) and returns a table of results,
 // or nil to fall back to the default regex searcher.
-// #param fn fun(needle:string,haystack:table<string>):table|nil
-func rlSetSearcher(mlr *moonlight.Runtime) error {
+// @param fn fun(needle:string,haystack:table<string>):table|nil
+// @since 3.0.0
+func rlsetSearcher(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}

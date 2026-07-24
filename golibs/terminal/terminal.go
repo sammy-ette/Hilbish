@@ -26,9 +26,11 @@ func Loader(rtm *moonlight.Runtime) moonlight.Value {
 	return moonlight.TableValue(mod)
 }
 
-// size()
-// Gets the dimensions of the terminal. Returns a table with `width` and `height`
+// Gets the dimensions of the terminal.
 // NOTE: The size refers to the amount of columns and rows of text that can fit in the terminal.
+// @return table size The terminal size.
+// @treturn size width number The terminal width, in columns.
+// @treturn size height number The terminal height, in rows.
 func termsize(mlr *moonlight.Runtime) error {
 	w, h, err := term.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
@@ -43,7 +45,6 @@ func termsize(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// saveState()
 // Saves the current state of the terminal.
 func termsaveState(mlr *moonlight.Runtime) error {
 	state, err := term.GetState(int(os.Stdin.Fd()))
@@ -55,7 +56,6 @@ func termsaveState(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// restoreState()
 // Restores the last saved state of the terminal
 func termrestoreState(mlr *moonlight.Runtime) error {
 	err := term.Restore(int(os.Stdin.Fd()), termState)
@@ -66,7 +66,6 @@ func termrestoreState(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// setRaw()
 // Puts the terminal into raw mode.
 func termsetRaw(mlr *moonlight.Runtime) error {
 	_, err := term.MakeRaw(int(os.Stdin.Fd()))

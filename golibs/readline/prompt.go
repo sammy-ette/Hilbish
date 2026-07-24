@@ -114,9 +114,9 @@ func (rl *Readline) RefreshPromptInPlace(prompt string) (err error) {
 }
 
 // RefreshPromptCustom - Refresh the console prompt with custom values.
-// @prompt      => If not nil (""), will use this prompt instead of the currently set prompt.
-// @offset      => Used to set the number of lines to go upward, before reprinting. Set to 0 if not used.
-// @clearLine   => If true, will clean the current input line on the next refresh.
+// prompt      => If not nil (""), will use this prompt instead of the currently set prompt.
+// offset      => Used to set the number of lines to go upward, before reprinting. Set to 0 if not used.
+// clearLine   => If true, will clean the current input line on the next refresh.
 func (rl *Readline) RefreshPromptCustom(prompt string, offset int, clearLine bool) (err error) {
 
 	// We adjust cursor movement, depending on which mode we're currently in.

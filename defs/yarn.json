@@ -2,18 +2,28 @@
 	"name": "yarn",
 	"section": "api",
 	"shortDescription": "multi threading library",
-	"description": "Yarn is a simple multithreading library. Threads are individual Lua states,\nso they do NOT share the same environment as the code that runs the thread.\nBait and Commanders are shared though, so you *can* throw hooks from 1 thread to another.\n\nExample:\n\n```lua\nlocal yarn = require 'yarn'\n\n-- calling t will run the yarn thread.\nlocal t = yarn.thread(print)\nt 'printing from another lua state!'\n```",
+	"description": "Yarn is a simple multithreading library _(lol)_. Threads are individual Lua states,\nso they do NOT share the same environment (variables) as the code that runs the thread.\nBait and Commanders are shared though, so you *can* throw hooks from 1 thread to another.\nYou may use that as a way to pass variables and data to a Yarn thread.\n\nExample:\n\n```lua\nlocal yarn = require 'yarn'\n\n-- calling t will run the yarn thread.\nlocal t = yarn.thread(print)\nt 'printing from another lua state!'\n```",
 	"properties": [],
 	"fields": [],
 	"types": [
 		{
 			"name": "Thread",
-			"description": [],
+			"description": [
+				"A thread is a Lua state that can be executed independently.",
+				"You call a thread object as a function to run the thread with the provided arguments."
+			],
 			"parent": "yarn",
 			"isInterface": false,
 			"isMember": false,
 			"isType": true,
 			"tags": {
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 1
+					}
+				],
 				"type": [
 					{
 						"id": "",
@@ -21,21 +31,95 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		}
 	],
 	"docs": [
 		{
 			"name": "thread",
 			"description": [
-				"Creates a new, fresh Yarn thread.",
-				"`fun` is the function that will run in the thread."
+				"Creates a new, fresh Yarn thread."
 			],
-			"signature": "thread(fun) -\u003e @Thread",
+			"signature": "thread(fun) -\u003e Thread",
 			"goFuncName": "yarnthread",
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"params": [
+				{
+					"Name": "fun",
+					"Type": "function",
+					"Doc": [
+						"The",
+						"function",
+						"that",
+						"will",
+						"run",
+						"in",
+						"the",
+						"thread."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "thread",
+					"Type": "Thread",
+					"Doc": [
+						"The",
+						"created",
+						"yarn",
+						"thread."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"param": [
+					{
+						"id": "fun",
+						"fields": [
+							"function",
+							"The",
+							"function",
+							"that",
+							"will",
+							"run",
+							"in",
+							"the",
+							"thread."
+						],
+						"startIdx": 2
+					}
+				],
+				"return": [
+					{
+						"id": "Thread",
+						"fields": [
+							"thread",
+							"The",
+							"created",
+							"yarn",
+							"thread."
+						],
+						"startIdx": 3
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 1
+					}
+				]
+			},
+			"since": "3.0.0"
 		}
 	]
 }

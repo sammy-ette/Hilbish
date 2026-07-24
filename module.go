@@ -7,9 +7,10 @@ import (
 	"github.com/sammy-ette/hilbish/moonlight"
 )
 
-// #interface module
+// @interface module
 // native module loading
-// #field paths A list of paths to search when loading native modules. This is in the style of Lua search paths and will be used when requiring native modules. Example: `?.so;?/?.so`
+// @since 2.2.0
+// @field paths table<string> A list of paths to search when loading native modules. This is in the style of Lua search paths and will be used when requiring native modules. Example: `?.so;?/?.so`
 /*
 The hilbish.module interface provides a function to load
 Hilbish plugins/modules. Hilbish modules are Go-written
@@ -24,6 +25,7 @@ To make a valid native module, the Go plugin has to export a Loader function
 with a signature like so: `func(*moonlight.Runtime) moonlight.Value`.
 
 Here is some code for an example plugin:
+
 ```go
 package main
 
@@ -50,11 +52,12 @@ func moduleLoader(mlr *moonlight.Runtime) *moonlight.Table {
 	return mod
 }
 
-// #interface module
+// @interface module
 // load(path)
 // Loads a module at the designated `path`.
 // It will throw if any error occurs.
-// #param path string
+// @param path string
+// @since 2.2.0
 func moduleLoad(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err

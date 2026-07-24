@@ -23,6 +23,7 @@ To make a valid native module, the Go plugin has to export a Loader function
 with a signature like so: `func(*moonlight.Runtime) moonlight.Value`.
 
 Here is some code for an example plugin:
+
 ```go
 package main
 
@@ -40,25 +41,39 @@ If you attempt to require and print the result (`print(require 'plugin')`), it w
 
 ## Functions
 
+:::funclist
 - [`hilbish.module.load(path)`](#module.load): Loads a module at the designated `path`.
+
+:::
 
 ## Static module fields
 
-- `paths`: A list of paths to search when loading native modules. This is in the style of Lua search paths and will be used when requiring native modules. Example: `?.so;?/?.so`
+:::fieldlist
+- `table<string>` `paths`: A list of paths to search when loading native modules. This is in the style of Lua search paths and will be used when requiring native modules. Example: `?.so;?/?.so`
+
+:::
 
 ---
 
 #### module.load
 
+:::signature
+```lua
 hilbish.module.load(path)
+```
+:::
+
+Since: `2.2.0`
 
 Loads a module at the designated `path`.  
 It will throw if any error occurs.  
 
 #### Parameters
 
+:::params
 `string` _path_  
 
+:::
 
 
 

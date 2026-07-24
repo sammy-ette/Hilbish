@@ -42,14 +42,91 @@
 		{
 			"name": "size",
 			"description": [
-				"Gets the dimensions of the terminal. Returns a table with `width` and `height`",
+				"Gets the dimensions of the terminal.",
 				"NOTE: The size refers to the amount of columns and rows of text that can fit in the terminal."
 			],
-			"signature": "size()",
+			"signature": "size() -\u003e table",
 			"goFuncName": "termsize",
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"returns": [
+				{
+					"Name": "size",
+					"Type": "table",
+					"Doc": [
+						"The",
+						"terminal",
+						"size."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": [
+						{
+							"Name": "width",
+							"Type": "number",
+							"Doc": [
+								"The terminal width, in columns."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "height",
+							"Type": "number",
+							"Doc": [
+								"The terminal height, in rows."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						}
+					]
+				}
+			],
+			"tags": {
+				"return": [
+					{
+						"id": "table",
+						"fields": [
+							"size",
+							"The",
+							"terminal",
+							"size."
+						],
+						"startIdx": 2
+					}
+				],
+				"treturn": [
+					{
+						"id": "size",
+						"fields": [
+							"width",
+							"number",
+							"The",
+							"terminal",
+							"width,",
+							"in",
+							"columns."
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "size",
+						"fields": [
+							"height",
+							"number",
+							"The",
+							"terminal",
+							"height,",
+							"in",
+							"rows."
+						],
+						"startIdx": 0
+					}
+				]
+			}
 		}
 	]
 }

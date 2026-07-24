@@ -39,22 +39,32 @@ In the future, `sinks.in` will be removed.
 
 ## Functions
 
+:::funclist
 - [`commander.deregister(name)`](#deregister): Removes the named command. Note that this will only remove Commander-registered commands.
 - [`commander.register(name, cb)`](#register): Adds a new command with the given `name`. When Hilbish has to run a command with a name,
 - [`commander.registry() -> table`](#registry): Returns all registered commanders. Returns a list of tables with the following keys:
+
+:::
 
 ---
 
 #### deregister
 
+:::signature
+```lua
 commander.deregister(name)
+```
+:::
 
 Removes the named command. Note that this will only remove Commander-registered commands.  
 
 #### Parameters
 
+:::params
 `string` _name_  
 Name of the command to remove.
+
+:::
 
 
 
@@ -62,18 +72,27 @@ Name of the command to remove.
 
 #### register
 
+:::signature
+```lua
 commander.register(name, cb)
+```
+:::
 
 Adds a new command with the given `name`. When Hilbish has to run a command with a name,  
 it will run the function providing the arguments and sinks.  
 
+
+
 #### Parameters
 
+:::params
 `string` _name_  
 Name of the command
 
 `fun(args:table,sinks:table<string,Sink>):number?` _cb_  
 Callback to handle command invocation
+
+:::
 
 #### Example
 
@@ -93,13 +112,24 @@ end)
 
 #### registry
 
+:::signature
+```lua
 commander.registry() -> table
+```
+:::
+
+Since: `2.3.0`
 
 Returns all registered commanders. Returns a list of tables with the following keys:  
+
 - `exec`: The function used to run the commander. Commanders require args and sinks to be passed.  
 
-#### Parameters
+#### Returns
 
-This function has no parameters.  
+:::returns
+`table`  
+
+:::
+
 
 

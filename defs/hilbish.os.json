@@ -2,7 +2,7 @@
 	"name": "hilbish.os",
 	"section": "api",
 	"shortDescription": "operating system info",
-	"description": "Provides simple text information properties about the current operating system.\nThis mainly includes the name and version.",
+	"description": "Provides simple text information properties about the current operating system.\nThis mainly includes the name and version.\n\n\nThis is commonly used to branch config behavior per platform, for example\npicking a different package manager completer or prompt icon:\n\n\n```lua\nif hilbish.os.family == 'windows' then\n\thilbish.prompt '%u@%h %d\u003e'\nelse\n\thilbish.prompt '%u@%h %d $'\nend\n```",
 	"parent": "hilbish",
 	"properties": [],
 	"fields": [
@@ -18,7 +18,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "name",
@@ -32,7 +33,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		},
 		{
 			"name": "version",
@@ -45,7 +47,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		}
 	],
 	"docs": null

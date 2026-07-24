@@ -2,19 +2,166 @@
 	"name": "hilbish.messages",
 	"section": "api",
 	"shortDescription": "simplistic message passing",
-	"description": "The messages interface defines a way for Hilbish-integrated commands,\nuser config and other tasks to send notifications to alert the user.z\nThe `hilbish.message` type is a table with the following keys:\n`title` (string): A title for the message notification.\n`text` (string): The contents of the message.\n`channel` (string): States the origin of the message, `hilbish.*` is reserved for Hilbish tasks.\n`summary` (string): A short summary of the `text`.\n`icon` (string): Unicode (preferably standard emoji) icon for the message notification\n`read` (boolean): Whether the full message has been read or not.",
+	"description": "The messages interface defines a way for Hilbish-integrated commands,\nuser config and other tasks to send notifications to alert the user.\n\n\nA message starts out unread when it is sent with `send`. It stays\nunread until it is explicitly marked with `read` (by index) or\n`readAll` (every message at once). `unreadCount` and `all` reflect\nthis state, so a prompt or statusline can show how many messages are\nwaiting to be seen.\n\n\n```lua\nhilbish.messages.send{\n\ttitle = 'Build finished',\n\ttext = 'go build exited with code 0',\n\tchannel = 'build',\n\ticon = '✅'\n}\n\n\nprint(hilbish.messages.unreadCount()) -- -\u003e 1\n\n\nfor idx, msg in pairs(hilbish.messages.all()) do\n\thilbish.messages.read(idx)\nend\nprint(hilbish.messages.unreadCount()) -- -\u003e 0\n```",
 	"properties": null,
 	"fields": null,
+	"types": [
+		{
+			"name": "hilbish.message",
+			"description": [
+				"Represents a Hilbish message."
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": true,
+			"properties": [
+				{
+					"name": "icon",
+					"description": [
+						"Unicode (preferably standard emoji) icon for the message notification."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string?"
+				},
+				{
+					"name": "title",
+					"description": [
+						"Title of the message (like an email subject)."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "text",
+					"description": [
+						"Contents of the message."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "channel",
+					"description": [
+						"Short identifier of the message. `hilbish` and `hilbish.*` is preserved for internal Hilbish messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "summary",
+					"description": [
+						"A short summary of the message."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "index",
+					"description": [
+						"Index assigned to the message once sent with `send`, used to reference it in `read` and `delete`."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "integer?"
+				},
+				{
+					"name": "read",
+					"description": [
+						"Whether the full message has been read or not."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "boolean?"
+				}
+			]
+		},
+		{
+			"name": "hilbish.messageIcons",
+			"description": [
+				"Predefined icons for the `icon` field of a message. Any code sending",
+				"notifications can use these, whether from user config or Hilbish itself."
+			],
+			"isInterface": false,
+			"isMember": false,
+			"isType": true,
+			"properties": [
+				{
+					"name": "INFO",
+					"description": [
+						"Icon for informational messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "SUCCESS",
+					"description": [
+						"Icon for success messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "WARN",
+					"description": [
+						"Icon for warning messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				},
+				{
+					"name": "ERROR",
+					"description": [
+						"Icon for error messages."
+					],
+					"isInterface": false,
+					"isMember": false,
+					"isType": false,
+					"type": "string"
+				}
+			]
+		}
+	],
 	"docs": [
 		{
 			"name": "all",
 			"description": [
-				"Returns all messages."
+				"Returns all messages as a table keyed by their index."
 			],
-			"signature": "all() -\u003e table\u003chilbish.message\u003e",
+			"signature": "all() -\u003e table",
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"returns": [
+				{
+					"Name": "messages",
+					"Type": "table",
+					"Doc": [
+						"All stored messages, keyed by message index."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
 		},
 		{
 			"name": "clear",
@@ -29,7 +176,7 @@
 		{
 			"name": "delete",
 			"description": [
-				"Deletes the message at `idx`."
+				"Deletes the message at `idx`. Errors if the index is invalid."
 			],
 			"signature": "delete(idx)",
 			"isInterface": false,
@@ -39,7 +186,12 @@
 				{
 					"Name": "idx",
 					"Type": "number",
-					"Doc": null
+					"Doc": [
+						"Index of the message to delete."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
@@ -56,7 +208,12 @@
 				{
 					"Name": "idx",
 					"Type": "number",
-					"Doc": null
+					"Doc": [
+						"Index of the message to mark as read."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
@@ -73,7 +230,8 @@
 		{
 			"name": "send",
 			"description": [
-				"Sends a message."
+				"Sends a notification message and emits the `hilbish.notification` signal.",
+				"Do *not* emit the `hilbish.notification` signal directly."
 			],
 			"signature": "send(message)",
 			"isInterface": false,
@@ -83,19 +241,37 @@
 				{
 					"Name": "message",
 					"Type": "hilbish.message",
-					"Doc": null
+					"Doc": [
+						"The message to send."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			]
 		},
 		{
 			"name": "unreadCount",
 			"description": [
-				"Returns the amount of unread messages."
+				"Returns the count of unread messages."
 			],
 			"signature": "unreadCount() -\u003e integer",
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"returns": [
+				{
+					"Name": "count",
+					"Type": "integer",
+					"Doc": [
+						"Number of messages that have not been marked as read."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
 		}
-	]
+	],
+	"since": "2.2.0"
 }

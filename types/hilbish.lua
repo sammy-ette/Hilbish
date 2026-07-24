@@ -1,24 +1,7 @@
 ---@meta
 
----@class Sink
-local Sink = {}
-
-function Sink:autoFlush(auto) end
-
-function Sink:flush() end
-
----@return string
-function Sink:read() end
-
----@return string
-function Sink:readAll() end
-
-function Sink:write(str) end
-
-function Sink:writeln(str) end
-
 ---@class hilbish.abbr
----@field add fun(abbr: string, expanded: string|fun(...: any), opts: table)
+---@field add fun(abbr: string, expanded: string|fun(...: any), opts?: table)
 ---@field remove fun(abbr: string)
 
 ---@class hilbish.aliases
@@ -29,10 +12,10 @@ function Sink:writeln(str) end
 
 ---@class hilbish.completions
 ---@field add fun(scope: string, cb: fun(query:string,ctx:string,fields:table<string>):table,string)
----@field bins fun(query: string, ctx: string, fields: table): table, string
+---@field bins fun(query: string, ctx: string, fields: table): table<string>, string
 ---@field call fun(name: string, query: string, ctx: string, fields: table): table, string
----@field dirs fun(query: string, ctx: string, fields: table): table, string
----@field files fun(query: string, ctx: string, fields: table): table, string
+---@field dirs fun(query: string, ctx: string, fields: table): table<string>, string
+---@field files fun(query: string, ctx: string, fields: table): table<string>, string
 ---@field handler fun(line: string, pos: number): string, table
 
 ---@class Job
@@ -54,15 +37,32 @@ function Job:start() end
 function Job:stop() end
 
 ---@class hilbish.jobs
----@field add fun(cmdstr: string, args: table, execPath: string)
+---@field add fun(cmdstr: string, args: table, execPath: string): Job
 ---@field all fun(): table<Job>
 ---@field disown fun(id: number)
----@field get fun(id: any): Job
----@field last fun(): Job
+---@field get fun(id: number): Job?
+---@field last fun(): Job?
 ---@field stopAll fun()
 
+---@class hilbish.message
+---@field icon any
+---@field title any
+---@field text any
+---@field channel any
+---@field summary any
+---@field index any
+---@field read any
+hilbish.message = {}
+
+---@class hilbish.messageIcons
+---@field INFO any
+---@field SUCCESS any
+---@field WARN any
+---@field ERROR any
+hilbish.messageIcons = {}
+
 ---@class hilbish.messages
----@field all fun(): table<hilbish.message>
+---@field all fun(): table
 ---@field clear fun()
 ---@field delete fun(idx: number)
 ---@field read fun(idx: number)
@@ -80,23 +80,60 @@ function Job:stop() end
 ---@field version any
 
 ---@class hilbish.processors
----@field execute fun(command: any, opts: any): table
+---@field add fun(processor: table)
+---@field execute fun(command: string, opts?: table): table
+
+---@class Runner
+---@field run any
+---@field validate any
+local Runner = {}
+
+---@class RunnerResult
+---@field exitCode any
+---@field input any
+---@field err any
+---@field continue any
+---@field newline any
+local RunnerResult = {}
 
 ---@class hilbish.runner
----@field add fun(name: string, runner: table)
----@field exec fun(cmd: string, runnerName: string?): table
----@field get fun(name: string): table
+---@field add fun(name: string, runner: Runner)
+---@field exec fun(cmd: string, runnerName?: string): RunnerResult
+---@field get fun(name: string): Runner
 ---@field getCurrent fun(): string
----@field lua fun(input: string): table
----@field run fun(input: string, priv: boolean)
----@field set fun(name: string, runner: table)
+---@field lua fun(input: string): RunnerResult
+---@field run fun(input: string, priv?: boolean)
+---@field set fun(name: string, runner: Runner)
 ---@field setCurrent fun(name: string)
----@field sh fun(input: string): table
+---@field sh fun(input: string): RunnerResult
+
+---@class Sink
+local Sink = {}
+
+---@param auto? boolean
+function Sink:autoFlush(auto) end
+
+function Sink:flush() end
+
+---@return string line
+function Sink:read() end
+
+---@return string data
+function Sink:readAll() end
+
+---@param str string
+function Sink:write(str) end
+
+---@param str string
+function Sink:writeln(str) end
+
+---@class hilbish.sink
 
 ---@class Timer
 ---@field type any
 ---@field running any
 ---@field duration any
+---@field id any
 local Timer = {}
 
 function Timer:start() end
@@ -107,7 +144,7 @@ function Timer:stop() end
 ---@field INTERVAL any
 ---@field TIMEOUT any
 ---@field create fun(type: number, time: number, callback: fun(...: any)): Timer
----@field get fun(id: number): Timer
+---@field get fun(id: number): Timer?
 ---@field wait fun()
 
 ---@class hilbish.userDir
@@ -129,6 +166,7 @@ function Timer:stop() end
 ---@field exitCode any
 ---@field running any
 ---@field initialized any
+---@field midnightEdition any
 ---@field home string
 ---@field editor Readline
 ---@field snail Snail
@@ -151,19 +189,22 @@ function Timer:stop() end
 ---@field os hilbish.os
 ---@field processors hilbish.processors
 ---@field runner hilbish.runner
+---@field sink hilbish.sink
 ---@field timers hilbish.timers
 ---@field userDir hilbish.userDir
 ---@field alias fun(alias: string, cmd: string)
+---@field appendPath fun(path: string|table)
 ---@field cwd fun(): string
 ---@field exec fun(cmd: string)
 ---@field interval fun(cb: fun(...: any), time: number): Timer
 ---@field lookpath fun(file: string): string
----@field multiprompt fun(str: string|nil): string|nil Returns the currently set multilinePrompt if `str` is not provided.
----@field prompt fun(p: string, typ: string)
----@field read fun(prompt: string): string|nil
----@field run fun(cmd: string, streams: table|boolean): number, string, string
+---@field multiprompt fun(str?: string): string?
+---@field prependPath fun(path: string|table)
+---@field prompt fun(p: string, typ?: string)
+---@field read fun(prompt?: string): string?
+---@field run fun(cmd: string, streams: table|boolean): number, string?, string?
 ---@field timeout fun(cb: fun(...: any), time: number): Timer
----@field which fun(name: string): string|nil
+---@field which fun(name: string): string?
 
 ---@type Hilbish
 ---@diagnostic disable-next-line: missing-fields

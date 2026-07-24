@@ -59,13 +59,12 @@ func (c *Commander) Loader(rtm *moonlight.Runtime) moonlight.Value {
 	return moonlight.TableValue(mod)
 }
 
-// register(name, cb)
 // Adds a new command with the given `name`. When Hilbish has to run a command with a name,
 // it will run the function providing the arguments and sinks.
-// #param name string Name of the command
-// #param cb fun(args:table,sinks:table<string,Sink>):number? Callback to handle command invocation
+// @param name string Name of the command
+// @param cb fun(args:table,sinks:table<string,Sink>):number? Callback to handle command invocation
 /*
-#example
+@example
 -- When you run the command `hello` in the shell, it will print `Hello world`.
 -- If you run it with, for example, `hello Hilbish`, it will print 'Hello Hilbish'
 commander.register('hello', function(args, sinks)
@@ -74,7 +73,7 @@ commander.register('hello', function(args, sinks)
 
 	sinks.out:writeln('Hello ' .. name)
 end)
-#example
+@example
 */
 func (c *Commander) cregister(mlr *moonlight.Runtime) error {
 	cmdName, cmd, err := util.HandleStrCallback(mlr)
@@ -87,9 +86,8 @@ func (c *Commander) cregister(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// deregister(name)
 // Removes the named command. Note that this will only remove Commander-registered commands.
-// #param name string Name of the command to remove.
+// @param name string Name of the command to remove.
 func (c *Commander) cderegister(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -104,10 +102,11 @@ func (c *Commander) cderegister(mlr *moonlight.Runtime) error {
 	return err
 }
 
-// registry() -> table
 // Returns all registered commanders. Returns a list of tables with the following keys:
+//
 // - `exec`: The function used to run the commander. Commanders require args and sinks to be passed.
-// #returns table
+// @return table registry
+// @since 2.3.0
 func (c *Commander) cregistry(mlr *moonlight.Runtime) error {
 	registryLua := moonlight.NewTable()
 	for cmdName, cmd := range c.Commands {

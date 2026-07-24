@@ -25,6 +25,7 @@ hilbish.editor:setCompleter(function(line, pos)
 	return hilbish.completions.handler(line, pos)
 end)
 
+-- see nature/hooks.lua for hilbish.vimMode/hilbish.vimAction/hilbish.rawInput hook docs
 hilbish.editor:setViModeCallback(function(mode)
 	hilbish.vimMode = mode
 	bait.throw('hilbish.vimMode', mode)

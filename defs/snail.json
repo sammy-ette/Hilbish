@@ -2,7 +2,7 @@
 	"name": "snail",
 	"section": "api",
 	"shortDescription": "shell script interpreter library",
-	"description": "\nThe snail library houses Hilbish's Lua wrapper of its shell script interpreter.\nIt's not very useful other than running shell scripts, which can be done with other\nHilbish functions.",
+	"description": "\nThe snail library houses Hilbish's Lua wrapper of its shell script interpreter.\n`hilbish.run` and `hilbish.runner.sh` both run scripts through Hilbish's shared,\nglobal Snail instance (available at `hilbish.snail`), which is what you should be using\nalmost all the time.\n\nReach for an independent snail instance directly only when you need\nan isolated interpreter with its own working directory.\n\n```lua\nlocal snail = require 'snail'\n\nlocal interp = snail.new()\nlocal result = interp:run 'echo hello from an isolated snail'\nprint(result.stdout)\n```",
 	"properties": [],
 	"fields": [],
 	"types": [
@@ -16,23 +16,31 @@
 			"isMember": false,
 			"isType": true,
 			"tags": {
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 1
+					}
+				],
 				"type": [
 					{
-						"id": "",
-						"fields": null,
+						"id": "snail",
+						"fields": [],
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		}
 	],
 	"docs": [
 		{
 			"name": "dir",
 			"description": [
-				"Changes the directory of the snail instance.",
-				"The interpreter keeps its set directory even when the Hilbish process changes",
-				"directory, so this should be called on the `hilbish.cd` hook."
+				"Changes the working directory of this Snail instance.",
+				"The interpreter keeps its own directory state.",
+				"In Hilbish usage, this is called when `hilbish.cd` is emitted."
 			],
 			"signature": "dir(path)",
 			"goFuncName": "snaildir",
@@ -44,13 +52,19 @@
 					"Name": "path",
 					"Type": "string",
 					"Doc": [
-						"Has",
-						"to",
+						"The",
+						"new",
+						"working",
+						"directory.",
+						"Must",
 						"be",
 						"an",
 						"absolute",
 						"path."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -66,35 +80,84 @@
 						"id": "path",
 						"fields": [
 							"string",
-							"Has",
-							"to",
+							"The",
+							"new",
+							"working",
+							"directory.",
+							"Must",
 							"be",
 							"an",
 							"absolute",
 							"path."
 						],
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
 						"startIdx": 5
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "new",
 			"description": [
-				"Creates a new Snail instance."
+				"Creates a new Snail shell interpreter instance."
 			],
-			"signature": "new() -\u003e @Snail",
+			"signature": "new() -\u003e Snail",
 			"goFuncName": "snailnew",
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"returns": [
+				{
+					"Name": "snail",
+					"Type": "Snail",
+					"Doc": [
+						"The",
+						"new",
+						"Snail",
+						"instance."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"return": [
+					{
+						"id": "Snail",
+						"fields": [
+							"snail",
+							"The",
+							"new",
+							"Snail",
+							"instance."
+						],
+						"startIdx": 1
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 2
+					}
+				]
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "run",
 			"description": [
-				"Runs a shell command. Works the same as `hilbish.run`, but only accepts a table of streams."
+				"Runs a shell script command. Works like `hilbish.run` but operates on this Snail instance."
 			],
-			"signature": "run(command, streams)",
+			"signature": "run(command, streams) -\u003e table",
 			"goFuncName": "snailrun",
 			"isInterface": false,
 			"isMember": true,
@@ -103,12 +166,108 @@
 				{
 					"Name": "command",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"The",
+						"shell",
+						"command",
+						"or",
+						"script",
+						"to",
+						"run."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
-					"Name": "streams?",
+					"Name": "streams",
 					"Type": "table",
-					"Doc": []
+					"Doc": [
+						"Optional",
+						"table",
+						"of",
+						"I/O",
+						"streams",
+						"with",
+						"keys",
+						"`out`,",
+						"`err`,",
+						"`input`",
+						"(each",
+						"a",
+						"Sink)."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "result",
+					"Type": "table",
+					"Doc": [
+						"The",
+						"result",
+						"of",
+						"running",
+						"the",
+						"command."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": [
+						{
+							"Name": "exitCode",
+							"Type": "number",
+							"Doc": [
+								"The exit code of the command."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "stdout",
+							"Type": "string",
+							"Doc": [
+								"Standard output of the command, if not streamed."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "stderr",
+							"Type": "string",
+							"Doc": [
+								"Standard error output of the command, if not streamed."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "err",
+							"Type": "string",
+							"Doc": [
+								"Error message, if one occurred."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "bg",
+							"Type": "boolean",
+							"Doc": [
+								"Whether the command was run in the background."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						}
+					]
 				}
 			],
 			"tags": {
@@ -123,33 +282,148 @@
 					{
 						"id": "command",
 						"fields": [
-							"string"
+							"string",
+							"The",
+							"shell",
+							"command",
+							"or",
+							"script",
+							"to",
+							"run."
 						],
-						"startIdx": 3
+						"startIdx": 2
 					},
 					{
 						"id": "streams?",
 						"fields": [
-							"table"
+							"table",
+							"Optional",
+							"table",
+							"of",
+							"I/O",
+							"streams",
+							"with",
+							"keys",
+							"`out`,",
+							"`err`,",
+							"`input`",
+							"(each",
+							"a",
+							"Sink)."
 						],
 						"startIdx": 0
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "table",
+						"fields": [
+							"result",
+							"The",
+							"result",
+							"of",
+							"running",
+							"the",
+							"command."
+						],
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
 						"fields": [],
+						"startIdx": 10
+					}
+				],
+				"treturn": [
+					{
+						"id": "result",
+						"fields": [
+							"exitCode",
+							"number",
+							"The",
+							"exit",
+							"code",
+							"of",
+							"the",
+							"command."
+						],
 						"startIdx": 5
+					},
+					{
+						"id": "result",
+						"fields": [
+							"stdout",
+							"string",
+							"Standard",
+							"output",
+							"of",
+							"the",
+							"command,",
+							"if",
+							"not",
+							"streamed."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "result",
+						"fields": [
+							"stderr",
+							"string",
+							"Standard",
+							"error",
+							"output",
+							"of",
+							"the",
+							"command,",
+							"if",
+							"not",
+							"streamed."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "result",
+						"fields": [
+							"err",
+							"string",
+							"Error",
+							"message,",
+							"if",
+							"one",
+							"occurred."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "result",
+						"fields": [
+							"bg",
+							"boolean",
+							"Whether",
+							"the",
+							"command",
+							"was",
+							"run",
+							"in",
+							"the",
+							"background."
+						],
+						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "validate",
 			"description": [
-				"Checks if input is incomplete. Does not error otherwise."
+				"Checks if the input shell script is syntactically incomplete (e.g. unclosed quotes",
+				"or blocks). Returns true if the input is incomplete, false otherwise."
 			],
-			"signature": "validate(input)",
+			"signature": "validate(input) -\u003e boolean",
 			"goFuncName": "snailvalidate",
 			"isInterface": false,
 			"isMember": false,
@@ -158,7 +432,38 @@
 				{
 					"Name": "input",
 					"Type": "string",
-					"Doc": []
+					"Doc": [
+						"The",
+						"shell",
+						"script",
+						"string",
+						"to",
+						"check."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "incomplete",
+					"Type": "boolean",
+					"Doc": [
+						"True",
+						"if",
+						"more",
+						"input",
+						"is",
+						"needed",
+						"to",
+						"complete",
+						"the",
+						"statement."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -166,12 +471,45 @@
 					{
 						"id": "input",
 						"fields": [
-							"string"
+							"string",
+							"The",
+							"shell",
+							"script",
+							"string",
+							"to",
+							"check."
 						],
 						"startIdx": 2
 					}
+				],
+				"return": [
+					{
+						"id": "boolean",
+						"fields": [
+							"incomplete",
+							"True",
+							"if",
+							"more",
+							"input",
+							"is",
+							"needed",
+							"to",
+							"complete",
+							"the",
+							"statement."
+						],
+						"startIdx": 3
+					}
+				],
+				"since": [
+					{
+						"id": "3.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		}
 	]
 }

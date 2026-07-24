@@ -30,7 +30,35 @@ fn renderer() -> djot.Renderer(element.Element(a)) {
     link: link,
     image: image,
     div: callout,
+    span: span,
   )
+}
+
+fn span(
+  attrs: Dict(String, String),
+  content: String,
+) -> element.Element(a) {
+  case dict.get(attrs, "class") {
+    Ok("optional") ->
+      html.span(
+        [
+          attribute.class(
+            "inline-block ml-1 px-1.5 py-0.5 rounded text-xs font-medium bg-neutral-700/60 text-neutral-300 border border-neutral-600/50",
+          ),
+        ],
+        [element.text("Optional")],
+      )
+    Ok("variadic") ->
+      html.span(
+        [
+          attribute.class(
+            "inline-block ml-1 px-1.5 py-0.5 rounded text-xs font-medium bg-neutral-700/60 text-neutral-300 border border-neutral-600/50",
+          ),
+        ],
+        [element.text("Variadic")],
+      )
+    _ -> html.span(to_attr(attrs), [element.text(content)])
+  }
 }
 
 fn to_attr(attrs: Dict(String, String)) -> List(attribute.Attribute(a)) {
@@ -246,7 +274,7 @@ fn image(
 }
 
 /// Renders `:::warning`, `:::note`, `:::tip`, `:::important` and `:::danger`
-/// fenced divs as callout boxes. Any other div is passed through unstyled.
+/// fenced divs as callout boxes, plus API-specific divs for docgen output.
 fn callout(
   attrs: Dict(String, String),
   content: List(element.Element(a)),
@@ -274,8 +302,75 @@ fn callout(
       )
     Ok("danger") ->
       callout_box("Danger", "border-red-500 bg-red-500/10 text-red-50", content)
+    // API reference divs emitted by docgen
+    Ok("signature") -> api_signature(content)
+    Ok("params") -> api_param_box(content)
+    Ok("returns") -> api_param_box(content)
+    Ok("tparams") -> api_tparam_box(content)
+    Ok("funclist") -> api_func_list(content)
+    Ok("fieldlist") -> api_field_list(content)
     _ -> html.div(to_attr(attrs), content)
   }
+}
+
+/// Renders a function/method signature block — compact code-style.
+fn api_signature(content: List(element.Element(a))) -> element.Element(a) {
+  html.div(
+    [
+      attribute.class(
+        "my-3 [&>pre]:my-0 [&>pre]:rounded-md [&>pre]:border [&>pre]:border-pink-500/30 [&>pre]:bg-neutral-900/80",
+      ),
+    ],
+    content,
+  )
+}
+
+/// Renders nested table key documentation inside a param entry.
+fn api_tparam_box(content: List(element.Element(a))) -> element.Element(a) {
+  html.div(
+    [
+      attribute.class(
+        "mt-1 ml-4 pl-3 border-l border-l-pink-500/20 space-y-1 [&>p]:my-1 [&>p]:text-sm [&_code]:text-pink-300 [&_code]:bg-pink-500/15 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_em]:text-neutral-400 [&_em]:not-italic [&_em]:font-medium",
+      ),
+    ],
+    content,
+  )
+}
+
+/// Renders a Parameters or Returns block as a definition-list-style box.
+fn api_param_box(content: List(element.Element(a))) -> element.Element(a) {
+  html.div(
+    [
+      attribute.class(
+        "my-2 pl-4 border-l-2 border-l-pink-500/30 space-y-1 [&>p]:my-1 [&>p]:text-sm [&_code]:text-pink-300 [&_code]:bg-pink-500/15 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_em]:text-neutral-400 [&_em]:not-italic [&_em]:font-medium",
+      ),
+    ],
+    content,
+  )
+}
+
+/// Renders the Functions index list as a compact reference table.
+fn api_func_list(content: List(element.Element(a))) -> element.Element(a) {
+  html.div(
+    [
+      attribute.class(
+        "my-4 rounded-lg border border-neutral-800 overflow-hidden [&_ul]:my-0 [&_ul]:divide-y [&_ul]:divide-neutral-800 [&_li]:px-4 [&_li]:py-2.5 [&_li]:flex [&_li]:gap-3 [&_li]:items-baseline [&_li]:text-sm [&_code]:font-mono [&_code]:text-pink-300 [&_code]:text-xs [&_code]:bg-pink-500/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded",
+      ),
+    ],
+    content,
+  )
+}
+
+/// Renders Static module fields or Object properties as a clean reference list.
+fn api_field_list(content: List(element.Element(a))) -> element.Element(a) {
+  html.div(
+    [
+      attribute.class(
+        "my-4 rounded-lg border border-neutral-800 [&_ul]:my-0 [&_ul]:divide-y [&_ul]:divide-neutral-800 [&_li]:px-4 [&_li]:py-2 [&_li]:flex [&_li]:gap-3 [&_li]:items-baseline [&_li]:text-sm [&_code]:font-mono [&_code]:text-pink-300 [&_code]:text-xs [&_code]:bg-pink-500/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded",
+      ),
+    ],
+    content,
+  )
 }
 
 fn callout_box(

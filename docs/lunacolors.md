@@ -18,8 +18,13 @@ In other usage, you may want to use a format string instead of having
 multiple nested functions for different styles. This is where the format
 function comes in. You can use named keywords to style a section of text.
 
-The list of arguments are:  
+Style formats are written as `{word}`, so making a string blue using formatting would instead be:
+`lunacolors.format '{blue}im blue!{reset}'
+
+The list of arguments are:
+
 Colors:
+
 - black
 - red
 - green
@@ -30,6 +35,7 @@ Colors:
 - white
   
 Styles:
+
 - reset
 - bold
 - dim

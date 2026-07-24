@@ -9,9 +9,10 @@ menu:
 
 ## Introduction
 
-Yarn is a simple multithreading library. Threads are individual Lua states,
-so they do NOT share the same environment as the code that runs the thread.
+Yarn is a simple multithreading library _(lol)_. Threads are individual Lua states,
+so they do NOT share the same environment (variables) as the code that runs the thread.
 Bait and Commanders are shared though, so you *can* throw hooks from 1 thread to another.
+You may use that as a way to pass variables and data to a Yarn thread.
 
 Example:
 
@@ -25,20 +26,41 @@ t 'printing from another lua state!'
 
 ## Functions
 
-- [`yarn.thread(fun) -> @Thread`](#thread): Creates a new, fresh Yarn thread.
+:::funclist
+- [`yarn.thread(fun) -> Thread`](#thread): Creates a new, fresh Yarn thread.
+
+:::
 
 ---
 
 #### thread
 
-yarn.thread(fun) -> @Thread
+:::signature
+```lua
+yarn.thread(fun) -> Thread
+```
+:::
+
+Since: `3.0.0`
 
 Creates a new, fresh Yarn thread.  
-`fun` is the function that will run in the thread.  
 
 #### Parameters
 
-This function has no parameters.  
+:::params
+`function` _fun_  
+The function that will run in the thread.
+
+:::
+
+#### Returns
+
+:::returns
+`Thread`  
+The created yarn thread.
+
+:::
+
 
 
 ## Types
@@ -46,6 +68,9 @@ This function has no parameters.
 ---
 
 ## Thread
+
+A thread is a Lua state that can be executed independently.
+You call a thread object as a function to run the thread with the provided arguments.
 
 
 ### Methods
