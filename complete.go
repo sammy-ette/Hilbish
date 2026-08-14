@@ -214,9 +214,82 @@ func escapeFilename(fname string) string {
 	return escapeReplaer.Replace(fname)
 }
 
-// #interface completions
+// @interface completions
 // tab completions
-// The completions interface deals with tab completions.
+// The completions interface provides functions to register and manage tab completions.
+//
+// ## Completer Function
+//
+// A function registered for a specific command scope with
+// `hilbish.completions.add`. The scope string is `command.<name>` where `<name>` is
+// the command being completed (e.g. `command.git`). The handler is called with three
+// arguments:
+//
+// - `query` (string): The word the user is currently trying to complete. Use this to filter your items.
+// - `ctx` (string): The full command line as a string.
+// - `fields` (table): The command line split into fields by whitespace. `fields[1]` is the command name, `fields[2]` is the first argument, and so on.
+//
+// The handler must return two values: a table of *completion groups* and a prefix string.
+// The prefix is usually just `query`.
+//
+// ## Completion Groups
+//
+// A completion group is a table with two fields: `type` and `items`.
+// Multiple groups can be returned at once and Hilbish will display them together.
+//
+// *Grid*: items shown side by side in a grid. `items` is a list of strings:
+//
+// ```lua
+// { type = 'grid', items = {'add', 'commit', 'push', 'pull'} }
+// ```
+//
+// *List*: items shown in a vertical list with optional descriptions and aliases.
+// Each entry in `items` can be a plain string or a table with these keys (all optional): `description`, `alias`, `display`.
+//
+// ```lua
+//
+//	{
+//	  type = 'list',
+//	  items = {
+//	    ['--verbose'] = { description = 'enable verbose output', alias = '-v' },
+//	    ['--output']  = { description = 'output file path' },
+//	    '--dry-run',
+//	  }
+//	}
+//
+// ```
+//
+// ## Example
+//
+// Here is a full completer for a `sudo`-like command: it completes binaries when
+// no argument has been typed yet, and falls back to file completion otherwise.
+//
+// ```lua
+// hilbish.completions.add('command.sudo', function(query, ctx, fields)
+//
+//	if #fields == 0 then
+//		-- complete for commands
+//		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
+//		local compGroup = {
+//			items = comps, -- our list of items to complete
+//			type = 'grid' -- what our completions will look like.
+//		}
+//
+//		return {compGroup}, pfx
+//	end
+//
+//	-- otherwise just be boring and return files
+//
+//	local comps, pfx = hilbish.completions.files(query, ctx, fields)
+//	local compGroup = {
+//		items = comps,
+//		type = 'grid'
+//	}
+//
+//	return {compGroup}, pfx
+//
+// end)
+// ```
 func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
 	exports := map[string]moonlight.Export{
 		"bins":    {Function: hcmpBins, ArgNum: 3, Variadic: false},
@@ -233,42 +306,16 @@ func completionLoader(mlr *moonlight.Runtime) *moonlight.Table {
 	return mod
 }
 
-// #interface completions
+// @interface completions
 // add(scope, cb)
 // Registers a completion handler for the specified scope.
 // A `scope` is expected to be `command.<cmd>`,
 // replacing <cmd> with the name of the command (for example `command.git`).
-// The documentation for completions, under Features/Completions or `doc completions`
-// provides more details.
-// #param scope string
-// #param cb fun(query:string,ctx:string,fields:table<string>):table,string
-/*
-#example
--- This is a very simple example. Read the full doc for completions for details.
-hilbish.completions.add('command.sudo', function(query, ctx, fields)
-	if #fields == 0 then
-		-- complete for commands
-		local comps, pfx = hilbish.completions.bins(query, ctx, fields)
-		local compGroup = {
-			items = comps, -- our list of items to complete
-			type = 'grid' -- what our completions will look like.
-		}
-
-		return {compGroup}, pfx
-	end
-
-	-- otherwise just be boring and return files
-
-	local comps, pfx = hilbish.completions.files(query, ctx, fields)
-	local compGroup = {
-		items = comps,
-		type = 'grid'
-	}
-
-	return {compGroup}, pfx
-end)
-#example
-*/
+// See the module introduction above for a full worked example, and the
+// documentation for completions, under Features/Completions or `doc completions`,
+// for more details.
+// @param scope string
+// @param cb fun(query:string,ctx:string,fields:table<string>):table,string
 func hcmpAdd(mlr *moonlight.Runtime) error {
 	scope, cb, err := util.HandleStrCallback(mlr)
 	if err != nil {
@@ -281,32 +328,16 @@ func hcmpAdd(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface completions
-// bins(query, ctx, fields) -> entries (table), prefix (string)
+// @interface completions
+// bins
 // Return binaries/executables based on the provided parameters.
-// This function is meant to be used as a helper in a command completion handler.
-// #param query string
-// #param ctx string
-// #param fields table
-/*
-#example
--- an extremely simple completer for sudo.
-hilbish.completions.add('command.sudo', function(query, ctx, fields)
-	table.remove(fields, 1)
-	if #fields[1] then
-		-- return commands because sudo runs a command as root..!
-
-		local entries, pfx = hilbish.completions.bins(query, ctx, fields)
-		return {
-			type = 'grid',
-			items = entries
-		}, pfx
-	end
-
-	-- ... else suggest files or anything else ..
-end)
-#example
-*/
+// This function is meant to be used as a helper in a command completion handler,
+// as shown in the module introduction above.
+// @param query string Text the user is currently trying to complete.
+// @param ctx string The full command line string.
+// @param fields table The command line split into fields by whitespace.
+// @return table<string> entries A list of entries.
+// @return string prefix The prefix used for completions.
 func hcmpBins(mlr *moonlight.Runtime) error {
 	query, ctx, fds, err := getCompleteParams(mlr)
 	if err != nil {
@@ -325,15 +356,18 @@ func hcmpBins(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface completions
+// @interface completions
 // call(name, query, ctx, fields) -> completionGroups (table), prefix (string)
-// Calls a completer function. This is mainly used to call a command completer, which will have a `name`
+// Calls a completer function.
+// This is mainly used to call a command completer, which will have a `name`
 // in the form of `command.name`, example: `command.git`.
-// You can check the Completions doc or `doc completions` for info on the `completionGroups` return value.
-// #param name string
-// #param query string
-// #param ctx string
-// #param fields table
+// @param name string The name of the completer to call, e.g. `command.git`.
+// @param query string Text the user is currently trying to complete.
+// @param ctx string The full command line string.
+// @param fields table The command line split into fields by whitespace.
+// @return table completionGroups A table of completion groups.
+// @return string prefix
+// @since 2.0.0
 func hcmpCall(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(4); err != nil {
 		return err
@@ -371,13 +405,15 @@ func hcmpCall(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface completions
-// files(query, ctx, fields) -> entries (table), prefix (string)
+// @interface completions
+// files
 // Returns file matches based on the provided parameters.
 // This function is meant to be used as a helper in a command completion handler.
-// #param query string
-// #param ctx string
-// #param fields table
+// @param query string Text the user is currently trying to complete.
+// @param ctx string The full command line string.
+// @param fields table The command line split into fields by whitespace.
+// @return table<string> entries A list of entries.
+// @return string prefix The prefix used for completions.
 func hcmpFiles(mlr *moonlight.Runtime) error {
 	query, ctx, fds, err := getCompleteParams(mlr)
 	if err != nil {
@@ -397,13 +433,16 @@ func hcmpFiles(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface completions
+// @interface completions
 // dirs(query, ctx, fields) -> entries (table), prefix (string)
 // Returns directory matches based on the provided parameters.
 // This function is meant to be used as a helper in a command completion handler.
-// #param query string
-// #param ctx string
-// #param fields table
+// @param query string Text the user is currently trying to complete.
+// @param ctx string The full command line string.
+// @param fields table The command line split into fields by whitespace.
+// @return table<string> entries A list of entries.
+// @return string prefix The prefix used for completions.
+// @since 3.0.0
 func hcmpDirs(mlr *moonlight.Runtime) error {
 	query, ctx, fds, err := getCompleteParams(mlr)
 	if err != nil {
@@ -422,17 +461,19 @@ func hcmpDirs(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface completions
+// @interface completions
 // handler(line, pos)
-// This function contains the general completion handler for Hilbish. This function handles
-// completion of everything, which includes calling other command handlers, binaries, and files.
+// This function contains the general completion handler for Hilbish.
+// This function handles completion of everything,
+// which includes calling other command handlers, binaries, and files.
 // This function can be overridden to supply a custom handler. Note that alias resolution is required to be done in this function.
-// #param line string The current Hilbish command line
-// #param pos number Numerical position of the cursor
-// #returns string The common prefix of all completion items
-// #returns table A list of completion groups
+// @param line string The current Hilbish command line
+// @param pos number Numerical position of the cursor
+// @return string prefix The common prefix of all completion items
+// @return table completionGroups A list of completion groups
+// @since 2.0.0
 /*
-#example
+@example
 -- stripped down version of the default implementation
 function hilbish.completions.handler(line, pos)
 	local query = fields[#fields]
@@ -443,7 +484,7 @@ function hilbish.completions.handler(line, pos)
 		-- call command completer or files completer here
 	end
 end
-#example
+@example
 */
 func hcmpHandler(mlr *moonlight.Runtime) error {
 	return nil

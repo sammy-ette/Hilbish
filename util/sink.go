@@ -13,8 +13,10 @@ import (
 
 var sinkMetaKey = moonlight.StringValue("hshsink")
 
-// #type
-// A sink is a structure that has input and/or output to/from a desination.
+// @type
+// @interface sink
+// A sink is a writable and readable interface to a stream of data. Hilbish
+// uses sinks for command output and input streams.
 type Sink struct {
 	Rw        *bufio.ReadWriter
 	file      *os.File
@@ -36,6 +38,29 @@ func (s *Sink) RawWriter() io.Writer {
 	return s.writer
 }
 
+// @interface sink
+// stream interface
+/*
+A sink is a writable and readable interface to a stream of data.
+Hilbish uses sinks for command output and input streams, and they can be used
+in many places like in `hilbish.run` with the streams parameter.
+
+You will most commonly encounter sinks rather than create them directly:
+a Commander's callback receives `sinks.out`, `sinks.err`, and `sinks.input`
+(see the commander module doc), and `hilbish.run()`'s `streams` table accepts sinks
+for `out`, `err`, and `input` to redirect a command's I/O.
+
+`fs.pipe()` creates a connected pair of sinks directly,
+useful for piping data between commands manually.
+
+```lua
+local fs = require 'fs'
+local pr, pw = fs.pipe()
+
+pw:writeln 'hello from the write end'
+print(pr:readAll()) -- -> hello from the write end
+```
+*/
 func SinkLoader(mlr *moonlight.Runtime) *moonlight.Table {
 	sinkMethods := moonlight.NewTable()
 	sinkFuncs := map[string]moonlight.Export{
@@ -92,6 +117,9 @@ func SinkLoader(mlr *moonlight.Runtime) *moonlight.Table {
 	return mod
 }
 
+// Creates a new sink.
+// @return Sink
+// @since 3.0.0
 func luaSinkNew(mlr *moonlight.Runtime) error {
 	snk := NewSink(mlr, new(bytes.Buffer))
 
@@ -99,10 +127,12 @@ func luaSinkNew(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// readAll() -> string
-// --- @returns string
-// Reads all input from the sink.
+// @interface sink
+// @member
+// readAll()
+// Reads all buffered input from the sink.
+// @return string data All data read from the sink.
+// @since 2.2.0
 func luaSinkReadAll(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -137,10 +167,12 @@ func luaSinkReadAll(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
+// @interface sink
+// @member
 // read() -> string
-// --- @returns string
-// Reads a liine of input from the sink.
+// Reads a single line of input from the sink.
+// @return string line A line of data from the sink.
+// @since 2.2.0
 func luaSinkRead(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -157,9 +189,12 @@ func luaSinkRead(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
+// @interface sink
+// @member
 // write(str)
-// Writes data to a sink.
+// Writes a string to the sink.
+// @param str string The string to write.
+// @since 2.1.0
 func luaSinkWrite(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
@@ -182,9 +217,12 @@ func luaSinkWrite(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
+// @interface sink
+// @member
 // writeln(str)
-// Writes data to a sink with a newline at the end.
+// Writes a string to the sink followed by a newline.
+// @param str string The string to write.
+// @since 2.1.0
 func luaSinkWriteln(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
 		return err
@@ -207,9 +245,11 @@ func luaSinkWriteln(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
+// @interface sink
+// @member
 // flush()
-// Flush writes all buffered input to the sink.
+// Flushes all buffered data, writing it to the underlying destination.
+// @since 2.2.0
 func luaSinkFlush(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -225,11 +265,12 @@ func luaSinkFlush(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #member
-// autoFlush(auto)
-// Sets/toggles the option of automatically flushing output.
-// A call with no argument will toggle the value.
-// --- @param auto boolean|nil
+// @interface sink
+// @member
+// autoFlush(auto?)
+// Sets whether the sink automatically flushes after every write.
+// @param auto? boolean Whether to enable auto-flush. Omit to toggle.
+// @since 2.2.0
 func luaSinkAutoFlush(mlr *moonlight.Runtime) error {
 	s, err := sinkArg(mlr, 0)
 	if err != nil {

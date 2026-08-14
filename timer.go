@@ -17,12 +17,14 @@ const (
 	timerTimeout
 )
 
-// #type
-// #interface timers
-// #property type What type of timer it is
-// #property running If the timer is running
-// #property duration The duration in milliseconds that the timer will run
-// The Job type describes a Hilbish timer.
+// @type
+// @interface timers
+// @since 2.0.0
+// @property type number What kind of timer it is: interval (repeating) or timeout (one-shot).
+// @property running boolean Whether the timer is currently running.
+// @property duration number The duration in milliseconds after which the callback fires.
+// @property id number The ID of the timer.
+// The Timer type represents a Hilbish timer created with hilbish.timers.create.
 type timer struct {
 	mu      sync.Mutex
 	id      int
@@ -96,10 +98,11 @@ func (t *timer) stop() error {
 	return nil
 }
 
-// #interface timers
-// #member
+// @interface timers
+// @member
 // start()
 // Starts a timer.
+// @since 2.0.0
 func timerStart(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err
@@ -118,10 +121,11 @@ func timerStart(mlr *moonlight.Runtime) error {
 	return nil
 }
 
-// #interface timers
-// #member
+// @interface timers
+// @member
 // stop()
 // Stops a timer.
+// @since 2.0.0
 func timerStop(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
 		return err

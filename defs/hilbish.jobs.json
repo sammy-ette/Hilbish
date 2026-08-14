@@ -2,7 +2,7 @@
 	"name": "hilbish.jobs",
 	"section": "api",
 	"shortDescription": "background job management",
-	"description": "\nManage interactive jobs in Hilbish via Lua.\n\nJobs are the name of background tasks/commands. A job can be started via\ninteractive usage or with the functions defined below for use in external runners.",
+	"description": "\nManage interactive jobs in Hilbish via Lua.\n\nJobs are the name of background tasks/commands. A job can be started via\ninteractive usage or with the functions defined below for use in external runners.\n\n```lua\nfor id, job in pairs(hilbish.jobs.all()) do\n\tprint(id, job.cmd, job.running)\nend\n\nlocal j = hilbish.jobs.get(1)\nif j and j.running then\n\tj:stop()\nend\n```",
 	"parent": "hilbish",
 	"properties": [],
 	"fields": [],
@@ -32,7 +32,8 @@
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "string"
 				},
 				{
 					"name": "running",
@@ -47,7 +48,8 @@
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "boolean"
 				},
 				{
 					"name": "suspended",
@@ -63,7 +65,8 @@
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "boolean"
 				},
 				{
 					"name": "id",
@@ -80,7 +83,8 @@
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "number"
 				},
 				{
 					"name": "pid",
@@ -99,7 +103,8 @@
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "number"
 				},
 				{
 					"name": "exitCode",
@@ -114,7 +119,8 @@
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "number"
 				},
 				{
 					"name": "stdout",
@@ -135,7 +141,8 @@
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "string"
 				},
 				{
 					"name": "stderr",
@@ -157,7 +164,8 @@
 					],
 					"isInterface": false,
 					"isMember": false,
-					"isType": false
+					"isType": false,
+					"type": "string"
 				}
 			],
 			"tags": {
@@ -172,6 +180,7 @@
 					{
 						"id": "cmd",
 						"fields": [
+							"string",
 							"The",
 							"user",
 							"entered",
@@ -181,11 +190,12 @@
 							"the",
 							"job."
 						],
-						"startIdx": 2
+						"startIdx": 3
 					},
 					{
 						"id": "running",
 						"fields": [
+							"boolean",
 							"Whether",
 							"the",
 							"job",
@@ -199,6 +209,7 @@
 					{
 						"id": "suspended",
 						"fields": [
+							"boolean",
 							"Whether",
 							"the",
 							"job",
@@ -213,6 +224,7 @@
 					{
 						"id": "id",
 						"fields": [
+							"number",
 							"The",
 							"ID",
 							"of",
@@ -228,6 +240,7 @@
 					{
 						"id": "pid",
 						"fields": [
+							"number",
 							"The",
 							"Process",
 							"ID,",
@@ -245,6 +258,7 @@
 					{
 						"id": "exitCode",
 						"fields": [
+							"number",
 							"The",
 							"last",
 							"exit",
@@ -258,6 +272,7 @@
 					{
 						"id": "stdout",
 						"fields": [
+							"string",
 							"The",
 							"standard",
 							"output",
@@ -277,6 +292,7 @@
 					{
 						"id": "stderr",
 						"fields": [
+							"string",
 							"The",
 							"standard",
 							"error",
@@ -295,6 +311,13 @@
 						"startIdx": 0
 					}
 				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 2
+					}
+				],
 				"type": [
 					{
 						"id": "",
@@ -302,7 +325,8 @@
 						"startIdx": 0
 					}
 				]
-			}
+			},
+			"since": "1.2.0"
 		}
 	],
 	"docs": [
@@ -310,15 +334,17 @@
 			"name": "jobs.add",
 			"description": [
 				"Creates a new job but does not run it. The job kind is decided by `opts`:",
-				"a process job is created from `args`/`path` (with optional `env`, `dir`",
-				"and `sinks`), while a lua/code job is created by supplying `run` (and",
+				"A process job is created from `args`/`path` (with optional `env`, `dir`,",
+				"and `sinks`), while a Lua/code job is created by supplying `run` (and",
 				"optionally `suspend`/`resume`) functions.",
+				"This function is intended to be used by runners, but can also be",
+				"used to create jobs via Lua. Commanders cannot be run as jobs.",
 				"",
 				""
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
-			"signature": "add(cmdstr, opts) -\u003e @Job",
+			"signature": "add(cmdstr, opts) -\u003e Job",
 			"goFuncName": "luaaddjob",
 			"isInterface": true,
 			"isMember": false,
@@ -337,7 +363,10 @@
 						"for",
 						"the",
 						"job"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "opts",
@@ -345,7 +374,20 @@
 					"Doc": [
 						"Job",
 						"options."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "job",
+					"Type": "Job",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -366,7 +408,7 @@
 							"\tresume = function(job, fg) --[[ resume ]] end,",
 							"})"
 						],
-						"startIdx": 9
+						"startIdx": 13
 					}
 				],
 				"interface": [
@@ -391,7 +433,7 @@
 							"the",
 							"job"
 						],
-						"startIdx": 6
+						"startIdx": 8
 					},
 					{
 						"id": "opts",
@@ -402,8 +444,25 @@
 						],
 						"startIdx": 0
 					}
+				],
+				"return": [
+					{
+						"id": "Job",
+						"fields": [
+							"job"
+						],
+						"startIdx": 10
+					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 11
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.all",
@@ -412,11 +471,32 @@
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
-			"signature": "all() -\u003e table\u003c@Job\u003e",
+			"signature": "all() -\u003e table\u003cJob\u003e",
 			"goFuncName": "luaalljobs",
 			"isInterface": true,
 			"isMember": false,
 			"isType": false,
+			"returns": [
+				{
+					"Name": "jobs",
+					"Type": "table\u003cJob\u003e",
+					"Doc": [
+						"A",
+						"table",
+						"of",
+						"all",
+						"job",
+						"objects,",
+						"keyed",
+						"by",
+						"job",
+						"ID."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
 			"tags": {
 				"interface": [
 					{
@@ -425,14 +505,34 @@
 						"startIdx": 0
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "table\u003cJob\u003e",
-						"fields": [],
+						"fields": [
+							"jobs",
+							"A",
+							"table",
+							"of",
+							"all",
+							"job",
+							"objects,",
+							"keyed",
+							"by",
+							"job",
+							"ID."
+						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "1.2.0"
 		},
 		{
 			"name": "jobs.background",
@@ -460,13 +560,21 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.disown",
 			"description": [
-				"Disowns a job. This simply deletes it from the list of jobs without stopping it."
+				"Disowns a job. Hilbish will no longer manage the job and its process."
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
@@ -479,7 +587,18 @@
 				{
 					"Name": "id",
 					"Type": "number",
-					"Doc": []
+					"Doc": [
+						"The",
+						"ID",
+						"of",
+						"the",
+						"job",
+						"to",
+						"disown."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -494,12 +613,27 @@
 					{
 						"id": "id",
 						"fields": [
-							"number"
+							"number",
+							"The",
+							"ID",
+							"of",
+							"the",
+							"job",
+							"to",
+							"disown."
 						],
 						"startIdx": 3
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.foreground",
@@ -528,8 +662,16 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.get",
@@ -538,33 +680,52 @@
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
-			"signature": "get(id) -\u003e @Job",
+			"signature": "get(id) -\u003e Job?",
 			"goFuncName": "luagetjob",
 			"isInterface": true,
 			"isMember": false,
 			"isType": false,
-			"tags": {
-				"interface": [
-					{
-						"id": "jobs",
-						"fields": [],
-						"startIdx": 0
-					}
-				]
-			}
-		},
-		{
-			"name": "jobs.last",
-			"description": [
-				"Returns the last added job to the table."
+			"params": [
+				{
+					"Name": "id",
+					"Type": "number",
+					"Doc": [
+						"The",
+						"ID",
+						"of",
+						"the",
+						"job",
+						"to",
+						"retrieve."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
 			],
-			"parent": "hilbish",
-			"interfaces": "jobs",
-			"signature": "last() -\u003e @Job",
-			"goFuncName": "lualastjob",
-			"isInterface": true,
-			"isMember": false,
-			"isType": false,
+			"returns": [
+				{
+					"Name": "job",
+					"Type": "Job?",
+					"Doc": [
+						"The",
+						"job",
+						"object,",
+						"or",
+						"nil",
+						"if",
+						"no",
+						"job",
+						"with",
+						"that",
+						"ID",
+						"exists."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				}
+			],
 			"tags": {
 				"interface": [
 					{
@@ -573,29 +734,177 @@
 						"startIdx": 0
 					}
 				],
-				"returns": [
+				"param": [
 					{
-						"id": "Job",
-						"fields": [],
+						"id": "id",
+						"fields": [
+							"number",
+							"The",
+							"ID",
+							"of",
+							"the",
+							"job",
+							"to",
+							"retrieve."
+						],
 						"startIdx": 3
 					}
+				],
+				"return": [
+					{
+						"id": "Job?",
+						"fields": [
+							"job",
+							"The",
+							"job",
+							"object,",
+							"or",
+							"nil",
+							"if",
+							"no",
+							"job",
+							"with",
+							"that",
+							"ID",
+							"exists."
+						],
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "1.2.0"
+		},
+		{
+			"name": "jobs.last",
+			"description": [
+				"Returns the last added job to the table."
+			],
+			"parent": "hilbish",
+			"interfaces": "jobs",
+			"signature": "last() -\u003e Job?",
+			"goFuncName": "lualastjob",
+			"isInterface": true,
+			"isMember": false,
+			"isType": false,
+			"returns": [
+				{
+					"Name": "job",
+					"Type": "Job?",
+					"Doc": [
+						"The",
+						"most",
+						"recently",
+						"added",
+						"job",
+						"object,",
+						"or",
+						"nil",
+						"if",
+						"no",
+						"jobs",
+						"exist."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				}
+			],
+			"tags": {
+				"interface": [
+					{
+						"id": "jobs",
+						"fields": [],
+						"startIdx": 0
+					}
+				],
+				"return": [
+					{
+						"id": "Job?",
+						"fields": [
+							"job",
+							"The",
+							"most",
+							"recently",
+							"added",
+							"job",
+							"object,",
+							"or",
+							"nil",
+							"if",
+							"no",
+							"jobs",
+							"exist."
+						],
+						"startIdx": 3
+					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 4
+					}
+				]
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "jobs.start",
 			"description": [
 				"Starts running the job. If opts.background is true, runs in background.",
-				"Otherwise runs in foreground and blocks until completion or suspension.",
-				"Returns the exit code."
+				"Otherwise runs in foreground and blocks until completion or suspension."
 			],
 			"parent": "hilbish",
 			"interfaces": "jobs",
-			"signature": "start(opts)",
+			"signature": "start(opts) -\u003e number",
 			"goFuncName": "luastartjob",
 			"isInterface": true,
 			"isMember": true,
 			"isType": false,
+			"params": [
+				{
+					"Name": "opts",
+					"Type": "table",
+					"Doc": [
+						"Set",
+						"`background`",
+						"to",
+						"true",
+						"to",
+						"run",
+						"the",
+						"job",
+						"in",
+						"the",
+						"background."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "exitCode",
+					"Type": "number",
+					"Doc": [
+						"The",
+						"job",
+						"exit",
+						"code."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
 			"tags": {
 				"interface": [
 					{
@@ -610,8 +919,49 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"param": [
+					{
+						"id": "opts?",
+						"fields": [
+							"table",
+							"Set",
+							"`background`",
+							"to",
+							"true",
+							"to",
+							"run",
+							"the",
+							"job",
+							"in",
+							"the",
+							"background."
+						],
+						"startIdx": 5
+					}
+				],
+				"return": [
+					{
+						"id": "number",
+						"fields": [
+							"exitCode",
+							"The",
+							"job",
+							"exit",
+							"code."
+						],
+						"startIdx": 6
+					}
+				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 7
+					}
 				]
-			}
+			},
+			"since": "1.2.0"
 		},
 		{
 			"name": "jobs.stop",
@@ -639,8 +989,41 @@
 						"fields": null,
 						"startIdx": 1
 					}
+				],
+				"note": [
+					{
+						"id": "Sends",
+						"fields": [
+							"SIGTERM",
+							"to",
+							"the",
+							"process.",
+							"For",
+							"immediate",
+							"termination",
+							"use",
+							"os.exit",
+							"on",
+							"the",
+							"job's",
+							"process",
+							"directly."
+						],
+						"startIdx": 4
+					}
+				],
+				"since": [
+					{
+						"id": "1.2.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "1.2.0",
+			"notes": [
+				"Sends SIGTERM to the process. For immediate termination use os.exit on the job's process directly."
+			]
 		},
 		{
 			"name": "jobs.stopAll",
@@ -661,8 +1044,16 @@
 						"fields": [],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
+						"startIdx": 3
+					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		}
 	]
 }

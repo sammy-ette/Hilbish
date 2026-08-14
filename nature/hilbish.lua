@@ -41,45 +41,39 @@ local function fmtPrompt(p)
 	end)
 end
 
--- alias(cmd, orig)
--- Sets an alias, with a name of `cmd` to another command.
--- #param cmd string Name of the alias
--- #param orig string Command that will be aliased
---[[
-#example
--- With this, "ga file" will turn into "git add file"
-hilbish.alias('ga', 'git add')
-
--- Numbered substitutions are supported here!
-hilbish.alias('dircount', 'ls %1 | wc -l')
--- "dircount ~" would count how many files are in ~ (home directory).
-#example
---]]
---- @param alias string
---- @param cmd string
+--- Sets an alias: typing `alias` on the command line will run `cmd` instead.
+--- Numbered substitutions like `%1`, `%2` etc. are supported and replaced with
+--- the corresponding argument when the alias is expanded.
+--- @param alias string The name of the alias.
+--- @param cmd string The command the alias expands to.
+--- @example
+--- -- "ga file" becomes "git add file"
+--- hilbish.alias('ga', 'git add')
+--- -- numbered substitution: "dircount ~" counts files in ~
+--- hilbish.alias('dircount', 'ls %1 | wc -l')
+--- @example
 function hilbish.alias(alias, cmd)
 	hilbish.aliases.add(alias, cmd)
 end
 
---- prompt(str, typ)
 --- Changes the shell prompt to the provided string.
 --- There are a few verbs that can be used in the prompt text.
 --- These will be formatted and replaced with the appropriate values.
---- `%d` - Current working directory
---- `%D` - Basename of working directory ()
---- `%u` - Name of current user
---- `%h` - Hostname of device
---- #param str string
---- #param typ? string Type of prompt, being left or right. Left by default.
---- #example
+--- 
+--- - `%d`: Current working directory
+--- - `%D`: Basename of working directory
+--- - `%u`: Name of current user
+--- - `%h`: Hostname of device
+--- @example
 --- -- the default hilbish prompt without color
 --- hilbish.prompt '%u %d ∆'
 --- -- or something of old:
 --- hilbish.prompt '%u@%h :%d $'
 --- -- prompt: user@hostname: ~/directory $
---- #example
+--- @example
 --- @param p string
---- @param typ? string Type of prompt, either left or right
+--- @param typ? string Type of prompt, either left or right.
+--- @default typ? left
 function hilbish.prompt(p, typ)
 	if type(p) ~= 'string' then
 		error('expected #1 to be string, got ' .. type(p))
@@ -135,10 +129,9 @@ local function appendPath(path)
 	os.setenv('PATH', currentPath .. pathSep .. expandedPath)
 end
 
---- appendPath(path)
 --- Appends the provided dir to the command path (`$PATH`)
 --- @param path string|table Directory (or directories) to append to path
---- #example
+--- @example
 --- hilbish.appendPath '~/go/bin'
 --- -- Will add ~/go/bin to the command path.
 --- 
@@ -147,7 +140,7 @@ end
 --- 	'~/go/bin',
 --- 	'~/.local/bin'
 --- }
---- #example
+--- @example
 function hilbish.appendPath(path)
 	if type(path) == 'table' then
 		for _, p in ipairs(path) do
@@ -176,19 +169,18 @@ local function prependPath(path)
 	os.setenv('PATH', expandedPath .. pathSep .. currentPath)
 end
 
---- prependPath(path)
 --- Prepends the provided dir to the command path (`$PATH`)
 --- @param path string|table Directory (or directories) to append to path
---- #example
+--- @example
 --- hilbish.prependPath '~/go/bin'
 --- -- Will add ~/go/bin to the command path.
---- 
+---
 --- -- Or do multiple:
 --- hilbish.prependPath {
 --- 	'~/go/bin',
 --- 	'~/.local/bin'
 --- }
---- #example
+--- @example
 function hilbish.prependPath(path)
 	if type(path) == 'table' then
 		for _, p in ipairs(path) do
@@ -201,12 +193,11 @@ function hilbish.prependPath(path)
 	end
 end
 
---- read(prompt) -> input (string)
 --- Read input from the user, using Hilbish's line editor/input reader.
 --- This is a separate instance from the one Hilbish actually uses.
 --- Returns `input`, will be nil if Ctrl-D is pressed, or an error occurs.
---- @param prompt? string Text to print before input, can be empty.
---- @return string|nil
+--- @param prompt? string Text to use as prompt
+--- @return string? input
 function hilbish.read(prompt)
 	prompt = prompt or ''
 	if type(prompt) ~= 'string' then
@@ -220,12 +211,15 @@ function hilbish.read(prompt)
 end
 
 --- Runs `cmd` in Hilbish's shell script interpreter.
+--- 
 --- The `streams` parameter specifies the output and input streams the command should use.
 --- For example, to write command output to a sink.
+--- 
 --- As a table, the caller can directly specify the standard output, error, and input
 --- streams of the command with the table keys `out`, `err`, and `input` respectively.
+--- 
 --- As a boolean, it specifies whether the command should use standard output or return its output streams.
---- #example
+--- @example
 --- -- This code is the same as `ls -l | wc -l`
 --- local fs = require 'fs'
 --- local pr, pw = fs.pipe()
@@ -237,10 +231,12 @@ end
 --- hilbish.run('wc -l', {
 --- 	stdin = pr
 --- })
---- #example
+--- @example
 --- @param cmd string
 --- @param streams table|boolean
---- @return number, string, string
+--- @return number exitCode
+--- @return string? stdout Standard output of the command, if `streams` did not redirect it.
+--- @return string? stderr Standard error output of the command, if `streams` did not redirect it.
 function hilbish.run(cmd, streams)
 	local sinks = {}
 
@@ -271,25 +267,23 @@ end
 local multilinePrompt = '~> '
 
 --- Changes the text prompt when Hilbish asks for more input.
---- This will show up when text is incomplete, like a missing quote
---- #example
---- --[[
---- imagine this is your text input:
---- user ~ ∆ echo "hey
---- but there's a missing quote! hilbish will now prompt you so the terminal
---- will look like:
---- user ~ ∆ echo "hey
---- --> ...!"
-
---- so then you get
---- user ~ ∆ echo "hey
---- --> ...!"
---- hey ...!
---- ]]--
+--- This will show up when text is incomplete, like a missing quote.
+--- @example
+--- -- imagine this is your text input:
+--- -- user ~ ∆ echo "hey
+--- -- but there's a missing quote! hilbish will now prompt you so the terminal
+--- -- will look like:
+--- -- user ~ ∆ echo "hey
+--- -- --> ...!"
+--- --
+--- -- so then you get:
+--- -- user ~ ∆ echo "hey
+--- -- --> ...!"
+--- -- hey ...!
 --- hilbish.multiprompt '-->'
---- #example
---- @param str string|nil
---- @return string|nil Returns the currently set multilinePrompt if `str` is not provided.
+--- @example
+--- @param str? string
+--- @return string? prompt Returns the currently set multilinePrompt if `str` is not provided.
 function hilbish.multiprompt(str)
 	if str == nil then
 		return multilinePrompt
@@ -302,7 +296,7 @@ end
 -- Checks if `name` is a valid command.
 -- Will return the path of the binary, or a basename if it's a commander.
 --- @param name string
---- @return string|nil
+--- @return string? path
 function hilbish.which(name)
 	local alias = hilbish.aliases.resolve(name)
 	local cmd = string.split(alias, ' ')[1]

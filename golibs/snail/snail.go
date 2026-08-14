@@ -18,7 +18,8 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 )
 
-// #type
+// @type snail
+// @since 3.0.0
 // A Snail is a shell script interpreter instance.
 type Snail struct {
 	runner  *interp.Runner

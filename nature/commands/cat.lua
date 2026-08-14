@@ -5,8 +5,9 @@ commander.register('cat', function(args, sinks)
 	local exit = 0
 
 	if #args == 0 then
-		sinks.out:writeln [[
-usage: cat [file]...]]
+		sinks.out:write(sinks.input:readAll())
+		io.flush()
+		return exit
 	end
 
 	local chunkSize = 2^13 -- 8K buffer size

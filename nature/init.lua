@@ -99,7 +99,7 @@ local function runConfig(path)
 		print 'An error has occurred while loading your config!\n'
 		hilbish.prompt '& '
 	else
-		bait.throw 'hilbish.init'
+		bait.throw 'hilbish.init' -- see nature/hooks.lua
 	end
 end
 

@@ -1,14 +1,30 @@
 -- @module hilbish.messages
+-- @since 2.2.0
 -- simplistic message passing
 -- The messages interface defines a way for Hilbish-integrated commands,
--- user config and other tasks to send notifications to alert the user.z
--- The `hilbish.message` type is a table with the following keys:
--- `title` (string): A title for the message notification.
--- `text` (string): The contents of the message.
--- `channel` (string): States the origin of the message, `hilbish.*` is reserved for Hilbish tasks.
--- `summary` (string): A short summary of the `text`.
--- `icon` (string): Unicode (preferably standard emoji) icon for the message notification
--- `read` (boolean): Whether the full message has been read or not.
+-- user config and other tasks to send notifications to alert the user.
+-- <nl>
+-- A message starts out unread when it is sent with `send`. It stays
+-- unread until it is explicitly marked with `read` (by index) or
+-- `readAll` (every message at once). `unreadCount` and `all` reflect
+-- this state, so a prompt or statusline can show how many messages are
+-- waiting to be seen.
+-- <nl>
+-- ```lua
+-- hilbish.messages.send{
+-- 	title = 'Build finished',
+-- 	text = 'go build exited with code 0',
+-- 	channel = 'build',
+-- 	icon = '✅'
+-- }
+-- <nl>
+-- print(hilbish.messages.unreadCount()) -- -> 1
+-- <nl>
+-- for idx, msg in pairs(hilbish.messages.all()) do
+-- 	hilbish.messages.read(idx)
+-- end
+-- print(hilbish.messages.unreadCount()) -- -> 0
+-- ```
 local bait = require 'bait'
 local commander = require 'commander'
 local lunacolors = require 'lunacolors'
@@ -17,15 +33,23 @@ local M = {}
 local counter = 0
 local unread = 0
 M._messages = {}
-M.icons = {
+
+---@diagnostic disable-next-line: missing-fields
+hilbish.messages = {}
+
+--- Predefined icons for the `icon` field of a message. Any code sending
+--- notifications can use these, whether from user config or Hilbish itself.
+--- @class hilbish.messageIcons
+--- @field INFO string Icon for informational messages.
+--- @field SUCCESS string Icon for success messages.
+--- @field WARN string Icon for warning messages.
+--- @field ERROR string Icon for error messages.
+hilbish.messages.icons = {
 	INFO = '',
 	SUCCESS = '',
 	WARN = '',
 	ERROR = ''
 }
-
----@diagnostic disable-next-line: missing-fields
-hilbish.messages = {}
 
 --- Represents a Hilbish message.
 --- @class hilbish.message
@@ -34,6 +58,7 @@ hilbish.messages = {}
 --- @field text string Contents of the message.
 --- @field channel string Short identifier of the message. `hilbish` and `hilbish.*` is preserved for internal Hilbish messages.
 --- @field summary string A short summary of the message.
+--- @field index? integer Index assigned to the message once sent with `send`, used to reference it in `read` and `delete`.
 --- @field read? boolean Whether the full message has been read or not.
 
 local function expect(tbl, field)
@@ -42,8 +67,9 @@ local function expect(tbl, field)
 	end
 end
 
---- Sends a message.
---- @param message hilbish.message
+--- Sends a notification message and emits the `hilbish.notification` signal.
+--- Do *not* emit the `hilbish.notification` signal directly.
+--- @param message hilbish.message The message to send.
 function hilbish.messages.send(message)
 	expect(message, 'text')
 	expect(message, 'title')
@@ -54,11 +80,11 @@ function hilbish.messages.send(message)
 	message.read = false
 
 	M._messages[message.index] = message
-	bait.throw('hilbish.notification', message)
+	bait.throw('hilbish.notification', message) -- see nature/hooks.lua
 end
 
 --- Marks a message at `idx` as read.
---- @param idx number
+--- @param idx number Index of the message to mark as read.
 function hilbish.messages.read(idx)
 	local msg = M._messages[idx]
 	if msg then 
@@ -74,14 +100,14 @@ function hilbish.messages.readAll()
 	end
 end
 
---- Returns the amount of unread messages.
---- @return integer
+--- Returns the count of unread messages.
+--- @return integer count Number of messages that have not been marked as read.
 function hilbish.messages.unreadCount()
 	return unread
 end
 
---- Deletes the message at `idx`.
---- @param idx number
+--- Deletes the message at `idx`. Errors if the index is invalid.
+--- @param idx number Index of the message to delete.
 function hilbish.messages.delete(idx)
 	local msg = M._messages[idx]
 	if not msg then
@@ -98,8 +124,8 @@ function hilbish.messages.clear()
 	end
 end
 
---- Returns all messages.
---- @return table<hilbish.message>
+--- Returns all messages as a table keyed by their index.
+--- @return table messages All stored messages, keyed by message index.
 function hilbish.messages.all()
 	return M._messages
 end

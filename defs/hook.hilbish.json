@@ -1,0 +1,145 @@
+{
+	"group": "hilbish",
+	"hooks": [
+		{
+			"name": "hilbish.cancel",
+			"group": "hilbish",
+			"description": [
+				"Sent when the user cancels their command input with Ctrl-C."
+			]
+		},
+		{
+			"name": "hilbish.cd",
+			"group": "hilbish",
+			"description": [
+				"Sent when the current directory of the shell is changed.",
+				"Since 3.0, hilbish.cd is thrown when fs.cd is called."
+			],
+			"vars": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": [
+						"Absolute path of the directory that was changed to."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "oldPath",
+					"Type": "string",
+					"Doc": [
+						"Absolute path of the directory Hilbish was in before the change."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "hilbish.exit",
+			"group": "hilbish",
+			"description": [
+				"Sent when Hilbish is going to exit."
+			]
+		},
+		{
+			"name": "hilbish.init",
+			"group": "hilbish",
+			"description": [
+				"Thrown once, right after the user's config file has finished loading",
+				"successfully, in interactive sessions."
+			]
+		},
+		{
+			"name": "hilbish.notification",
+			"group": "hilbish",
+			"description": [
+				"Thrown when a [notification](../features/notifications) is sent."
+			],
+			"vars": [
+				{
+					"Name": "notification",
+					"Type": "table",
+					"Doc": [
+						"The notification. See the notifications feature doc for its properties."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "hilbish.rawInput",
+			"group": "hilbish",
+			"description": [
+				"Thrown when the user has entered text in the prompt and pressed enter, before any processing."
+			],
+			"vars": [
+				{
+					"Name": "input",
+					"Type": "string",
+					"Doc": [
+						"The raw input the user typed."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "hilbish.vimAction",
+			"group": "hilbish",
+			"description": [
+				"Sent when the user does a \"vim action,\" such as yanking or pasting text.",
+				"See `doc vim-mode actions` for a list of available actions."
+			],
+			"vars": [
+				{
+					"Name": "actionName",
+					"Type": "string",
+					"Doc": [
+						"The name of the Vim action that was done."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "args",
+					"Type": "table",
+					"Doc": [
+						"Table of args relating to the Vim action."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "hilbish.vimMode",
+			"group": "hilbish",
+			"description": [
+				"Sent when the Vim mode of Hilbish is changed (like from insert to normal mode).",
+				"This can be used to change the prompt and notify based on Vim mode."
+			],
+			"vars": [
+				{
+					"Name": "modeName",
+					"Type": "string",
+					"Doc": [
+						"The mode that has been set. Can be: `insert`, `normal`, `delete` or `replace`."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		}
+	]
+}

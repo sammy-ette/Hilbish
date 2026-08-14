@@ -12,6 +12,7 @@ import conf
 import post
 import render
 import theme
+import toc
 import util
 
 pub fn page(
@@ -201,6 +202,7 @@ pub fn page(
                 ],
                 [element.text(p.description)],
               ),
+              toc.toc(p.contents),
               html.div(
                 [attribute.class("max-w-none")],
                 render.render_doc(p.contents),

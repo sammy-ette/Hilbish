@@ -8,6 +8,7 @@ import (
 	"syscall"
 )
 
+// see nature/hooks.lua for signal.* hook documentation
 func handleSignals() {
 	c := make(chan os.Signal, 1)
 	signal.Ignore(syscall.SIGTTOU, syscall.SIGTTIN)

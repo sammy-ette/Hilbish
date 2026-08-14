@@ -1,6 +1,12 @@
 -- @module hilbish.aliases
 -- command aliasing
--- The alias interface deals with all command aliases in Hilbish.
+-- The alias interface manages command aliases in Hilbish. An alias is a short name
+-- that expands to a longer command when entered at the prompt.
+-- Aliases are stored as-is in history (the short name, not the expanded command).
+--
+-- Aliases support numbered argument substitution. `%1` in the alias body is replaced
+-- by the first argument, `%2` by the second, and so on. `%0` is passed through
+-- literally. A substitution can be escaped by prefixing it with `\`.
 ---@diagnostic disable-next-line: missing-fields
 hilbish.aliases = {
     all = {}
@@ -9,6 +15,7 @@ hilbish.aliases = {
 --- This is an alias (ha) for the [hilbish.alias](../#alias) function.
 --- @param alias string
 --- @param cmd string
+--- @see hilbish.alias
 function hilbish.aliases.add(alias, cmd)
     hilbish.aliases.all[alias] = cmd
 end
@@ -19,23 +26,21 @@ function hilbish.aliases.delete(alias)
     hilbish.aliases.all[alias] = nil
 end
 
--- Get a table of all aliases, with string keys as the alias and the value as the command.
---[[
-    #example
-    hilbish.aliases.add('hi', 'echo hi')
-    
-    local aliases = hilbish.aliases.list()
-    -- -> {hi = 'echo hi'}
-    #example
---]]
---- @return table<string, string>
+--- Returns a table of all defined aliases.
+--- Keys are the alias names and values are the command strings they expand to.
+--- @return table<string, string> aliases A table mapping alias names to their command strings.
+--- @example
+--- hilbish.aliases.add('hi', 'echo hi')
+--- local aliases = hilbish.aliases.list()
+--- -- -> {hi = 'echo hi'}
+--- @example
 function hilbish.aliases.list()
     return hilbish.aliases.all
 end
 
 --- Resolves an alias to its original command. Will thrown an error if the alias doesn't exist.
 --- @param cmdstr string
---- @return string
+--- @return string resolved
 function hilbish.aliases.resolve(cmdstr)
     local args = string.split(cmdstr, ' ')
     if #args == 0 then

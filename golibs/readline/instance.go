@@ -11,7 +11,8 @@ import (
 // readline instance so that you can reuse the readline API for multiple entry
 // captures without having to repeatedly unload configuration.
 
-// #type
+// @type
+// @since 3.0.0
 type Readline struct {
 	// Buffer is the core text-editing model (line []rune, pos int) and its
 	// fields/methods are promoted directly onto Readline.

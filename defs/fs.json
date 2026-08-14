@@ -2,7 +2,7 @@
 	"name": "fs",
 	"section": "api",
 	"shortDescription": "filesystem interaction and functionality library",
-	"description": "\nThe fs module provides filesystem functions to Hilbish. While Lua's standard\nlibrary has some I/O functions, they're missing a lot of the basics. The `fs`\nlibrary offers more functions and will work on any operating system Hilbish does.",
+	"description": "\nThe fs module provides filesystem functions to Hilbish. While Lua's standard\nlibrary has some I/O functions, they're missing a lot of the basics. The `fs`\nlibrary offers more functions and will work on any operating system Hilbish does.\n\n```lua\nlocal fs = require 'fs'\n\n-- resolve a config path and check what's in it\nlocal confDir = fs.join(hilbish.userDir.config, 'hilbish')\nif fs.stat(confDir).isDir then\n\tfor _, name in ipairs(fs.readdir(confDir)) do\n\t\tprint(name)\n\tend\nend\n\n-- find every Lua file directly under the current directory\nlocal luaFiles = fs.glob('./*.lua')\n```",
 	"properties": [],
 	"fields": [
 		{
@@ -16,7 +16,8 @@
 			],
 			"isInterface": false,
 			"isMember": false,
-			"isType": false
+			"isType": false,
+			"type": "string"
 		}
 	],
 	"docs": [
@@ -35,7 +36,20 @@
 				{
 					"Name": "path",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "abspath",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -45,23 +59,33 @@
 						"fields": [
 							"string"
 						],
+						"startIdx": 2
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"abspath"
+						],
 						"startIdx": 3
 					}
 				],
-				"returns": [
+				"since": [
 					{
-						"id": "string",
+						"id": "2.0.0",
 						"fields": [],
 						"startIdx": 4
 					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "basename",
 			"description": [
-				"Returns the \"basename,\" or the last part of the provided `path`. If path is empty,",
-				"`.` will be returned."
+				"Returns the \"basename,\" or the last part of the provided `path`.",
+				"If path is empty, `.` will be returned."
 			],
 			"signature": "basename(path) -\u003e string",
 			"goFuncName": "fbasename",
@@ -80,7 +104,20 @@
 						"base",
 						"name",
 						"of."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "basename",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -97,17 +134,27 @@
 							"name",
 							"of."
 						],
+						"startIdx": 2
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"basename"
+						],
 						"startIdx": 3
 					}
 				],
-				"returns": [
+				"since": [
 					{
-						"id": "string",
+						"id": "2.0.0",
 						"fields": [],
 						"startIdx": 4
 					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "cd",
@@ -129,7 +176,10 @@
 						"change",
 						"directory",
 						"to."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -144,7 +194,7 @@
 							"directory",
 							"to."
 						],
-						"startIdx": 2
+						"startIdx": 1
 					}
 				]
 			}
@@ -152,8 +202,8 @@
 		{
 			"name": "dir",
 			"description": [
-				"Returns the directory part of `path`. If a file path like",
-				"`~/Documents/doc.txt` then this function will return `~/Documents`."
+				"Returns the directory part of `path`.",
+				"If a file path like `~/Documents/doc.txt` then this function will return `~/Documents`."
 			],
 			"signature": "dir(path) -\u003e string",
 			"goFuncName": "fdir",
@@ -171,7 +221,20 @@
 						"the",
 						"directory",
 						"for."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "dir",
+					"Type": "string",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -187,17 +250,27 @@
 							"directory",
 							"for."
 						],
+						"startIdx": 2
+					}
+				],
+				"return": [
+					{
+						"id": "string",
+						"fields": [
+							"dir"
+						],
 						"startIdx": 3
 					}
 				],
-				"returns": [
+				"since": [
 					{
-						"id": "string",
+						"id": "2.0.0",
 						"fields": [],
 						"startIdx": 4
 					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "executable",
@@ -213,7 +286,20 @@
 				{
 					"Name": "path",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "executable",
+					"Type": "boolean",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -223,17 +309,27 @@
 						"fields": [
 							"string"
 						],
+						"startIdx": 1
+					}
+				],
+				"return": [
+					{
+						"id": "boolean",
+						"fields": [
+							"executable"
+						],
 						"startIdx": 2
 					}
 				],
-				"returns": [
+				"since": [
 					{
-						"id": "boolean",
+						"id": "3.0.0",
 						"fields": [],
 						"startIdx": 3
 					}
 				]
-			}
+			},
+			"since": "3.0.0"
 		},
 		{
 			"name": "glob",
@@ -243,7 +339,7 @@
 				"",
 				""
 			],
-			"signature": "glob(pattern) -\u003e matches (table)",
+			"signature": "glob(pattern) -\u003e table",
 			"goFuncName": "fglob",
 			"isInterface": false,
 			"isMember": false,
@@ -258,7 +354,28 @@
 						"compare",
 						"files",
 						"with."
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "matches",
+					"Type": "table",
+					"Doc": [
+						"A",
+						"list",
+						"of",
+						"file",
+						"names/paths",
+						"that",
+						"match."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -291,13 +408,14 @@
 							"files",
 							"with."
 						],
-						"startIdx": 3
+						"startIdx": 2
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "table",
 						"fields": [
+							"matches",
 							"A",
 							"list",
 							"of",
@@ -306,10 +424,18 @@
 							"that",
 							"match."
 						],
+						"startIdx": 3
+					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
 						"startIdx": 4
 					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "join",
@@ -332,7 +458,24 @@
 						"to",
 						"join",
 						"together"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "path",
+					"Type": "string",
+					"Doc": [
+						"The",
+						"joined",
+						"path."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -357,21 +500,30 @@
 							"join",
 							"together"
 						],
-						"startIdx": 2
+						"startIdx": 1
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "string",
 						"fields": [
+							"path",
 							"The",
 							"joined",
 							"path."
 						],
+						"startIdx": 2
+					}
+				],
+				"since": [
+					{
+						"id": "2.0.0",
+						"fields": [],
 						"startIdx": 3
 					}
 				]
-			}
+			},
+			"since": "2.0.0"
 		},
 		{
 			"name": "mkdir",
@@ -395,7 +547,10 @@
 						"of",
 						"the",
 						"directory"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				},
 				{
 					"Name": "recursive",
@@ -410,7 +565,10 @@
 						"the",
 						"provided",
 						"name"
-					]
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -422,7 +580,7 @@
 							"-- foo directory. If recursive is false in this case, it will fail.",
 							"fs.mkdir('./foo/bar', true)"
 						],
-						"startIdx": 6
+						"startIdx": 5
 					}
 				],
 				"param": [
@@ -435,7 +593,7 @@
 							"the",
 							"directory"
 						],
-						"startIdx": 3
+						"startIdx": 2
 					},
 					{
 						"id": "recursive",
@@ -459,34 +617,92 @@
 		{
 			"name": "pipe",
 			"description": [
-				"Returns a pair of connected files, also known as a pipe."
+				"Returns a pair of connected sinks, a read end and a write end.",
+				"The write end can be written to, and the read end will return that data.",
+				"This is mainly useful for piping output between commands."
 			],
-			"signature": "pipe() -\u003e @Sink, @Sink",
+			"signature": "pipe() -\u003e Sink, Sink",
 			"goFuncName": "fpipe",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
+			"returns": [
+				{
+					"Name": "readEnd",
+					"Type": "Sink",
+					"Doc": [
+						"The",
+						"read",
+						"end",
+						"of",
+						"the",
+						"pipe."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				},
+				{
+					"Name": "writeEnd",
+					"Type": "Sink",
+					"Doc": [
+						"The",
+						"write",
+						"end",
+						"of",
+						"the",
+						"pipe."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
 			"tags": {
-				"returns": [
+				"return": [
 					{
 						"id": "Sink",
-						"fields": [],
-						"startIdx": 2
+						"fields": [
+							"readEnd",
+							"The",
+							"read",
+							"end",
+							"of",
+							"the",
+							"pipe."
+						],
+						"startIdx": 3
 					},
 					{
 						"id": "Sink",
-						"fields": [],
+						"fields": [
+							"writeEnd",
+							"The",
+							"write",
+							"end",
+							"of",
+							"the",
+							"pipe."
+						],
 						"startIdx": 0
 					}
+				],
+				"since": [
+					{
+						"id": "2.3.0",
+						"fields": [],
+						"startIdx": 5
+					}
 				]
-			}
+			},
+			"since": "2.3.0"
 		},
 		{
 			"name": "readdir",
 			"description": [
 				"Returns a list of all files and directories in the provided path."
 			],
-			"signature": "readdir(path) -\u003e table[string]",
+			"signature": "readdir(dir) -\u003e table",
 			"goFuncName": "freaddir",
 			"isInterface": false,
 			"isMember": false,
@@ -495,7 +711,20 @@
 				{
 					"Name": "dir",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "entries",
+					"Type": "table",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
 				}
 			],
 			"tags": {
@@ -505,14 +734,16 @@
 						"fields": [
 							"string"
 						],
-						"startIdx": 2
+						"startIdx": 1
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "table",
-						"fields": [],
-						"startIdx": 3
+						"fields": [
+							"entries"
+						],
+						"startIdx": 2
 					}
 				]
 			}
@@ -521,15 +752,10 @@
 			"name": "stat",
 			"description": [
 				"Returns the information about a given `path`.",
-				"The returned table contains the following values:",
-				"name (string) - Name of the path",
-				"size (number) - Size of the path in bytes",
-				"mode (string) - Unix permission mode in an octal format string (with leading 0)",
-				"isDir (boolean) - If the path is a directory",
 				"",
 				""
 			],
-			"signature": "stat(path) -\u003e {}",
+			"signature": "stat(path) -\u003e table",
 			"goFuncName": "fstat",
 			"isInterface": false,
 			"isMember": false,
@@ -538,7 +764,61 @@
 				{
 					"Name": "path",
 					"Type": "string",
-					"Doc": []
+					"Doc": [],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			],
+			"returns": [
+				{
+					"Name": "info",
+					"Type": "table",
+					"Doc": null,
+					"Default": "",
+					"IsOptional": false,
+					"Keys": [
+						{
+							"Name": "name",
+							"Type": "string",
+							"Doc": [
+								"Name of the path."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "size",
+							"Type": "number",
+							"Doc": [
+								"Size of the path in bytes."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "mode",
+							"Type": "string",
+							"Doc": [
+								"Unix permission mode in an octal format string (with leading 0)."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						},
+						{
+							"Name": "isDir",
+							"Type": "boolean",
+							"Doc": [
+								"If the path is a directory."
+							],
+							"Default": "",
+							"IsOptional": false,
+							"Keys": null
+						}
+					]
 				}
 			],
 			"tags": {
@@ -560,7 +840,7 @@
 							"}",
 							"]]--"
 						],
-						"startIdx": 10
+						"startIdx": 8
 					}
 				],
 				"param": [
@@ -569,14 +849,77 @@
 						"fields": [
 							"string"
 						],
-						"startIdx": 7
+						"startIdx": 1
 					}
 				],
-				"returns": [
+				"return": [
 					{
 						"id": "table",
-						"fields": [],
-						"startIdx": 8
+						"fields": [
+							"info"
+						],
+						"startIdx": 2
+					}
+				],
+				"treturn": [
+					{
+						"id": "info",
+						"fields": [
+							"name",
+							"string",
+							"Name",
+							"of",
+							"the",
+							"path."
+						],
+						"startIdx": 3
+					},
+					{
+						"id": "info",
+						"fields": [
+							"size",
+							"number",
+							"Size",
+							"of",
+							"the",
+							"path",
+							"in",
+							"bytes."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "info",
+						"fields": [
+							"mode",
+							"string",
+							"Unix",
+							"permission",
+							"mode",
+							"in",
+							"an",
+							"octal",
+							"format",
+							"string",
+							"(with",
+							"leading",
+							"0)."
+						],
+						"startIdx": 0
+					},
+					{
+						"id": "info",
+						"fields": [
+							"isDir",
+							"boolean",
+							"If",
+							"the",
+							"path",
+							"is",
+							"a",
+							"directory."
+						],
+						"startIdx": 0
 					}
 				]
 			}

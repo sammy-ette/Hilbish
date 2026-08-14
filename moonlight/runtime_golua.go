@@ -29,6 +29,7 @@ func NewRuntime() *Runtime {
 		MessageHandler: debuglib.Traceback,
 	})
 	lib.LoadAll(r)
+	installBytecodeCacheHooks(r)
 
 	return specificRuntimeToGeneric(r)
 }
