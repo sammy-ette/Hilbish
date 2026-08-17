@@ -195,9 +195,9 @@ function hilbish.runner.run(input, priv)
 		command = hilbish.aliases.resolve(processed.command)
 	end
 
-	local valid = runner.validate(processed.command)
+	local valid = runner.validate(command)
 	if not valid then
-		local contInput = hilbish.runner.continuePrompt(processed.command, false)
+		local contInput = hilbish.runner.continuePrompt(command, false)
 		if contInput then
 			processed.command = contInput
 			goto rerun
@@ -231,7 +231,7 @@ function hilbish.runner.run(input, priv)
 		end
 	end
 
-	local ok, out = pcall(runner.run, processed.command)
+	local ok, out = pcall(runner.run, command)
 	if not ok then
 		io.stderr:write(out .. '\n')
 		finishExec(124, out.input, priv)
@@ -242,7 +242,7 @@ function hilbish.runner.run(input, priv)
 	-- TODO: maybe remove this, because validate should check if
 	-- input should be continued
 	if out.continue then
-		local contInput = hilbish.runner.continuePrompt(processed.command, out.newline)
+		local contInput = hilbish.runner.continuePrompt(command, out.newline)
 		if contInput then
 			processed.command = contInput
 			goto rerun
