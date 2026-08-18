@@ -266,9 +266,9 @@ func (j *job) finish() {
 
 // only fire hooks for jobs actually in the table
 func (j *job) emitIfRegistered(event string) {
-	j.mu.RLock()
-	registered := j.id != 0
-	j.mu.RUnlock()
+	jobs.mu.RLock()
+	registered := jobs.jobs[j.id] == j
+	jobs.mu.RUnlock()
 
 	if registered {
 		hooks.Emit(event, moonlight.UserDataValue(j.ud))
@@ -453,15 +453,14 @@ func (j *jobHandler) register(jb *job) {
 }
 
 func (j *jobHandler) disown(id int) error {
-	j.mu.RLock()
+	j.mu.Lock()
+	defer j.mu.Unlock()
+
 	if j.jobs[id] == nil {
 		return errors.New("job doesnt exist")
 	}
-	j.mu.RUnlock()
 
-	j.mu.Lock()
 	delete(j.jobs, id)
-	j.mu.Unlock()
 
 	return nil
 }

@@ -31,8 +31,11 @@ type Snail struct {
 	aliasesListFn    moonlight.Value
 	aliasesResolveFn moonlight.Value
 	runJobFn         moonlight.Value
-	bg               bool
 }
+
+type snailContextKey int
+
+const backgroundContextKey snailContextKey = iota
 
 func New(mlr *moonlight.Runtime) *Snail {
 	runner, _ := interp.New()
@@ -80,9 +83,14 @@ func (s *Snail) Run(cmd string, strms *util.Streams) (bool, io.Writer, io.Writer
 	var bg bool
 	for _, stmt := range file.Stmts {
 		bg = stmt.Background
-		s.bg = stmt.Background
 
-		err = s.runner.Run(context.TODO(), stmt)
+		// jobs already handle backgrounding so dont let sh interp do it too
+		// pass it through context so the handler knows its background
+		runStmt := *stmt
+		runStmt.Background = false
+		ctx := context.WithValue(context.Background(), backgroundContextKey, bg)
+
+		err = s.runner.Run(ctx, &runStmt)
 		if err != nil {
 			return bg, strms.Stdout, strms.Stderr, err
 		}
@@ -110,6 +118,7 @@ func (s *Snail) ensureHandler() {
 
 	execHandler := func(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
 		return func(ctx context.Context, args []string) error {
+			background, _ := ctx.Value(backgroundContextKey).(bool)
 			argstring := strings.Join(args, " ")
 			// i dont really like this but it works
 			aliases := make(map[string]string)
@@ -267,7 +276,7 @@ func (s *Snail) ensureHandler() {
 			exitVal, err := s.runtime.Call1(s.runJobFn,
 				moonlight.StringValue(argstring),
 				moonlight.TableValue(optsTbl),
-				moonlight.BoolValue(s.bg),
+				moonlight.BoolValue(background),
 			)
 
 			var exit uint8
