@@ -21,6 +21,7 @@
 ---@class Job
 ---@field cmd any
 ---@field running any
+---@field suspended any
 ---@field id any
 ---@field pid any
 ---@field exitCode any
@@ -32,12 +33,14 @@ function Job:background() end
 
 function Job:foreground() end
 
-function Job:start() end
+---@param opts? table
+---@return number exitCode
+function Job:start(opts) end
 
 function Job:stop() end
 
 ---@class hilbish.jobs
----@field add fun(cmdstr: string, args: table, execPath: string): Job
+---@field add fun(cmdstr: string, opts: table): Job
 ---@field all fun(): table<Job>
 ---@field disown fun(id: number)
 ---@field get fun(id: number): Job?

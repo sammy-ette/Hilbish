@@ -17,81 +17,242 @@ import (
 var jobs *jobHandler
 var jobMetaKey = moonlight.StringValue("hshjob")
 
+type jobType int
+
+const (
+	jobProcess jobType = iota
+	jobLua
+)
+
 // @type
 // @interface jobs
 // @since 1.2.0
 // @property cmd string The user entered command string for the job.
 // @property running boolean Whether the job is running or not.
+// @property suspended boolean Whether the job is suspended (e.g. via Ctrl+Z).
 // @property id number The ID of the job in the job table
-// @property pid number The Process ID
+// @property pid number The Process ID, or nil for jobs that aren't OS processes.
 // @property exitCode number The last exit code of the job.
-// @property stdout string The standard output of the job. This just means the normal logs of the process.
-// @property stderr string The standard error stream of the process. This (usually) includes error messages of the job.
+// @property stdout string The standard output of the job. Nil for jobs that aren't OS processes.
+// @property stderr string The standard error stream of the job. Nil for jobs that aren't OS processes.
 // The Job type describes a Hilbish job.
 type job struct {
-	mu       sync.RWMutex
-	cmd      string
-	running  bool
-	id       int
-	pid      int
-	exitCode int
-	once     bool
-	args     []string
-	// save path for a few reasons, one being security (lmao) while the other
-	// would just be so itll be the same binary command always (path changes)
-	path   string
-	handle *exec.Cmd
-	cmdout io.Writer
-	cmderr io.Writer
-	stdout *bytes.Buffer
-	stderr *bytes.Buffer
-	ud     *moonlight.UserData
+	mu        sync.RWMutex
+	cmd       string
+	typ       jobType
+	running   bool
+	suspended bool
+	id        int
+	pid       int
+	exitCode  int
+	ud        *moonlight.UserData
+
+	// process jobs
+	path    string
+	args    []string
+	env     []string
+	dir     string
+	stdin   io.Reader
+	cmdout  io.Writer
+	cmderr  io.Writer
+	capture bool
+	handle  *exec.Cmd
+	stdout  *bytes.Buffer
+	stderr  *bytes.Buffer
+
+	// lua jobs. how it runs/suspends/resumes is all up to the runner
+	runFn     moonlight.Value
+	suspendFn moonlight.Value
+	resumeFn  moonlight.Value
+	done      chan luaJobResult
 }
 
-func (j *job) start() error {
-	j.mu.Lock()
+type luaJobResult struct {
+	code int
+	err  error
+}
 
-	if j.handle == nil || j.once {
-		// cmd cant be reused so make a new one
-		cmd := exec.Cmd{
-			Path: j.path,
-			Args: j.args,
-		}
-		j.setHandle(&cmd)
+// run starts the job. foreground blocks until it exits or is suspended,
+// background reaps it in the back.
+func (j *job) run(foreground bool) (int, error) {
+	if j.typ == jobLua {
+		return j.runLua(foreground)
+	}
+
+	if err := j.startProc(); err != nil {
+		return int(util.HandleExecErr(err)), err
+	}
+	if foreground {
+		return j.procForeground()
+	}
+	go j.procWait()
+	return 0, nil
+}
+
+func (j *job) startProc() error {
+	cmd := &exec.Cmd{
+		Path:  j.path,
+		Args:  j.args,
+		Env:   j.env,
+		Dir:   j.dir,
+		Stdin: j.stdin,
 	}
 	// bgProcAttr is defined in job_<os>.go, it holds a procattr struct
 	// in a simple explanation, it makes signals from hilbish (like sigint)
 	// not go to it (child process)
-	j.handle.SysProcAttr = bgProcAttr
-	// reset output buffers
-	j.stdout.Reset()
-	j.stderr.Reset()
-	// make cmd write to both standard output and output buffers for lua access
-	j.handle.Stdout = io.MultiWriter(j.cmdout, j.stdout)
-	j.handle.Stderr = io.MultiWriter(j.cmderr, j.stderr)
-
-	if !j.once {
-		j.once = true
+	cmd.SysProcAttr = bgProcAttr
+	if j.capture {
+		j.stdout.Reset()
+		j.stderr.Reset()
+		cmd.Stdout = io.MultiWriter(j.cmdout, j.stdout)
+		cmd.Stderr = io.MultiWriter(j.cmderr, j.stderr)
+	} else {
+		cmd.Stdout = j.cmdout
+		cmd.Stderr = j.cmderr
 	}
+	j.handle = cmd
 
-	err := j.handle.Start()
-	if proc := j.handle.Process; proc != nil {
-		j.pid = proc.Pid
+	err := cmd.Start()
+	if err != nil {
+		return err
 	}
+	j.pid = cmd.Process.Pid
+
+	j.mu.Lock()
 	j.running = true
-
+	j.suspended = false
 	j.mu.Unlock()
 
-	hooks.Emit("job.start", moonlight.UserDataValue(j.ud)) // see nature/hooks.lua
+	j.emitIfRegistered("job.start")
+	return nil
+}
 
+func (j *job) runLua(foreground bool) (int, error) {
+	j.done = make(chan luaJobResult, 1)
+
+	j.mu.Lock()
+	j.running = true
+	j.suspended = false
+	j.mu.Unlock()
+
+	j.emitIfRegistered("job.start")
+
+	go func() {
+		t := moonlight.NewThread(l)
+		ret, err := t.Call1(j.runFn, moonlight.UserDataValue(j.ud))
+		code := 0
+		if err == nil {
+			if c, ok := ret.TryInt(); ok {
+				code = int(c)
+			}
+		}
+		j.done <- luaJobResult{code: code, err: err}
+	}()
+
+	if foreground {
+		return j.awaitLua()
+	}
+	go j.awaitLua()
+	return 0, nil
+}
+
+func (j *job) awaitLua() (int, error) {
+	res := <-j.done
+
+	j.mu.Lock()
+	suspended := j.suspended
+	if !suspended {
+		j.running = false
+	}
+	j.exitCode = res.code
+	j.mu.Unlock()
+
+	if !suspended {
+		j.finish()
+	}
+	return res.code, res.err
+}
+
+// suspend pauses the job. for a process this is sigstop, for a lua job its
+// whatever the runner does in its suspend function
+func (j *job) suspend() error {
+	if j.typ == jobLua {
+		if j.suspendFn == moonlight.NilValue {
+			return errors.New("job is not suspendable")
+		}
+		j.mu.Lock()
+		j.suspended = true
+		j.mu.Unlock()
+		_, err := l.Call1(j.suspendFn, moonlight.UserDataValue(j.ud))
+		return err
+	}
+	return j.procSuspend()
+}
+
+func (j *job) foreground() error {
+	if j.typ == jobLua {
+		return j.resumeLua(true)
+	}
+
+	j.mu.Lock()
+	j.running = true
+	j.suspended = false
+	j.mu.Unlock()
+
+	if err := j.procContinue(); err != nil {
+		return err
+	}
+	_, err := j.procForeground()
 	return err
 }
 
+func (j *job) background() error {
+	if j.typ == jobLua {
+		return j.resumeLua(false)
+	}
+
+	j.mu.Lock()
+	j.running = true
+	j.suspended = false
+	j.mu.Unlock()
+
+	if err := j.procContinue(); err != nil {
+		return err
+	}
+	go j.procWait()
+	return nil
+}
+
+func (j *job) resumeLua(foreground bool) error {
+	if j.resumeFn == moonlight.NilValue {
+		return errors.New("job is not resumable")
+	}
+	j.mu.Lock()
+	j.suspended = false
+	j.running = true
+	j.mu.Unlock()
+
+	_, err := l.Call1(j.resumeFn, moonlight.UserDataValue(j.ud), moonlight.BoolValue(foreground))
+	if err != nil {
+		return err
+	}
+	if foreground {
+		_, err := j.awaitLua()
+		return err
+	}
+	go j.awaitLua()
+	return nil
+}
+
 func (j *job) stop() {
-	// finish will be called in exec handle
-	proc := j.getProc()
-	if proc != nil {
-		proc.Kill()
+	if j.typ == jobLua {
+		if j.suspendFn != moonlight.NilValue {
+			l.Call1(j.suspendFn, moonlight.UserDataValue(j.ud))
+		}
+		return
+	}
+	if j.handle != nil && j.handle.Process != nil {
+		j.handle.Process.Kill()
 	}
 }
 
@@ -100,47 +261,27 @@ func (j *job) finish() {
 	j.running = false
 	j.mu.Unlock()
 
-	hooks.Emit("job.done", moonlight.UserDataValue(j.ud)) // see nature/hooks.lua
+	j.emitIfRegistered("job.done")
 }
 
-func (j *job) wait() {
-	j.mu.RLock()
-	handle := j.handle
-	j.mu.RUnlock()
+// only fire hooks for jobs actually in the table
+func (j *job) emitIfRegistered(event string) {
+	jobs.mu.RLock()
+	registered := jobs.jobs[j.id] == j
+	jobs.mu.RUnlock()
 
-	if handle != nil {
-		handle.Wait()
+	if registered {
+		hooks.Emit(event, moonlight.UserDataValue(j.ud))
 	}
-}
-
-// setHandle sets the exec.Cmd for the job. Callers must hold j.mu.
-func (j *job) setHandle(handle *exec.Cmd) {
-	j.handle = handle
-	j.args = handle.Args
-	j.path = handle.Path
-	if handle.Stdout != nil {
-		j.cmdout = handle.Stdout
-	}
-	if handle.Stderr != nil {
-		j.cmderr = handle.Stderr
-	}
-}
-
-func (j *job) getProc() *os.Process {
-	j.mu.RLock()
-	defer j.mu.RUnlock()
-
-	if j.handle != nil {
-		return j.handle.Process
-	}
-
-	return nil
 }
 
 // @interface jobs
 // @member
-// start()
-// Starts running the job.
+// start(opts)
+// Starts running the job. If opts.background is true, runs in background.
+// Otherwise runs in foreground and blocks until completion or suspension.
+// @param opts? table Set `background` to true to run the job in the background.
+// @return number exitCode The job exit code.
 // @since 1.2.0
 func luaStartJob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
@@ -152,22 +293,30 @@ func luaStartJob(mlr *moonlight.Runtime) error {
 		return err
 	}
 
+	background := false
+	if etc := mlr.Etc(); len(etc) > 0 {
+		if opts, ok := moonlight.TryTable(etc[0]); ok {
+			if bg, ok := opts.Get(moonlight.StringValue("background")).TryBool(); ok {
+				background = bg
+			}
+		}
+	}
+
 	j.mu.RLock()
 	running := j.running
 	j.mu.RUnlock()
 
+	var exit int
 	if !running {
-		err := j.start()
-		exit := util.HandleExecErr(err)
-
-		j.mu.Lock()
-		j.exitCode = int(exit)
-		j.mu.Unlock()
-
-		j.finish()
+		if background {
+			exit, err = jobs.startBackground(j)
+		} else {
+			exit, err = jobs.runForeground(j)
+		}
 	}
 
-	return nil
+	mlr.PushNext1(moonlight.IntValue(int64(exit)))
+	return err
 }
 
 // @interface jobs
@@ -187,12 +336,16 @@ func luaStopJob(mlr *moonlight.Runtime) error {
 	}
 
 	j.mu.RLock()
-	running := j.running
+	active := j.running || j.suspended
 	j.mu.RUnlock()
 
-	if running {
+	if active {
 		j.stop()
-		j.finish()
+		// process jobs are reaped by procWait, which calls finish()
+		// doing it here too would emit job.done twice
+		if j.typ != jobProcess {
+			j.finish()
+		}
 	}
 
 	return nil
@@ -201,8 +354,8 @@ func luaStopJob(mlr *moonlight.Runtime) error {
 // @interface jobs
 // @member
 // foreground()
-// Puts a job in the foreground. This will cause it to run like it was
-// executed normally and wait for it to complete.
+// Resumes a suspended or backgrounded job in the foreground. This will cause
+// it to run like it was executed normally and wait for it to complete.
 // @since 2.0.0
 func luaForegroundJob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
@@ -215,42 +368,33 @@ func luaForegroundJob(mlr *moonlight.Runtime) error {
 	}
 
 	j.mu.RLock()
-	running := j.running
+	active := j.running || j.suspended
 	j.mu.RUnlock()
 
-	if !running {
+	if !active {
 		return errors.New("job not running")
 	}
 
-	// lua code can run in other threads and goroutines, so this exists
-	if jobs.foreground {
+	jobs.mu.Lock()
+	if jobs.current != nil {
+		jobs.mu.Unlock()
 		return errors.New("(another) job already foregrounded")
 	}
-
-	jobs.foreground = true
+	jobs.current = j
+	jobs.mu.Unlock()
 	defer func() {
-		jobs.foreground = false
+		jobs.mu.Lock()
+		jobs.current = nil
+		jobs.mu.Unlock()
 	}()
 
-	// this is kinda funny
-	// background continues the process incase it got suspended
-	err = j.background()
-	if err != nil {
-		return err
-	}
-
-	err = j.foreground()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return j.foreground()
 }
 
 // @interface jobs
 // @member
 // background()
-// Puts a job in the background. This acts the same as initially running a job.
+// Resumes a suspended job in the background.
 // @since 2.0.0
 func luaBackgroundJob(mlr *moonlight.Runtime) error {
 	if err := mlr.Check1Arg(); err != nil {
@@ -263,26 +407,21 @@ func luaBackgroundJob(mlr *moonlight.Runtime) error {
 	}
 
 	j.mu.RLock()
-	running := j.running
+	active := j.running || j.suspended
 	j.mu.RUnlock()
 
-	if !running {
+	if !active {
 		return errors.New("job not running")
 	}
 
-	err = j.background()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return j.background()
 }
 
 type jobHandler struct {
-	jobs       map[int]*job
-	latestID   int
-	foreground bool // if job currently in the foreground
-	mu         *sync.RWMutex
+	jobs     map[int]*job
+	latestID int
+	current  *job // unregistered foreground job
+	mu       *sync.RWMutex
 }
 
 func newJobHandler() *jobHandler {
@@ -293,47 +432,35 @@ func newJobHandler() *jobHandler {
 	}
 }
 
-func (j *jobHandler) add(cmd string, args []string, path string) *job {
-	j.mu.Lock()
-	defer j.mu.Unlock()
-
-	j.latestID++
-	jb := &job{
-		cmd:     cmd,
-		running: false,
-		id:      j.latestID,
-		args:    args,
-		path:    path,
-		cmdout:  os.Stdout,
-		cmderr:  os.Stderr,
-		stdout:  &bytes.Buffer{},
-		stderr:  &bytes.Buffer{},
-	}
+func (j *jobHandler) newJob(cmd string) *job {
+	jb := &job{cmd: cmd}
 	jb.ud = jobUserData(jb)
-
-	j.jobs[j.latestID] = jb
-	hooks.Emit("job.add", moonlight.UserDataValue(jb.ud)) // see nature/hooks.lua
-
 	return jb
 }
 
-func (j *jobHandler) getLatest() *job {
-	j.mu.RLock()
-	defer j.mu.RUnlock()
+// register puts the job in the job table
+// a foreground job (99% a normal running command) only gets registered once its suspended
+func (j *jobHandler) register(jb *job) {
+	j.mu.Lock()
+	if jb.id == 0 {
+		j.latestID++
+		jb.id = j.latestID
+	}
+	j.jobs[jb.id] = jb
+	j.mu.Unlock()
 
-	return j.jobs[j.latestID]
+	hooks.Emit("job.add", moonlight.UserDataValue(jb.ud))
 }
 
 func (j *jobHandler) disown(id int) error {
-	j.mu.RLock()
+	j.mu.Lock()
+	defer j.mu.Unlock()
+
 	if j.jobs[id] == nil {
 		return errors.New("job doesnt exist")
 	}
-	j.mu.RUnlock()
 
-	j.mu.Lock()
 	delete(j.jobs, id)
-	j.mu.Unlock()
 
 	return nil
 }
@@ -343,13 +470,50 @@ func (j *jobHandler) stopAll() {
 	defer j.mu.RUnlock()
 
 	for _, jb := range j.jobs {
+		jb.mu.RLock()
+		active := jb.running || jb.suspended
+		jb.mu.RUnlock()
+		if !active {
+			continue
+		}
 		// on exit, unix shell should send sighup to all jobs
-		if jb.running {
-			proc := jb.getProc()
-			proc.Signal(syscall.SIGHUP)
-			jb.wait() // waits for program to exit due to sighup
+		if jb.typ == jobProcess {
+			if jb.handle != nil && jb.handle.Process != nil {
+				jb.handle.Process.Signal(syscall.SIGHUP)
+			}
+		} else {
+			jb.stop()
 		}
 	}
+}
+
+func (jh *jobHandler) runForeground(jb *job) (int, error) {
+	jh.mu.Lock()
+	jh.current = jb
+	jh.mu.Unlock()
+	defer func() {
+		jh.mu.Lock()
+		jh.current = nil
+		jh.mu.Unlock()
+	}()
+
+	exit, err := jb.run(true)
+
+	jb.mu.Lock()
+	jb.exitCode = exit
+	suspended := jb.suspended
+	jb.mu.Unlock()
+
+	if suspended {
+		jh.register(jb)
+	}
+
+	return exit, err
+}
+
+func (jh *jobHandler) startBackground(jb *job) (int, error) {
+	jh.register(jb)
+	return jb.run(false)
 }
 
 // @interface jobs
@@ -375,7 +539,7 @@ func (j *jobHandler) loader(mlr *moonlight.Runtime) *moonlight.Table {
 	jobMethods := moonlight.NewTable()
 	jFuncs := map[string]moonlight.Export{
 		"stop":       {Function: luaStopJob, ArgNum: 1, Variadic: false},
-		"start":      {Function: luaStartJob, ArgNum: 1, Variadic: false},
+		"start":      {Function: luaStartJob, ArgNum: 1, Variadic: true},
 		"foreground": {Function: luaForegroundJob, ArgNum: 1, Variadic: false},
 		"background": {Function: luaBackgroundJob, ArgNum: 1, Variadic: false},
 	}
@@ -401,16 +565,25 @@ func (j *jobHandler) loader(mlr *moonlight.Runtime) *moonlight.Table {
 			val = moonlight.StringValue(j.cmd)
 		case "running":
 			val = moonlight.BoolValue(j.running)
+		case "suspended":
+			val = moonlight.BoolValue(j.suspended)
 		case "id":
 			val = moonlight.IntValue(int64(j.id))
-		case "pid":
-			val = moonlight.IntValue(int64(j.pid))
 		case "exitCode":
 			val = moonlight.IntValue(int64(j.exitCode))
+		// pid/stdout/stderr only make sense for process jobs, nil otherwise
+		case "pid":
+			if j.typ == jobProcess {
+				val = moonlight.IntValue(int64(j.pid))
+			}
 		case "stdout":
-			val = moonlight.StringValue(j.stdout.String())
+			if j.typ == jobProcess && j.stdout != nil {
+				val = moonlight.StringValue(j.stdout.String())
+			}
 		case "stderr":
-			val = moonlight.StringValue(j.stderr.String())
+			if j.typ == jobProcess && j.stderr != nil {
+				val = moonlight.StringValue(j.stderr.String())
+			}
 		}
 		j.mu.RUnlock()
 
@@ -425,7 +598,7 @@ func (j *jobHandler) loader(mlr *moonlight.Runtime) *moonlight.Table {
 		"all":     {Function: j.luaAllJobs, ArgNum: 0, Variadic: false},
 		"last":    {Function: j.luaLastJob, ArgNum: 0, Variadic: false},
 		"get":     {Function: j.luaGetJob, ArgNum: 1, Variadic: false},
-		"add":     {Function: j.luaAddJob, ArgNum: 3, Variadic: false},
+		"add":     {Function: j.luaAddJob, ArgNum: 2, Variadic: false},
 		"disown":  {Function: j.luaDisownJob, ArgNum: 1, Variadic: false},
 		"stopAll": {Function: j.luaStopAll, ArgNum: 0, Variadic: false},
 	}
@@ -460,6 +633,24 @@ func jobUserData(j *job) *moonlight.UserData {
 	return moonlight.NewUserData(j, moonlight.ToTable(jobMeta))
 }
 
+func sinkReader(val moonlight.Value) io.Reader {
+	if ud, ok := val.TryUserData(); ok {
+		if s, ok := ud.Value().(*util.Sink); ok {
+			return s.RawReader()
+		}
+	}
+	return nil
+}
+
+func sinkWriter(val moonlight.Value) io.Writer {
+	if ud, ok := val.TryUserData(); ok {
+		if s, ok := ud.Value().(*util.Sink); ok {
+			return s.RawWriter()
+		}
+	}
+	return nil
+}
+
 // @interface jobs
 // get(id) -> @Job
 // Get a job object via its ID.
@@ -489,44 +680,135 @@ func (j *jobHandler) luaGetJob(mlr *moonlight.Runtime) error {
 
 // @interface jobs
 // add
-// Creates a new job. This function does not run the job.
+// Creates a new job but does not run it. The job kind is decided by `opts`:
+// A process job is created from `args`/`path` (with optional `env`, `dir`,
+// and `sinks`), while a Lua/code job is created by supplying `run` (and
+// optionally `suspend`/`resume`) functions.
 // This function is intended to be used by runners, but can also be
-// used to create jobs via Lua. Commanders cannot be ran as jobs.
+// used to create jobs via Lua. Commanders cannot be run as jobs.
 // @param cmdstr string String that a user would write for the job
-// @param args table Arguments for the commands. Has to include the name of the command.
-// @param execPath string Binary to use to run the command. Needs to be an absolute path.
+// @param opts table Job options.
 // @return Job job
 // @since 2.0.0
 /*
 @example
-hilbish.jobs.add('go build', {'go', 'build'}, '/usr/bin/go')
+-- a process job
+hilbish.jobs.add('go build', {
+	args = {'go', 'build'},
+	path = '/usr/bin/go',
+})
+
+-- a lua/code job (suspendable if the runner can handle it)
+hilbish.jobs.add('my task', {
+	run = function(job) --[[ ... ]] return 0 end,
+	suspend = function(job) --[[ pause ]] end,
+	resume = function(job, fg) --[[ resume ]] end,
+})
 @example
 */
 func (j *jobHandler) luaAddJob(mlr *moonlight.Runtime) error {
-	if err := mlr.CheckNArgs(3); err != nil {
+	if err := mlr.CheckNArgs(2); err != nil {
 		return err
 	}
 	cmd, err := mlr.StringArg(0)
 	if err != nil {
 		return err
 	}
-	largs, err := mlr.TableArg(1)
+	opts, err := mlr.TableArg(1)
 	if err != nil {
 		return err
 	}
-	execPath, err := mlr.StringArg(2)
-	if err != nil {
-		return err
+
+	jb := j.newJob(cmd)
+
+	// a run function means its a lua job, otherwise we build a process
+	runFn := opts.Get(moonlight.StringValue("run"))
+	if runFn != moonlight.NilValue {
+		jb.typ = jobLua
+		jb.runFn = runFn
+		jb.suspendFn = opts.Get(moonlight.StringValue("suspend"))
+		jb.resumeFn = opts.Get(moonlight.StringValue("resume"))
+		mlr.PushNext1(moonlight.UserDataValue(jb.ud))
+		return nil
+	}
+
+	path, hasPath := opts.Get(moonlight.StringValue("path")).TryString()
+	if !hasPath || path == "" {
+		return errors.New("process job requires a path")
+	}
+
+	argsTbl, hasArgs := moonlight.TryTable(opts.Get(moonlight.StringValue("args")))
+	if !hasArgs || argsTbl.Len() == 0 {
+		return errors.New("process job requires args")
 	}
 
 	var args []string
-	moonlight.ForEach(largs, func(k moonlight.Value, v moonlight.Value) {
-		if v.Type() == moonlight.StringType {
-			args = append(args, v.AsString())
+	var argErr error
+	moonlight.ForEach(argsTbl, func(k, v moonlight.Value) {
+		if v.Type() != moonlight.StringType {
+			argErr = fmt.Errorf("args table must only contain strings, got %s at index %s", v.TypeName(), moonlight.ToString(k))
+			return
 		}
+		args = append(args, v.AsString())
 	})
+	if argErr != nil {
+		return argErr
+	}
 
-	jb := j.add(cmd, args, execPath)
+	var env []string
+	if envTbl, ok := moonlight.TryTable(opts.Get(moonlight.StringValue("env"))); ok {
+		moonlight.ForEach(envTbl, func(k, v moonlight.Value) {
+			if v.Type() != moonlight.StringType {
+				return
+			}
+			// support both { 'K=V', ... } and { K = 'V' }
+			if k.Type() == moonlight.StringType {
+				env = append(env, k.AsString()+"="+v.AsString())
+			} else {
+				env = append(env, v.AsString())
+			}
+		})
+	}
+
+	dir := ""
+	if d, ok := opts.Get(moonlight.StringValue("dir")).TryString(); ok {
+		dir = d
+	}
+
+	cmdout := io.Writer(os.Stdout)
+	cmderr := io.Writer(os.Stderr)
+	jb.stdin = os.Stdin
+	if sinks, ok := moonlight.TryTable(opts.Get(moonlight.StringValue("sinks"))); ok {
+		in := sinks.Get(moonlight.StringValue("in"))
+		if in == moonlight.NilValue {
+			in = sinks.Get(moonlight.StringValue("input"))
+		}
+		if r := sinkReader(in); r != nil {
+			jb.stdin = r
+		}
+		if w := sinkWriter(sinks.Get(moonlight.StringValue("out"))); w != nil {
+			cmdout = w
+		}
+		if w := sinkWriter(sinks.Get(moonlight.StringValue("err"))); w != nil {
+			cmderr = w
+		}
+	}
+
+	if c, ok := opts.Get(moonlight.StringValue("capture")).TryBool(); ok {
+		jb.capture = c
+	}
+
+	jb.typ = jobProcess
+	jb.path = path
+	jb.args = args
+	jb.env = env
+	jb.dir = dir
+	jb.cmdout = cmdout
+	jb.cmderr = cmderr
+	if jb.capture {
+		jb.stdout = &bytes.Buffer{}
+		jb.stderr = &bytes.Buffer{}
+	}
 
 	mlr.PushNext1(moonlight.UserDataValue(jb.ud))
 	return nil
