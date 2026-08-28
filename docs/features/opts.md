@@ -52,6 +52,20 @@ Sets whether command history will be saved or not.
 <hr class="my-4">
 ```
 
+### `hinter`
+
+#### Value: `boolean`
+
+#### Default: `true`
+
+Controls the default inline command hint, which suggests frequently used
+commands from history. Set this to `false` to disable command hints.
+Hints are also disabled when the `history` option is `false`.
+
+``` =html
+<hr class="my-4">
+```
+
 ### `greeting`
 
 #### Value: `boolean` or `string`
