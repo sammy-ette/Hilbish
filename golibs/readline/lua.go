@@ -52,6 +52,11 @@ func Loader(mlr *moonlight.Runtime) moonlight.Value {
 		"setHistory":          {Function: rlsetHistory, ArgNum: 2, Variadic: false},
 		"setRawInputCallback": {Function: rlsetRawInputCallback, ArgNum: 2, Variadic: false},
 		"setSearcher":         {Function: rlsetSearcher, ArgNum: 2, Variadic: false},
+		"bindKey":             {Function: rlbindKey, ArgNum: 3, Variadic: false},
+		"unbindKey":           {Function: rlunbindKey, ArgNum: 2, Variadic: false},
+		"addAction":           {Function: rladdAction, ArgNum: 3, Variadic: false},
+		"removeAction":        {Function: rlremoveAction, ArgNum: 2, Variadic: false},
+		"getBindings":         {Function: rlgetBindings, ArgNum: 1, Variadic: false},
 	}
 	mlr.SetExports(rlMethods, rlMethodss)
 
@@ -536,15 +541,26 @@ func rlsetCompleter(mlr *moonlight.Runtime) error {
 					}
 
 					item := MenuItem{Value: itemName}
-					if itemDescription, ok := vlTbl.Get(moonlight.StringValue("description")).TryString(); ok {
-						item.Description = itemDescription
+
+					itemDescription, ok := vlTbl.Get(moonlight.IntValue(1)).TryString()
+					if !ok {
+						// if we can't get it by number index, try by string key
+						itemDescription, _ = vlTbl.Get(moonlight.StringValue("description")).TryString()
 					}
+					item.Description = itemDescription
+
+					// display
 					if itemDisplay, ok := vlTbl.Get(moonlight.StringValue("display")).TryString(); ok {
 						item.Display = itemDisplay
 					}
-					if itemAlias, ok := vlTbl.Get(moonlight.StringValue("alias")).TryString(); ok {
-						item.Alias = itemAlias
+
+					itemAlias, ok := vlTbl.Get(moonlight.IntValue(2)).TryString()
+					if !ok {
+						// if we can't get it by number index, try by string key
+						itemAlias, _ = vlTbl.Get(moonlight.StringValue("alias")).TryString()
 					}
+					item.Alias = itemAlias
+
 					menuItems = append(menuItems, item)
 				} else if keytyp == moonlight.IntType {
 					vlStr, ok := lval.TryString()
@@ -807,10 +823,150 @@ func rlsetSearcher(mlr *moonlight.Runtime) error {
 	return nil
 }
 
+// @member
+// Binds a key to an action name or a custom function.
+// @param key string key name like "Ctrl-A" or a raw sequence
+// @param action string|function action name or a custom function
+// @since 3.0.0
+func rlbindKey(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(3); err != nil {
+		return err
+	}
+
+	rl, err := rlArg(mlr, 0)
+	if err != nil {
+		return err
+	}
+
+	keyName, err := mlr.StringArg(1)
+	if err != nil {
+		return err
+	}
+
+	keySeq := keyNameToSeq(keyName)
+	arg := mlr.Arg(2)
+
+	if s, ok := arg.TryString(); ok {
+		rl.bindKey(keySeq, s)
+	} else if fn, ok := arg.TryClosure(); ok {
+		actionName := "__custom_" + keyName
+		rl.customActions[actionName] = fn
+		rl.luaRuntime = mlr
+		rl.bindKey(keySeq, actionName)
+	}
+
+	return nil
+}
+
+// @member
+// Unbinds a key from any action.
+// @param key string key name like "Ctrl-A" or a raw sequence
+// @since 3.0.0
+func rlunbindKey(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
+	}
+
+	rl, err := rlArg(mlr, 0)
+	if err != nil {
+		return err
+	}
+
+	keyName, err := mlr.StringArg(1)
+	if err != nil {
+		return err
+	}
+
+	// Convert key name to raw sequence
+	keySeq := keyNameToSeq(keyName)
+	rl.unbindKey(keySeq)
+
+	return nil
+}
+
+// @member
+// Registers or overrides an action with a custom Lua function.
+// @param name string
+// @param fn function
+// @since 3.0.0
+func rladdAction(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(3); err != nil {
+		return err
+	}
+
+	rl, err := rlArg(mlr, 0)
+	if err != nil {
+		return err
+	}
+
+	name, err := mlr.StringArg(1)
+	if err != nil {
+		return err
+	}
+
+	fn, err := mlr.ClosureArg(2)
+	if err != nil {
+		return err
+	}
+	rl.registerLuaAction(name, fn)
+	rl.luaRuntime = mlr
+
+	return nil
+}
+
+// @member
+// Removes a keybind action.
+// @param name string
+// @since 3.0.0
+func rlremoveAction(mlr *moonlight.Runtime) error {
+	if err := mlr.CheckNArgs(2); err != nil {
+		return err
+	}
+
+	rl, err := rlArg(mlr, 0)
+	if err != nil {
+		return err
+	}
+
+	name, err := mlr.StringArg(1)
+	if err != nil {
+		return err
+	}
+
+	rl.removeAction(name)
+	rl.removeLuaAction(name)
+
+	return nil
+}
+
+// @member
+// Returns the current key-to-action bindings for this readline instance.
+// @return table<string,string> bindings
+// @since 3.0.0
+func rlgetBindings(mlr *moonlight.Runtime) error {
+	if err := mlr.Check1Arg(); err != nil {
+		return err
+	}
+
+	rl, err := rlArg(mlr, 0)
+	if err != nil {
+		return err
+	}
+
+	tbl := moonlight.NewTable()
+	for keySeq, action := range rl.keymap {
+		keyName := seqToKeyName(keySeq)
+		tbl.Set(moonlight.StringValue(keyName), moonlight.StringValue(action))
+	}
+
+	mlr.PushNext1(moonlight.TableValue(tbl))
+	return nil
+}
+
 func rlArg(mlr *moonlight.Runtime, arg int) (*Readline, error) {
 	j, ok := valueToRl(mlr.Arg(arg))
 	if !ok {
-		return nil, fmt.Errorf("#%d must be a readline", arg+1)
+		return nil, fmt.Errorf("#%d must be readline", arg+1)
 	}
 
 	return j, nil
