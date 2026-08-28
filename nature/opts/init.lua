@@ -8,6 +8,7 @@ end
 local defaultOpts = {
 	autocd = false,
 	history = true,
+	hinter = true,
 	greeting = string.format([[Welcome to {magenta}Hilbish{reset}, {cyan}%s{reset}.
 The nice lil shell for {blue}Lua{reset} fanatics!
 ]], hilbish.user),

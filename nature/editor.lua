@@ -5,10 +5,6 @@ hilbish.editor = readline.new()
 
 local defaultHistPath = hilbish.userDir.data .. '/hilbish/.hilbish-history'
 
-function hilbish.hinter(line, pos)
-	return ''
-end
-
 function hilbish.highlighter(line)
 	return line
 end
