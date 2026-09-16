@@ -408,7 +408,7 @@ Sets the hinter function. Called on every key insert to provide inline hint text
 #### Parameters
 
 :::params
-`fun(line:string,pos:integer):string` _fn_  
+`fun(line:string,pos:integer):string` _fn_ [Optional]{.optional}  
 
 :::
 

@@ -26,6 +26,11 @@ func (rl *Readline) getHintText() {
 	}
 }
 
+func (rl *Readline) setHinter(fn func([]rune, int) []rune) {
+	rl.HintText = fn
+	rl.resetHintText()
+}
+
 // writeHintText - only writes the hint text and computes its offsets.
 func (rl *Readline) writeHintText() {
 	if len(rl.hintText) == 0 {

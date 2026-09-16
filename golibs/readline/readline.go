@@ -32,6 +32,7 @@ func (rl *Readline) Readline() (string, error) {
 
 	// Line Init & Cursor
 	rl.line = []rune{}
+	rl.resetHintText()
 	rl.currentComp = []rune{} // No virtual completion yet
 	rl.lineComp = []rune{}    // So no virtual line either
 	rl.modeViMode = VimInsert

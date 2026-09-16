@@ -425,7 +425,7 @@ func rlrefreshPrompt(mlr *moonlight.Runtime) error {
 
 // @member
 // Sets the hinter function. Called on every key insert to provide inline hint text.
-// @param fn fun(line:string,pos:integer):string
+// @param fn? fun(line:string,pos:integer):string
 // @since 3.0.0
 func rlsetHinter(mlr *moonlight.Runtime) error {
 	if err := mlr.CheckNArgs(2); err != nil {
@@ -436,8 +436,15 @@ func rlsetHinter(mlr *moonlight.Runtime) error {
 		return err
 	}
 	fn := mlr.Arg(1)
+	if fn.Type() == moonlight.NilType {
+		rl.setHinter(nil)
+		return nil
+	}
+	if fn.Type() != moonlight.FunctionType {
+		return fmt.Errorf("setHinter: expected a function or nil, got %s", fn.TypeName())
+	}
 
-	rl.HintText = func(line []rune, pos int) []rune {
+	rl.setHinter(func(line []rune, pos int) []rune {
 		retVal, err := mlr.Call1(fn, moonlight.StringValue(string(line)), moonlight.IntValue(int64(pos)))
 		if err != nil {
 			fmt.Println(err)
@@ -446,7 +453,7 @@ func rlsetHinter(mlr *moonlight.Runtime) error {
 
 		hintText, _ := retVal.TryString()
 		return []rune(hintText)
-	}
+	})
 
 	return nil
 }

@@ -17,6 +17,23 @@ func newTestRL(line string) *Readline {
 	return rl
 }
 
+func TestSetHinterUnregistersAndClearsHint(t *testing.T) {
+	rl := newTestRL("foo")
+	rl.hintText = []rune("bar")
+	rl.setHinter(func([]rune, int) []rune {
+		return []rune("bar")
+	})
+
+	rl.setHinter(nil)
+
+	if rl.HintText != nil {
+		t.Fatal("HintText is still registered after setHinter(nil)")
+	}
+	if len(rl.hintText) != 0 {
+		t.Fatalf("cached hint = %q, want empty", string(rl.hintText))
+	}
+}
+
 // TestEchoHighlighterPerRow verifies that the SyntaxHighlighter is called once
 // per logical row with no embedded newlines. Before the multiline fix it was
 // called once with the whole buffer (including literal '\n' runes).

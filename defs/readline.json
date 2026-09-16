@@ -849,7 +849,7 @@
 					"Type": "fun(line:string,pos:integer):string",
 					"Doc": [],
 					"Default": "",
-					"IsOptional": false,
+					"IsOptional": true,
 					"Keys": null
 				}
 			],
@@ -863,7 +863,7 @@
 				],
 				"param": [
 					{
-						"id": "fn",
+						"id": "fn?",
 						"fields": [
 							"fun(line:string,pos:integer):string"
 						],

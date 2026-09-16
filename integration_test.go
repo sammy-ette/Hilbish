@@ -6,6 +6,7 @@ import (
 	"os/user"
 	"testing"
 
+	"github.com/sammy-ette/hilbish/golibs/readline"
 	"github.com/sammy-ette/hilbish/moonlight"
 )
 
@@ -91,6 +92,48 @@ func TestNatureLoadsAndExposesGlobalModules(t *testing.T) {
 		if v.Type() != moonlight.TableType {
 			t.Errorf("global %q has type %v, want a table", name, v.Type())
 		}
+	}
+}
+
+func TestHinterCanBeUnregisteredAndToggled(t *testing.T) {
+	initTestRuntime(t)
+
+	editorValue, err := l.DoString("return hilbish.editor")
+	if err != nil {
+		t.Fatalf("reading hilbish.editor: %v", err)
+	}
+	userdata, ok := moonlight.TryUserData(editorValue)
+	if !ok {
+		t.Fatal("hilbish.editor is not userdata")
+	}
+	editor, ok := userdata.Value().(*readline.Readline)
+	if !ok {
+		t.Fatal("hilbish.editor userdata does not contain a readline instance")
+	}
+
+	if editor.HintText == nil {
+		t.Fatal("default hinter was not registered")
+	}
+
+	if _, err := l.DoString("hilbish.editor:setHinter(nil)"); err != nil {
+		t.Fatalf("setHinter(nil): %v", err)
+	}
+	if editor.HintText != nil {
+		t.Fatal("HintText is still registered after setHinter(nil)")
+	}
+
+	if _, err := l.DoString("hilbish.opts.hinter = true"); err != nil {
+		t.Fatalf("enabling hinter option: %v", err)
+	}
+	if editor.HintText == nil {
+		t.Fatal("enabling hinter option did not register the default hinter")
+	}
+
+	if _, err := l.DoString("hilbish.opts.hinter = false"); err != nil {
+		t.Fatalf("disabling hinter option: %v", err)
+	}
+	if editor.HintText != nil {
+		t.Fatal("disabling hinter option did not unregister the default hinter")
 	}
 }
 
