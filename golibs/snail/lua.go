@@ -142,15 +142,21 @@ func snailrun(mlr *moonlight.Runtime) error {
 	bg, _, _, err := s.Run(cmd, streams)
 	if err != nil {
 		if syntax.IsIncomplete(err) {
-			/*
-				if !interactive {
-					return cmdString, 126, false, false, err
+			interactive := true
+			if hilbish, ok := mlr.GlobalTable().Get(moonlight.StringValue("hilbish")).TryTable(); ok {
+				if value, ok := hilbish.Get(moonlight.StringValue("interactive")).TryBool(); ok {
+					interactive = value
 				}
-			*/
-			if strings.Contains(err.Error(), "unclosed here-document") {
-				newline = true
 			}
-			cont = true
+			if !interactive {
+				exitCode = 126
+				luaErr = moonlight.StringValue(err.Error())
+			} else {
+				if strings.Contains(err.Error(), "unclosed here-document") {
+					newline = true
+				}
+				cont = true
+			}
 		} else {
 			if code, ok := interp.IsExitStatus(err); ok {
 				exitCode = int(code)

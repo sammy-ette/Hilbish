@@ -14,7 +14,7 @@
 ---
 --- ```lua
 --- local fennel = require 'fennel'
---- 
+---
 --- hilbish.runner.add('fennel', {
 --- 	run = function(input)
 --- 		local ok = pcall(fennel.eval, input)
@@ -186,7 +186,7 @@ function hilbish.runner.run(input, priv)
 
 	local runner = hilbish.runner.get(processed.modifiers.runner or currentRunner)
 	local oldDir = hilbish.cwd()
-	
+
 	::rerun::
 	local command
 	if processed.modifiers.alias == false then
@@ -197,6 +197,10 @@ function hilbish.runner.run(input, priv)
 
 	local valid = runner.validate(command)
 	if not valid then
+		if not hilbish.interactive then
+			finishExec(126, command, priv)
+			return
+		end
 		local contInput = hilbish.runner.continuePrompt(command, false)
 		if contInput then
 			processed.command = contInput
@@ -257,7 +261,7 @@ function hilbish.runner.run(input, priv)
 			io.stderr:write(out.err .. '\n')
 		end
 	end
-	finishExec(out.exitCode, out.input, priv)
+	finishExec(out.exitCode, processed.command, priv)
 	cdToOld()
 end
 

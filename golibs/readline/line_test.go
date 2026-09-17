@@ -87,3 +87,41 @@ func TestEchoHighlighterSeesVirtualCompletion(t *testing.T) {
 		t.Errorf("SyntaxHighlighter got %q, want %q (lineComp)", calls[0], "foobar")
 	}
 }
+
+func TestPasteNormalizesCRLFAndTrailingCR(t *testing.T) {
+	rl := newTestRL("")
+	rl.insertPaste([]byte("one\r\ntwo\r"))
+
+	if got := string(rl.line); got != "one\ntwo\n" {
+		t.Fatalf("pasted line = %q, want %q", got, "one\ntwo\n")
+	}
+}
+
+func TestUnicodeEditingKeepsRuneBoundaries(t *testing.T) {
+	rl := newTestRL("你好🙂")
+	rl.deleteBackspace(false)
+
+	if got := string(rl.line); got != "你好" {
+		t.Fatalf("line after Unicode backspace = %q", got)
+	}
+	if rl.pos != len([]rune("你好")) {
+		t.Fatalf("Unicode cursor position = %d, want %d", rl.pos, len([]rune("你好")))
+	}
+	if got := rl.Width([]rune("你好🙂")); got != 6 {
+		t.Fatalf("Unicode display width = %d, want 6", got)
+	}
+}
+
+func TestReadlineInstancesDoNotShareInputState(t *testing.T) {
+	first := newTestRL("")
+	second := newTestRL("")
+	first.Insert("first")
+	first.SetPrompt("first> ")
+
+	if got := string(second.GetLine()); got != "" {
+		t.Fatalf("second readline line = %q after editing first, want empty", got)
+	}
+	if second.promptLen != 0 {
+		t.Fatalf("second readline prompt length = %d after editing first, want 0", second.promptLen)
+	}
+}

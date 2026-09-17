@@ -5,6 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 func TestFileHistoryDelete(t *testing.T) {
@@ -68,5 +71,87 @@ func TestFileHistoryDeleteOutOfRange(t *testing.T) {
 	}
 	if got := h.Len(); got != 1 {
 		t.Errorf("Len() = %d after out-of-range deletes, want 1", got)
+	}
+}
+
+func TestHistoryNavigationWithNoEntriesReturns(t *testing.T) {
+	rl := newTestRL("typed")
+	rl.mainHist = true
+	rl.mainHistory = &ExampleHistory{}
+
+	done := make(chan struct{})
+	go func() {
+		rl.walkHistory(1)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("history navigation did not return")
+	}
+
+	if string(rl.line) != "typed" {
+		t.Fatalf("line after empty-history navigation = %q, want typed", string(rl.line))
+	}
+}
+
+func TestHistoryNavigationPlacesCursorAtEnd(t *testing.T) {
+	history := &ExampleHistory{}
+	if _, err := history.Write("echo first"); err != nil {
+		t.Fatal(err)
+	}
+
+	rl := newTestRL("")
+	rl.mainHistory = history
+	rl.mainHist = true
+	rl.escapeSeq([]rune(seqUp))
+
+	if string(rl.line) != "echo first" {
+		t.Fatalf("history line = %q, want %q", string(rl.line), "echo first")
+	}
+	if rl.pos != len(rl.line) {
+		t.Fatalf("history cursor position = %d, want %d", rl.pos, len(rl.line))
+	}
+}
+
+func TestFileHistoryCreatesMissingParentAndIgnoresEmptyLines(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "nested", "history")
+	history := newFileHistory(path)
+	t.Cleanup(func() { history.f.Close() })
+
+	if _, err := history.Write(""); err != nil {
+		t.Fatalf("writing empty history entry: %v", err)
+	}
+	if _, err := history.Write("echo saved"); err != nil {
+		t.Fatalf("writing history entry: %v", err)
+	}
+
+	if history.Len() != 1 {
+		t.Fatalf("history length = %d, want 1", history.Len())
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "echo saved\n" {
+		t.Fatalf("history file = %q, want %q", string(data), "echo saved\n")
+	}
+}
+
+func TestLuaHistoryWriteAcceptsNilReturn(t *testing.T) {
+	rtm := moonlight.NewRuntime()
+	handler, err := rtm.DoString(`return { add = function(_) return nil end }`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	history := &luaHistoryWrapper{handler: handler, mlr: rtm}
+	n, err := history.Write("echo empty-result")
+	if err != nil {
+		t.Fatalf("history write returned error: %v", err)
+	}
+	if n != 0 {
+		t.Fatalf("history length = %d, want 0 for a nil callback result", n)
 	}
 }

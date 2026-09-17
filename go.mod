@@ -7,6 +7,7 @@ require (
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
 	github.com/arnodel/golua v0.2.0
 	github.com/blackfireio/osinfo v1.0.5
+	github.com/creack/pty v1.1.21
 	github.com/evilsocket/islazy v1.11.0
 	github.com/olekukonko/ts v0.0.0-20171002115256-78ecb04241c0
 	github.com/pborman/getopt v1.1.0
