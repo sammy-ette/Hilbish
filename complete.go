@@ -151,13 +151,6 @@ func binaryComplete(query, ctx string) ([]string, string) {
 		}
 	}
 
-	// add lua registered commands to completions
-	for cmdName := range cmds.Commands {
-		if strings.HasPrefix(cmdName, query) {
-			completions = append(completions, cmdName)
-		}
-	}
-
 	completions = removeDupes(completions)
 
 	return completions, query
@@ -346,6 +339,14 @@ func hcmpBins(mlr *moonlight.Runtime) error {
 
 	var _ []string = fds
 	completions, pfx := binaryComplete(query, ctx)
+	registry := moonlight.ToTable(mlr.MustDoString("return require 'commander'.registry()"))
+	moonlight.ForEach(registry, func(name, _ moonlight.Value) {
+		cmdName := name.AsString()
+		if strings.HasPrefix(cmdName, query) {
+			completions = append(completions, cmdName)
+		}
+	})
+	completions = removeDupes(completions)
 	luaComps := moonlight.NewTable()
 
 	for i, comp := range completions {

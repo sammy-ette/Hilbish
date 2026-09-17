@@ -3,7 +3,7 @@ package main
 // String vars that are free to be changed at compile time
 var (
 	defaultHistDir     = ""
-	commonRequirePaths = "';./libs/?/init.lua;./?/init.lua;./?/?.lua'"
+	commonRequirePaths = "';./libs/?/init.lua;./libs/?.lua;./?/init.lua;./?/?.lua'"
 	unixRequirePaths   = commonRequirePaths + `.. ';'
 	.. hilbish.dataDir .. '/libs/?/init.lua;'
 	.. hilbish.dataDir .. '/libs/?/?.lua;'

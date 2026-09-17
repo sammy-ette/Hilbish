@@ -152,6 +152,7 @@ func TestShellRegressions(t *testing.T) {
 
 	t.Run("commander sinks and nil exit code", func(t *testing.T) {
 		stdout, _ := runHilbish(t, binary, `
+			local commander = require 'commander'
 			commander.register('commander-output', function(_, sinks)
 				sinks.out:write('commander output')
 			end)
@@ -162,6 +163,29 @@ func TestShellRegressions(t *testing.T) {
 		`)
 		if got, want := outputLine(t, stdout), "0:commander output::0"; got != want {
 			t.Fatalf("commander result = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("commander commands are tab-completable", func(t *testing.T) {
+		stdout, _ := runHilbish(t, binary, `
+			local commander = require 'commander'
+			commander.register('commander-completion-test', function() end)
+			local bins, binsPrefix = hilbish.completions.bins('commander-completion', 'commander-completion', {'commander-completion'})
+			local foundInBins = false
+			for _, item in ipairs(bins) do
+				if item == 'commander-completion-test' then foundInBins = true end
+			end
+			local groups, prefix = hilbish.completions.handler('commander-completion', #('commander-completion'))
+			local found = false
+			for _, group in ipairs(groups) do
+				for _, item in ipairs(group.items) do
+					if item == 'commander-completion-test' then found = true end
+				end
+			end
+			print(tostring(foundInBins) .. ':' .. tostring(found) .. ':' .. binsPrefix .. ':' .. prefix)
+		`)
+		if got, want := outputLine(t, stdout), "true:true:commander-completion:commander-completion"; got != want {
+			t.Fatalf("commander completion = %q, want %q", got, want)
 		}
 	})
 

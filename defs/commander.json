@@ -2,9 +2,9 @@
 	"name": "commander",
 	"section": "api",
 	"shortDescription": "library for custom commands",
-	"description": "\nCommander is the library which handles Hilbish commands. This makes\nthe user able to add Lua-written commands to their shell without making\na separate script in a bin folder. Instead, you may simply use the Commander\nlibrary in your Hilbish config.\n\n```lua\nlocal commander = require 'commander'\n\ncommander.register('hello', function(args, sinks)\n\tsinks.out:writeln 'Hello world!'\nend)\n```\n\nIn this example, a command with the name of `hello` is created\nthat will print `Hello world!` to output. One question you may\nhave is: What is the `sinks` parameter?\n\nThe `sinks` parameter is a table with 3 keys: `input`, `out`, and `err`.\nThere is an `in` alias to `input`, but it requires using the string accessor syntax (`sinks['in']`)\nas `in` is also a Lua keyword, so `input` is preferred for use.\nAll of them are a @Sink.\nIn the future, `sinks.in` will be removed.\n\n- `in` is the standard input. You may use the read functions on this sink to get input from the user.\n- `out` is standard output. This is usually where command output should go.\n- `err` is standard error. This sink is for writing errors, as the name would suggest.",
-	"properties": [],
-	"fields": [],
+	"description": "\n\nCommander is the library which handles Hilbish commands. This makes\nthe user able to add Lua-written commands to their shell without making\na separate script in a bin folder. Instead, you may simply use the Commander\nlibrary in your Hilbish config.\n\n\n```lua\nlocal commander = require 'commander'\n\n\ncommander.register('hello', function(args, sinks)\n\tsinks.out:writeln 'Hello world!'\nend)\n```\n\n\nIn this example, a command with the name of `hello` is created\nthat will print `Hello world!` to output. One question you may\nhave is: What is the `sinks` parameter?\n\n\nThe `sinks` parameter is a table with 3 keys: `input`, `out`, and `err`.\nThere is an `in` alias to `input`, but it requires using the string accessor syntax (`sinks['in']`)\nas `in` is also a Lua keyword, so `input` is preferred for use.\nAll of them are a @Sink.\nIn the future, `sinks.in` will be removed.\n\n\n- `in` is the standard input. You may use the read functions on this sink to get input from the user.\n- `out` is standard output. This is usually where command output should go.\n- `err` is standard error. This sink is for writing errors, as the name would suggest.",
+	"properties": null,
+	"fields": null,
 	"docs": [
 		{
 			"name": "deregister",
@@ -12,7 +12,6 @@
 				"Removes the named command. Note that this will only remove Commander-registered commands."
 			],
 			"signature": "deregister(name)",
-			"goFuncName": "cderegister",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
@@ -21,46 +20,55 @@
 					"Name": "name",
 					"Type": "string",
 					"Doc": [
-						"Name",
-						"of",
-						"the",
-						"command",
-						"to",
-						"remove."
+						"Name of the command to remove."
+					],
+					"Default": "",
+					"IsOptional": false,
+					"Keys": null
+				}
+			]
+		},
+		{
+			"name": "get",
+			"description": [
+				"Returns the registered command function for `name`, or `nil` if it does not exist."
+			],
+			"signature": "get(name) -\u003e fun(args:table,sinks:table\u003cstring,Sink\u003e):number?",
+			"isInterface": false,
+			"isMember": false,
+			"isType": false,
+			"params": [
+				{
+					"Name": "name",
+					"Type": "string",
+					"Doc": [
+						"Name of the command to retrieve."
 					],
 					"Default": "",
 					"IsOptional": false,
 					"Keys": null
 				}
 			],
-			"tags": {
-				"param": [
-					{
-						"id": "name",
-						"fields": [
-							"string",
-							"Name",
-							"of",
-							"the",
-							"command",
-							"to",
-							"remove."
-						],
-						"startIdx": 1
-					}
-				]
-			}
+			"returns": [
+				{
+					"Name": "command",
+					"Type": "fun(args:table,sinks:table\u003cstring,Sink\u003e):number?",
+					"Doc": [
+						"The registered command function."
+					],
+					"Default": "",
+					"IsOptional": true,
+					"Keys": null
+				}
+			]
 		},
 		{
 			"name": "register",
 			"description": [
 				"Adds a new command with the given `name`. When Hilbish has to run a command with a name,",
-				"it will run the function providing the arguments and sinks.",
-				"",
-				""
+				"it will run the function providing the arguments and sinks."
 			],
 			"signature": "register(name, cb)",
-			"goFuncName": "cregister",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
@@ -69,10 +77,7 @@
 					"Name": "name",
 					"Type": "string",
 					"Doc": [
-						"Name",
-						"of",
-						"the",
-						"command"
+						"Name of the command"
 					],
 					"Default": "",
 					"IsOptional": false,
@@ -82,11 +87,7 @@
 					"Name": "cb",
 					"Type": "fun(args:table,sinks:table\u003cstring,Sink\u003e):number?",
 					"Doc": [
-						"Callback",
-						"to",
-						"handle",
-						"command",
-						"invocation"
+						"Callback to handle command invocation"
 					],
 					"Default": "",
 					"IsOptional": false,
@@ -107,31 +108,6 @@
 							"\tsinks.out:writeln('Hello ' .. name)",
 							"end)"
 						],
-						"startIdx": 5
-					}
-				],
-				"param": [
-					{
-						"id": "name",
-						"fields": [
-							"string",
-							"Name",
-							"of",
-							"the",
-							"command"
-						],
-						"startIdx": 2
-					},
-					{
-						"id": "cb",
-						"fields": [
-							"fun(args:table,sinks:table\u003cstring,Sink\u003e):number?",
-							"Callback",
-							"to",
-							"handle",
-							"command",
-							"invocation"
-						],
 						"startIdx": 0
 					}
 				]
@@ -145,7 +121,6 @@
 				"- `exec`: The function used to run the commander. Commanders require args and sinks to be passed."
 			],
 			"signature": "registry() -\u003e table",
-			"goFuncName": "cregistry",
 			"isInterface": false,
 			"isMember": false,
 			"isType": false,
@@ -159,24 +134,6 @@
 					"Keys": null
 				}
 			],
-			"tags": {
-				"return": [
-					{
-						"id": "table",
-						"fields": [
-							"registry"
-						],
-						"startIdx": 3
-					}
-				],
-				"since": [
-					{
-						"id": "2.3.0",
-						"fields": [],
-						"startIdx": 4
-					}
-				]
-			},
 			"since": "2.3.0"
 		}
 	]

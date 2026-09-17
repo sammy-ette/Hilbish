@@ -694,7 +694,7 @@ func collectDefs() {
 		}
 	}
 
-	// Lua-implemented modules (nature/*.lua). A Lua module that shares a name
+	// Lua-implemented modules (nature/*.lua and libs/*.lua). A Lua module that shares a name
 	// with a Go module/interface (hilbish, hilbish.runner) is the Lua-side of
 	// the same thing, so its functions merge into the existing def.
 	for _, lmod := range collectLuaModules() {
@@ -829,7 +829,7 @@ provided by Hilbish.
 	}
 }
 
-// collectLuaModules parses the Lua-implemented modules under nature/ into the
+// collectLuaModules parses the Lua-implemented modules under nature/ and libs/ into the
 // same module/docPiece structs the Go side produces, so a single renderer
 // handles both. It ports the line-based parsing that used to live in
 // cmd/docgen/docgen.lua: a leading `--- @module <name>` header, a top comment
@@ -837,7 +837,7 @@ provided by Hilbish.
 // `@return`, and `@example`...`@example` blocks).
 func collectLuaModules() []module {
 	var files []string
-	for _, pat := range []string{"nature/*.lua", "nature/*/*.lua"} {
+	for _, pat := range []string{"nature/*.lua", "nature/*/*.lua", "libs/*.lua", "libs/*/*.lua"} {
 		matches, _ := filepath.Glob(pat)
 		files = append(files, matches...)
 	}
@@ -1205,7 +1205,7 @@ func collectLuaModules() []module {
 		}
 
 		section := "nature"
-		if modName == "hilbish" || strings.HasPrefix(modName, "hilbish.") {
+		if modName == "commander" || modName == "hilbish" || strings.HasPrefix(modName, "hilbish.") {
 			section = "api"
 		}
 

@@ -158,12 +158,14 @@ func (s *Snail) ensureHandler() {
 
 			hc := interp.HandlerCtx(ctx)
 
-			cmds := make(map[string]*moonlight.Closure)
-			luaCmds := moonlight.ToTable(s.runtime.MustDoString("local commander = require 'commander'; return commander.registry()"))
-			moonlight.ForEach(luaCmds, func(k, v moonlight.Value) {
-				cmds[k.AsString()] = v.AsTable().Get(moonlight.StringValue("exec")).AsClosure()
-			})
-			if cmd := cmds[args[0]]; cmd != nil {
+			commanderMod := s.runtime.MustDoString("return require 'commander'").AsTable()
+			commanderGet := commanderMod.Get(moonlight.StringValue("get"))
+			cmdValue, err := s.runtime.Call1(commanderGet, moonlight.StringValue(args[0]))
+			if err != nil {
+				return err
+			}
+			if cmdValue != moonlight.NilValue {
+				cmd := cmdValue.AsClosure()
 				stdin := util.NewSinkInput(s.runtime, hc.Stdin)
 				stdout := util.NewSinkOutput(s.runtime, hc.Stdout)
 				stderr := util.NewSinkOutput(s.runtime, hc.Stderr)
