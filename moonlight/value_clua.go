@@ -192,6 +192,11 @@ func (v Value) TryUserData() (n *UserData, ok bool) {
 	return
 }
 
+func (v Value) TryClosure() (n *Closure, ok bool) {
+	n, ok = v.iface.(*Closure)
+	return
+}
+
 func AsUserData(v Value) *UserData {
 	return v.AsUserData()
 }

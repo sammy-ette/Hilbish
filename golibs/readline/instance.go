@@ -5,6 +5,8 @@ import (
 	"os"
 	"regexp"
 	"sync"
+
+	"github.com/sammy-ette/hilbish/moonlight"
 )
 
 // Instance is used to encapsulate the parameter group and run time of any given
@@ -193,6 +195,12 @@ type Readline struct {
 
 	EnableGetCursorPos bool
 
+	// Keybinding system
+	keymap        Keymap
+	actions       map[string]func(*Readline) error
+	customActions map[string]*moonlight.Closure
+	luaRuntime    *moonlight.Runtime
+
 	// event
 	evtKeyPress map[string]func(string, []rune, int) *EventReturn
 
@@ -257,6 +265,10 @@ func NewInstance() *Readline {
 	}
 
 	rl.bufferedOut = bufio.NewWriter(os.Stdout)
+
+	// Keybinding system
+	rl.customActions = make(map[string]*moonlight.Closure)
+	rl.initKeymap()
 
 	// Registers
 	rl.initRegisters()
