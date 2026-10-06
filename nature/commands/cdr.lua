@@ -20,7 +20,8 @@ to get a list of recent directories, use {green}cdr list{reset}]])
 			sinks.out:writeln 'No directories have been visited.'
 			return 1
 		end
-		for idx, d in ipairs(dirs.recentDirs) do
+		for idx, dir in ipairs(dirs.recentDirs) do
+			local d = dir
 			if d:find(hilbish.home, 1, true) then d = fs.join('~', d:sub(hilbish.home:len() + 1)) end
 			sinks.out:writeln(lunacolors.format(string.format('{cyan}%d{reset} %s', idx, d)))
 		end
