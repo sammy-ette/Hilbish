@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/sammy-ette/hilbish/golibs/bait"
-	"github.com/sammy-ette/hilbish/golibs/commander"
 	"github.com/sammy-ette/hilbish/golibs/fs"
 	"github.com/sammy-ette/hilbish/golibs/readline"
 	"github.com/sammy-ette/hilbish/golibs/snail"
@@ -72,8 +71,6 @@ func loadLibs(r *moonlight.Runtime) {
 	l.LoadLibrary(terminal.Loader, "terminal")
 	l.LoadLibrary(snail.Loader, "snail")
 
-	cmds = commander.New(r)
-	l.LoadLibrary(cmds.Loader, "commander")
 	l.LoadLibrary(readline.Loader, "readline")
 }
 
@@ -83,6 +80,5 @@ func yarnloadLibs(r *moonlight.Runtime) {
 	l.LoadLibrary(fs.Loader, "fs")
 	l.LoadLibrary(terminal.Loader, "terminal")
 	l.LoadLibrary(snail.Loader, "snail")
-	l.LoadLibrary(cmds.Loader, "commander")
 	l.LoadLibrary(readline.Loader, "readline")
 }

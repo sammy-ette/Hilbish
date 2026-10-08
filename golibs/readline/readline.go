@@ -32,6 +32,7 @@ func (rl *Readline) Readline() (string, error) {
 
 	// Line Init & Cursor
 	rl.line = []rune{}
+	rl.resetHintText()
 	rl.currentComp = []rune{} // No virtual completion yet
 	rl.lineComp = []rune{}    // So no virtual line either
 	rl.modeViMode = VimInsert
@@ -197,7 +198,9 @@ func (rl *Readline) Readline() (string, error) {
 			rl.editorInput(r[:i])
 		}
 
-		rl.clearHelpers()
+		if rl.hintY == 0 {
+			rl.clearHelpers()
+		}
 
 		rl.undoAppendHistory()
 	}
@@ -209,7 +212,6 @@ func (rl *Readline) insertPaste(b []byte) {
 	pasteBytes := bytes.ReplaceAll(b, []byte{'\r', '\n'}, []byte{'\n'})
 	pasteBytes = bytes.ReplaceAll(pasteBytes, []byte{'\r'}, []byte{'\n'})
 	rl.insert([]rune(string(pasteBytes)))
-	rl.writeHintText()
 }
 
 // editorInput is an unexported function used to determine what mode of text
@@ -253,7 +255,6 @@ func (rl *Readline) editorInput(r []rune) {
 		// We don't need it when inserting text.
 		rl.histNavIdx = 0
 		rl.insert(r)
-		rl.writeHintText()
 	}
 
 	rl.echoRightPrompt()

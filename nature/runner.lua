@@ -14,7 +14,7 @@
 ---
 --- ```lua
 --- local fennel = require 'fennel'
---- 
+---
 --- hilbish.runner.add('fennel', {
 --- 	run = function(input)
 --- 		local ok = pcall(fennel.eval, input)
@@ -186,7 +186,7 @@ function hilbish.runner.run(input, priv)
 
 	local runner = hilbish.runner.get(processed.modifiers.runner or currentRunner)
 	local oldDir = hilbish.cwd()
-	
+
 	::rerun::
 	local command
 	if processed.modifiers.alias == false then
@@ -195,9 +195,13 @@ function hilbish.runner.run(input, priv)
 		command = hilbish.aliases.resolve(processed.command)
 	end
 
-	local valid = runner.validate(processed.command)
+	local valid = runner.validate(command)
 	if not valid then
-		local contInput = hilbish.runner.continuePrompt(processed.command, false)
+		if not hilbish.interactive then
+			finishExec(126, command, priv)
+			return
+		end
+		local contInput = hilbish.runner.continuePrompt(command, false)
 		if contInput then
 			processed.command = contInput
 			goto rerun
@@ -231,7 +235,7 @@ function hilbish.runner.run(input, priv)
 		end
 	end
 
-	local ok, out = pcall(runner.run, processed.command)
+	local ok, out = pcall(runner.run, command)
 	if not ok then
 		io.stderr:write(out .. '\n')
 		finishExec(124, out.input, priv)
@@ -242,7 +246,7 @@ function hilbish.runner.run(input, priv)
 	-- TODO: maybe remove this, because validate should check if
 	-- input should be continued
 	if out.continue then
-		local contInput = hilbish.runner.continuePrompt(processed.command, out.newline)
+		local contInput = hilbish.runner.continuePrompt(command, out.newline)
 		if contInput then
 			processed.command = contInput
 			goto rerun
@@ -257,7 +261,7 @@ function hilbish.runner.run(input, priv)
 			io.stderr:write(out.err .. '\n')
 		end
 	end
-	finishExec(out.exitCode, out.input, priv)
+	finishExec(out.exitCode, processed.command, priv)
 	cdToOld()
 end
 

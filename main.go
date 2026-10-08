@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/sammy-ette/hilbish/golibs/bait"
-	"github.com/sammy-ette/hilbish/golibs/commander"
 	"github.com/sammy-ette/hilbish/moonlight"
 	"github.com/sammy-ette/hilbish/util"
 
@@ -30,7 +29,6 @@ var (
 	curuser     *user.User
 
 	hooks           *bait.Bait
-	cmds            *commander.Commander
 	confPath        string
 	defaultConfPath string
 	defaultHistPath string

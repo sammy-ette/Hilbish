@@ -6,6 +6,7 @@ import (
 	"os/user"
 	"testing"
 
+	"github.com/sammy-ette/hilbish/golibs/readline"
 	"github.com/sammy-ette/hilbish/moonlight"
 )
 
@@ -75,15 +76,11 @@ func initTestRuntime(t *testing.T) {
 // startup path and confirms every builtin module is reachable as a bare
 // global. The clua (midnight) backend used to only register modules lazily
 // under package.preload without ever promoting them to globals, which broke
-// every documented usage example that relies on bare globals (e.g.
-// golibs/commander's doc comment shows `commander.register(...)` with no
-// preceding `require`), and would surface here as nature's own command
-// files (which themselves use `local x = require 'x'`, so they wouldn't
-// have caught it) failing to load real commands correctly.
+// documented usage examples that rely on bare globals.
 func TestNatureLoadsAndExposesGlobalModules(t *testing.T) {
 	initTestRuntime(t)
 
-	for _, name := range []string{"hilbish", "bait", "fs", "terminal", "snail", "commander", "readline"} {
+	for _, name := range []string{"hilbish", "bait", "fs", "terminal", "snail", "readline"} {
 		v, err := l.DoString("return " + name)
 		if err != nil {
 			t.Fatalf("reading global %q: %v", name, err)
@@ -91,6 +88,56 @@ func TestNatureLoadsAndExposesGlobalModules(t *testing.T) {
 		if v.Type() != moonlight.TableType {
 			t.Errorf("global %q has type %v, want a table", name, v.Type())
 		}
+	}
+
+	commander, err := l.DoString("return commander")
+	if err != nil {
+		t.Fatalf("reading commander global: %v", err)
+	}
+	if commander.Type() != moonlight.NilType {
+		t.Fatalf("commander global has type %v, want nil", commander.Type())
+	}
+}
+
+func TestHinterCanBeUnregisteredAndToggled(t *testing.T) {
+	initTestRuntime(t)
+
+	editorValue, err := l.DoString("return hilbish.editor")
+	if err != nil {
+		t.Fatalf("reading hilbish.editor: %v", err)
+	}
+	userdata, ok := moonlight.TryUserData(editorValue)
+	if !ok {
+		t.Fatal("hilbish.editor is not userdata")
+	}
+	editor, ok := userdata.Value().(*readline.Readline)
+	if !ok {
+		t.Fatal("hilbish.editor userdata does not contain a readline instance")
+	}
+
+	if editor.HintText == nil {
+		t.Fatal("default hinter was not registered")
+	}
+
+	if _, err := l.DoString("hilbish.editor:setHinter(nil)"); err != nil {
+		t.Fatalf("setHinter(nil): %v", err)
+	}
+	if editor.HintText != nil {
+		t.Fatal("HintText is still registered after setHinter(nil)")
+	}
+
+	if _, err := l.DoString("hilbish.opts.hinter = true"); err != nil {
+		t.Fatalf("enabling hinter option: %v", err)
+	}
+	if editor.HintText == nil {
+		t.Fatal("enabling hinter option did not register the default hinter")
+	}
+
+	if _, err := l.DoString("hilbish.opts.hinter = false"); err != nil {
+		t.Fatalf("disabling hinter option: %v", err)
+	}
+	if editor.HintText != nil {
+		t.Fatal("disabling hinter option did not unregister the default hinter")
 	}
 }
 
@@ -135,6 +182,7 @@ func TestCommanderRegisterAndRunWithSinks(t *testing.T) {
 	initTestRuntime(t)
 
 	if _, err := l.DoString(`
+		local commander = require 'commander'
 		commander.register('inttestcmd', function(args, sinks)
 			sinks.out:writeln('got:' .. table.concat(args, ','))
 			return 0

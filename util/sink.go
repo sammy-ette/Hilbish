@@ -20,8 +20,22 @@ var sinkMetaKey = moonlight.StringValue("hshsink")
 type Sink struct {
 	Rw        *bufio.ReadWriter
 	file      *os.File
+	reader    io.Reader // raw underlying reader, before bufio wrapping
+	writer    io.Writer // raw underlying writer, before bufio wrapping
 	UserData  *moonlight.UserData
 	autoFlush bool
+}
+
+// RawReader gives back the raw reader the sink wraps, before the bufio layer.
+// for handing to something that buffers on its own, like an exec.Cmd stdin
+func (s *Sink) RawReader() io.Reader {
+	return s.reader
+}
+
+// RawWriter gives back the raw writer the sink wraps, before the bufio layer.
+// for handing to something that buffers on its own, like an exec.Cmd stdout
+func (s *Sink) RawWriter() io.Writer {
+	return s.writer
 }
 
 // @interface sink
@@ -281,6 +295,8 @@ func luaSinkAutoFlush(mlr *moonlight.Runtime) error {
 func NewSink(mlr *moonlight.Runtime, Rw io.ReadWriter) *Sink {
 	s := &Sink{
 		Rw:        bufio.NewReadWriter(bufio.NewReader(Rw), bufio.NewWriter(Rw)),
+		reader:    Rw,
+		writer:    Rw,
 		autoFlush: true,
 	}
 	s.UserData = sinkUserData(mlr, s)
@@ -294,7 +310,8 @@ func NewSink(mlr *moonlight.Runtime, Rw io.ReadWriter) *Sink {
 
 func NewSinkInput(mlr *moonlight.Runtime, r io.Reader) *Sink {
 	s := &Sink{
-		Rw: bufio.NewReadWriter(bufio.NewReader(r), nil),
+		Rw:     bufio.NewReadWriter(bufio.NewReader(r), nil),
+		reader: r,
 	}
 	s.UserData = sinkUserData(mlr, s)
 
@@ -308,6 +325,7 @@ func NewSinkInput(mlr *moonlight.Runtime, r io.Reader) *Sink {
 func NewSinkOutput(mlr *moonlight.Runtime, w io.Writer) *Sink {
 	s := &Sink{
 		Rw:        bufio.NewReadWriter(nil, bufio.NewWriter(w)),
+		writer:    w,
 		autoFlush: true,
 	}
 	s.UserData = sinkUserData(mlr, s)

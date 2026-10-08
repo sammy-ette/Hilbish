@@ -4,13 +4,13 @@ local lunacolors = require 'lunacolors'
 bait.catch('job.done', function(job)
 	if not hilbish.opts.notifyJobFinish then return end
 	local notifText = string.format(lunacolors.format [[
-Background job with ID#%d has exited (PID %d).
-Command string: {bold}{yellow}%s{reset}]], job.id, job.pid, job.cmd)
+Background job with ID#%d has exited (PID %s).
+Command string: {bold}{yellow}%s{reset}]], job.id, tostring(job.pid or '-'), job.cmd)
 
-	if job.stdout ~= '' then
+	if job.stdout and job.stdout ~= '' then
 		notifText = notifText .. '\n\nStandard output:\n' .. job.stdout
 	end
-	if job.stderr ~= '' then
+	if job.stderr and job.stderr ~= '' then
 		notifText = notifText .. '\n\nStandard error:\n' .. job.stderr
 	end
 

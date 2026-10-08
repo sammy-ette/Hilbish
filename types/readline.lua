@@ -48,7 +48,7 @@ function Readline:setCompleter(fn) end
 ---@param fn fun(line:string):string
 function Readline:setHighlighter(fn) end
 
----@param fn fun(line:string,pos:integer):string
+---@param fn? fun(line:string,pos:integer):string
 function Readline:setHinter(fn) end
 
 ---@param handler table
