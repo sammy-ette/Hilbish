@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="500"
+   height="500"
+   viewBox="0 0 132.29167 132.29167"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   sodipodi:docname="hilbish-logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.77415123"
+     inkscape:cx="396.56334"
+     inkscape:cy="359.74883"
+     inkscape:window-width="1906"
+     inkscape:window-height="976"
+     inkscape:window-x="6"
+     inkscape:window-y="6"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer3" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       inkscape:groupmode="layer"
+       id="layer3"
+       inkscape:label="Layer 3"
+       transform="matrix(0.92389223,0,0,0.92389223,-9.1696966,-16.71072)">
+      <g
+         transform="matrix(0.91742143,-0.0050459,0.0050459,0.91742143,79.993636,91.177912)"
+         id="g6-3-1"
+         clip-path="none"
+         style="stroke-width:2.30716;stroke-dasharray:none">
+        <path
+           d="m 0,0 c -30,-11 -35,-40 -18,-56 9,-9 27,-9 36,0 17,16 12,45 -18,56 z"
+           fill="#f0a8c9"
+           id="path1-6-6-7"
+           style="stroke:#201c1a;stroke-width:2.30716;stroke-dasharray:none;stroke-opacity:1"
+           transform="translate(-1.3612137e-6)" />
+        <path
+           d="m 0,0 c -30,-11 -35,-40 -18,-56 9,-9 27,-9 36,0 17,16 12,45 -18,56 z"
+           fill="#d6659a"
+           id="path2-2-9-2"
+           style="stroke:#201c1a;stroke-width:2.30716;stroke-dasharray:none;stroke-opacity:1"
+           transform="rotate(72,1.8051352e-7,-1.5624156e-6)" />
+        <path
+           d="m 0,0 c -30,-11 -35,-40 -18,-56 9,-9 27,-9 36,0 17,16 12,45 -18,56 z"
+           fill="#f0a8c9"
+           id="path3-9-2-2"
+           style="stroke:#201c1a;stroke-width:2.30716;stroke-dasharray:none;stroke-opacity:1"
+           transform="rotate(144,-4.7732392e-7,-8.4678316e-7)" />
+        <path
+           d="m 0,0 c -30,-11 -35,-40 -18,-56 9,-9 27,-9 36,0 17,16 12,45 -18,56 z"
+           fill="#d6659a"
+           id="path4-0-7"
+           style="stroke:#201c1a;stroke-width:2.30716;stroke-dasharray:none;stroke-opacity:1"
+           transform="rotate(-144,-8.8388983e-7,-4.04498e-7)" />
+        <path
+           d="m 0,0 c -30,-11 -35,-40 -18,-56 9,-9 27,-9 36,0 17,16 12,45 -18,56 z"
+           fill="#f0a8c9"
+           id="path5-3-9"
+           style="stroke:#201c1a;stroke-width:2.30716;stroke-dasharray:none;stroke-opacity:1"
+           transform="rotate(-72,-1.5417273e-6,3.1113441e-7)" />
+        <circle
+           cx="0"
+           cy="0"
+           r="10"
+           fill="#201c1a"
+           id="circle5-6-2"
+           style="stroke-width:2.30716;stroke-dasharray:none" />
+      </g>
+      <path
+         id="path7"
+         style="fill:none;fill-opacity:1;stroke:#201c1a;stroke-width:2.11667;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 99.027796,23.470976 c 0,0 -11.598231,-2.275858 -17.507975,-2.27583 -37.820519,-6.7e-5 -68.480124,30.659538 -68.480057,68.480057 2.2e-4,37.820317 30.659741,68.479607 68.480057,68.479537 37.820319,7e-5 68.479839,-30.65922 68.480059,-68.479537 1.4e-4,-16.711119 -6.1103,-32.845548 -17.18035,-45.364156"
+         sodipodi:nodetypes="cccccc" />
+      <circle
+         style="fill:#eb8ab7;fill-opacity:1;stroke:#201c1a;stroke-width:2.11667;stroke-dasharray:none;stroke-opacity:1"
+         id="path8"
+         cx="113.9856"
+         cy="32.457542"
+         r="12.515415" />
+    </g>
+  </g>
+</svg>
