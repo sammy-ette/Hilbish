@@ -140,6 +140,7 @@ func commonKeymap() Keymap {
 		keyNameToSeq("Ctrl-U"):    "delete.to-beginning",
 		keyNameToSeq("Ctrl-K"):    "delete.to-end",
 		keyNameToSeq("Backspace"): "backspace",
+		seqBackspace2:             "backspace",
 		keyNameToSeq("Ctrl-H"):    "backspace",
 		keyNameToSeq("Ctrl-W"):    "delete.kill-word-backward",
 		keyNameToSeq("Ctrl-Y"):    "register.yank",
@@ -546,6 +547,9 @@ func actionHistoryPrev(rl *Readline) error {
 	rl.walkHistory(1)
 	moveCursorForwards(len(rl.line) - rl.pos)
 	rl.pos = len(rl.line)
+	rl.resetHintText()
+	rl.clearHelpers()
+	rl.renderHelpers()
 	return nil
 }
 
@@ -561,6 +565,9 @@ func actionHistoryNextAlt(rl *Readline) error {
 	rl.walkHistory(-1)
 	moveCursorForwards(len(rl.line) - rl.pos)
 	rl.pos = len(rl.line)
+	rl.resetHintText()
+	rl.clearHelpers()
+	rl.renderHelpers()
 	return nil
 }
 

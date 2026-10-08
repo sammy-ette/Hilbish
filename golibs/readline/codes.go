@@ -40,6 +40,7 @@ const (
 
 // Escape sequences
 var (
+	seqBackspace2  = string([]byte{charBackspace2})
 	seqUp          = string([]byte{27, 91, 65})
 	seqDown        = string([]byte{27, 91, 66})
 	seqForwards    = string([]byte{27, 91, 67})

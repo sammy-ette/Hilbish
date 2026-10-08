@@ -12,7 +12,6 @@ func (rl *Readline) SetHintText(s string) {
 */
 
 func (rl *Readline) getHintText() {
-
 	if !rl.modeAutoFind && !rl.modeTabFind {
 		// Return if no hints provided by the user/engine
 		if rl.HintText == nil {
