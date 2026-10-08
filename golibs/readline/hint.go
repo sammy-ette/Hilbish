@@ -1,6 +1,6 @@
 package readline
 
-import "regexp"
+import "strings"
 
 // SetHintText - a nasty function to force writing a new hint text. It does not update helpers, it just renders
 // them, so the hint will survive until the helpers (thus including the hint) will be updated/recomputed.
@@ -33,33 +33,66 @@ func (rl *Readline) setHinter(fn func([]rune, int) []rune) {
 
 // writeHintText - only writes the hint text and computes its offsets.
 func (rl *Readline) writeHintText() {
+	rl.hintY = 0
 	if len(rl.hintText) == 0 {
-		//rl.hintY = 0
 		return
 	}
 
 	width := GetTermWidth()
 
-	// Wraps the line, and counts the number of newlines in the string,
-	// adjusting the offset as well.
-	re := regexp.MustCompile(`\r?\n`)
-	newlines := re.Split(string(rl.hintText), -1)
-	offset := len(newlines)
-
-	wrapped, hintLen := WrapText(string(rl.hintText), width)
-	offset += hintLen
-	//	rl.hintY = offset
+	wrapped, _ := WrapText(string(rl.hintText), width)
+	if wrapped == "" {
+		return
+	}
+	wrapped, rl.hintY = wrapHintText(wrapped, rl.posX, width)
 
 	hintText := string(wrapped)
 
-	if len(hintText) > 0 {
-		print(rl.HintFormatting + string(hintText) + seqReset)
-	}
+	print(rl.HintFormatting + hintText + seqReset)
+
+	moveCursorBackwards(width)
+	moveCursorUp(rl.hintY)
+	moveCursorForwards(rl.posX)
 }
 
 func (rl *Readline) resetHintText() {
-	//rl.hintY = 0
 	rl.hintText = []rune{}
+	rl.hintY = 0
+}
+
+func wrapHintText(text string, startX, width int) (string, int) {
+	if width <= 0 {
+		width = 1
+	}
+	if startX < 0 {
+		startX = 0
+	}
+	if startX >= width {
+		startX %= width
+	}
+
+	var wrapped strings.Builder
+	rows := 0
+	x := startX
+	for _, r := range []rune(text) {
+		if r == '\n' {
+			wrapped.WriteRune(r)
+			rows++
+			x = 0
+			continue
+		}
+
+		runeWidth := displayWidth([]rune{r})
+		if runeWidth > 0 && x+runeWidth > width {
+			wrapped.WriteRune('\n')
+			rows++
+			x = 0
+		}
+		wrapped.WriteRune(r)
+		x += runeWidth
+	}
+
+	return wrapped.String(), rows
 }
 
 func (rl *Readline) insertHintText() {

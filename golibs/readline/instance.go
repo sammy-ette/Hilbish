@@ -167,6 +167,7 @@ type Readline struct {
 	HintFormatting string
 
 	hintText []rune
+	hintY    int
 
 	//
 	// Vim Operatng Parameters -------------------------------------------------------------------

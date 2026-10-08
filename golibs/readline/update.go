@@ -97,29 +97,20 @@ func (rl *Readline) clearHelpers() {
 // and replaces the cursor to its current position. This function never
 // computes or refreshes any value, except from inside the echo function.
 func (rl *Readline) renderHelpers() {
-
-	// when the instance is in this state we want it to be "below" the user's
-	// input for it to be aligned properly
-	if !rl.compConfirmWait {
-		rl.writeHintText()
-	}
 	rl.echo()
 	if rl.modeTabCompletion {
 		// in tab complete mode we want it to update
 		// when something has been selected
 		// (dynamic!!)
 		rl.getHintText()
-		rl.writeHintText()
-	} else if !rl.compConfirmWait {
-		// for the same reason above of wanting it below user input, do nothing here
-	} else {
-		rl.writeHintText()
 	}
+	rl.writeHintText()
 
 	rl.echoRightPrompt()
 
 	// Go at beginning of first line after input remainder
-	moveCursorDown(rl.fullY - rl.posY)
+	inputEndY := max(rl.hintY, rl.fullY-rl.posY)
+	moveCursorDown(inputEndY)
 	moveCursorBackwards(GetTermWidth())
 
 	// Print Infos, check for any confirmation Info current.
@@ -157,7 +148,7 @@ func (rl *Readline) renderHelpers() {
 	}
 
 	// Go back to current cursor position
-	moveCursorUp(rl.fullY - rl.posY)
+	moveCursorUp(inputEndY)
 	moveCursorForwards(rl.posX)
 }
 

@@ -34,6 +34,17 @@ func TestSetHinterUnregistersAndClearsHint(t *testing.T) {
 	}
 }
 
+func TestWrapHintTextAtCursor(t *testing.T) {
+	got, rows := wrapHintText(strings.Repeat("x", 78), 40, 110)
+	want := strings.Repeat("x", 70) + "\n" + strings.Repeat("x", 8)
+	if got != want {
+		t.Fatalf("wrapped hint = %q, want %q", got, want)
+	}
+	if rows != 1 {
+		t.Fatalf("wrapped hint rows = %d, want 1", rows)
+	}
+}
+
 // TestEchoHighlighterPerRow verifies that the SyntaxHighlighter is called once
 // per logical row with no embedded newlines. Before the multiline fix it was
 // called once with the whole buffer (including literal '\n' runes).
