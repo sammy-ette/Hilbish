@@ -105,13 +105,39 @@ func TestHistoryNavigationPlacesCursorAtEnd(t *testing.T) {
 	rl := newTestRL("")
 	rl.mainHistory = history
 	rl.mainHist = true
-	rl.escapeSeq([]rune(seqUp))
+	rl.HintText = func(line []rune, pos int) []rune {
+		if pos == len(line) {
+			return []rune("stale hint")
+		}
+		return nil
+	}
+	if err := actionHistoryPrev(rl); err != nil {
+		t.Fatalf("history navigation action: %v", err)
+	}
 
 	if string(rl.line) != "echo first" {
 		t.Fatalf("history line = %q, want %q", string(rl.line), "echo first")
 	}
 	if rl.pos != len(rl.line) {
 		t.Fatalf("history cursor position = %d, want %d", rl.pos, len(rl.line))
+	}
+	if len(rl.hintText) != 0 {
+		t.Fatalf("history navigation left cached hint %q", string(rl.hintText))
+	}
+
+	rl.Insert("!")
+	if rl.histOffset != 1 {
+		t.Fatalf("editing history entry changed histOffset to %d", rl.histOffset)
+	}
+	if len(rl.hintText) == 0 {
+		t.Fatal("editing history entry did not restore hint computation")
+	}
+
+	if err, handled := rl.dispatch(string([]byte{charBackspace2})); err != nil || !handled {
+		t.Fatalf("dispatching backspace after history navigation: err=%v, handled=%v", err, handled)
+	}
+	if got := string(rl.line); got != "echo first" {
+		t.Fatalf("line after backspace = %q, want %q", got, "echo first")
 	}
 }
 

@@ -204,4 +204,3 @@ func (rl *Readline) deleteToEnd() {
 	// Keep everything before the cursor
 	rl.line = rl.line[:rl.pos]
 }
-

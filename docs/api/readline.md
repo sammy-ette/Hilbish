@@ -152,6 +152,58 @@ Clears the history.
 
 ---
 
+#### addAction
+
+:::signature
+```lua
+readline:addAction(name, fn)
+```
+:::
+
+Since: `3.0.0`
+
+Registers or overrides an action with a custom Lua function.  
+
+#### Parameters
+
+:::params
+`string` _name_  
+
+`function` _fn_  
+
+:::
+
+
+
+---
+
+#### bindKey
+
+:::signature
+```lua
+readline:bindKey(key, action)
+```
+:::
+
+Since: `3.0.0`
+
+Binds a key to an action name or a custom function.  
+
+#### Parameters
+
+:::params
+`string` _key_  
+key name like "Ctrl-A" or a raw sequence
+
+`string|function` _action_  
+action name or a custom function
+
+:::
+
+
+
+---
+
 #### deleteByAmount
 
 :::signature
@@ -168,6 +220,29 @@ Deletes characters in the line by the given amount.
 
 :::params
 `number` _amount_  
+
+:::
+
+
+
+---
+
+#### getBindings
+
+:::signature
+```lua
+readline:getBindings() -> table<string,string>
+```
+:::
+
+Since: `3.0.0`
+
+Returns the current key-to-action bindings for this readline instance.  
+
+#### Returns
+
+:::returns
+`table<string,string>`  
 
 :::
 
@@ -342,6 +417,29 @@ Since: `3.0.0`
 
 Refreshes the prompt, if the text has been updated.  
 This is called automatically on `hilbish.prompt`  
+
+
+
+---
+
+#### removeAction
+
+:::signature
+```lua
+readline:removeAction(name)
+```
+:::
+
+Since: `3.0.0`
+
+Removes a keybind action.  
+
+#### Parameters
+
+:::params
+`string` _name_  
+
+:::
 
 
 
@@ -590,6 +688,30 @@ fn receives the mode string: "insert", "normal", "delete", or "replace".
 
 :::params
 `function` _fn_  
+
+:::
+
+
+
+---
+
+#### unbindKey
+
+:::signature
+```lua
+readline:unbindKey(key)
+```
+:::
+
+Since: `3.0.0`
+
+Unbinds a key from any action.  
+
+#### Parameters
+
+:::params
+`string` _key_  
+key name like "Ctrl-A" or a raw sequence
 
 :::
 
