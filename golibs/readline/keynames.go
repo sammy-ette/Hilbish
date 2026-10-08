@@ -73,7 +73,13 @@ func init() {
 
 	// Some terminals report certain keys with a different escape sequence
 	reverseKeyNames[seqCtrlDelete2] = "Ctrl-Delete"
+	reverseKeyNames[string([]byte{charBackspace})] = "Backspace"
 	reverseKeyNames[seqBackspace2] = "Backspace"
+	reverseKeyNames[string([]byte{charTab})] = "Tab"
+	reverseKeyNames[string([]byte{charCtrlJ})] = "Enter"
+	reverseKeyNames[string([]byte{charCtrlM})] = "Enter"
+	reverseKeyNames["\r"] = "Enter"
+	reverseKeyNames["\r\n"] = "Enter"
 	reverseKeyNames[seqDelete2] = "Delete"
 	reverseKeyNames[seqHomeSc] = "Home"
 	reverseKeyNames[seqEndSc] = "End"

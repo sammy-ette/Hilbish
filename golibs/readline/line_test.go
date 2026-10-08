@@ -7,6 +7,25 @@ import (
 	"testing"
 )
 
+func TestSeqToKeyNameUsesCanonicalNames(t *testing.T) {
+	tests := map[string]string{
+		string([]byte{charBackspace}): "Backspace",
+		seqBackspace2:                 "Backspace",
+		string([]byte{charTab}):       "Tab",
+		"\r":                          "Enter",
+		"\n":                          "Enter",
+		"\r\n":                        "Enter",
+		seqUp:                         "Up",
+		seqCtrlDelete2:                "Ctrl-Delete",
+	}
+
+	for sequence, want := range tests {
+		if got := seqToKeyName(sequence); got != want {
+			t.Errorf("seqToKeyName(%q) = %q, want %q", sequence, got, want)
+		}
+	}
+}
+
 // newTestRL creates a Readline suitable for unit tests: output is discarded
 // so escape sequences don't pollute test output.
 func newTestRL(line string) *Readline {
