@@ -102,21 +102,10 @@ pub fn nav(show_sidebar_toggle: Bool) -> element.Element(a) {
             html.a(
               [
                 attribute.href(conf.base_url_join("/")),
-                attribute.class("flex items-center gap-2 group"),
+                attribute.class("flex items-center group"),
               ],
               [
-                html.img([
-                  attribute.src(conf.base_url_join("/hilbish-flower.png")),
-                  attribute.class("h-7 w-7"),
-                ]),
-                html.span(
-                  [
-                    attribute.class(
-                      "text-xl font-bold text-neutral-900 dark:text-neutral-50 group-hover:text-pink-600 dark:group-hover:text-pink-300 transition-colors",
-                    ),
-                  ],
-                  [element.text("Hilbish")],
-                ),
+                logo_image("h-8 w-auto"),
               ],
             ),
           ]),
@@ -170,20 +159,10 @@ pub fn footer() -> element.Element(a) {
             html.a(
               [
                 attribute.href(conf.base_url),
-                attribute.class("flex items-center gap-3 group w-fit"),
+                attribute.class("flex items-center group w-fit"),
               ],
               [
-                html.img([
-                  attribute.src(conf.base_url_join("/hilbish-flower.png")),
-                  attribute.class("h-10 w-10"),
-                ]),
-                html.span(
-                  [
-                    attribute.class("text-2xl font-bold"),
-                    attribute.class(theme.text_default),
-                  ],
-                  [element.text("Hilbish")],
-                ),
+                logo_image("h-12 w-auto"),
               ],
             ),
             html.span([attribute.class(theme.text_muted)], [
@@ -236,4 +215,18 @@ fn footer_link(url: String, text: String, out: Bool) -> element.Element(a) {
       },
     ],
   )
+}
+
+pub fn logo_image(class: String) -> element.Element(a) {
+  html.picture([], [
+    html.source([
+      attribute.media("(prefers-color-scheme: dark)"),
+      attribute.srcset(conf.base_url_join("/hilbish-light.svg")),
+    ]),
+    html.img([
+      attribute.src(conf.base_url_join("/hilbish.svg")),
+      attribute.alt("Hilbish"),
+      attribute.class(class),
+    ]),
+  ])
 }

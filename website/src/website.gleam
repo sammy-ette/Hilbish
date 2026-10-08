@@ -163,7 +163,7 @@ fn create_page(
         html.title([], "Hilbish"),
         html.meta([attribute.name("theme-color"), attribute.content("#ff89dd")]),
         html.meta([
-          attribute.content(conf.base_url_join("/hilbish-flower.png")),
+          attribute.content(conf.base_url_join("/hilbish.svg")),
           attribute.attribute("property", "og:image"),
         ]),
         html.meta([

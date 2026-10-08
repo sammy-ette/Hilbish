@@ -1,4 +1,4 @@
-<img src="./assets/hilbish-logo-and-text.png" width=512><br>
+<img src="./assets/hilbish.svg" width=512><br>
 <blockquote>
 🌓 The Moon-powered shell! A comfy and extensible shell for Lua fans! 🌺 ✨
 </blockquote>
@@ -19,17 +19,19 @@ The motivation for choosing Lua was that its simpler and better to use
 than old shell scripts. It's fine for basic interactive shell uses,
 and supports [both Lua and Sh interactively](https://hilbish.sammyette.party/docs/features/runner-mode/).
 
-That's the only place Hilbish can use traditional shell syntax though; 
-everything else is Lua and aims to be infinitely configurable. 
+That's the only place Hilbish can use traditional shell syntax though;
+everything else is Lua and aims to be infinitely configurable.
 
 If something isn't, open an issue!
 
 # Screenshots
+
 <div align="center">
 <img src="gallery/tab.png">
 </div>
 
 # Getting Hilbish
+
 **NOTE:** Hilbish is not guaranteed to work properly on Windows, starting
 from the 2.0 version. It will still be able to compile, but functionality
 may be lacking. If you want to contribute to make the situation better,
@@ -40,19 +42,23 @@ on the website for distributed binaries from GitHub or other package repositorie
 Otherwise, continue reading for steps on compiling.
 
 ## Prerequisites
+
 - [Go 1.22+](https://go.dev)
 - [Task](https://taskfile.dev/installation/) (**Go on the hyperlink here to see Task's install method for your OS.**)
 
 # Compiling
+
 First, clone Hilbish. The recursive is required, as some Lua libraries
-are submodules.  
+are submodules.
+
 ```sh
 git clone --recursive https://github.com/sammy-ette/Hilbish
 cd Hilbish
 go get -d ./...
-```  
+```
 
 ## Editions
+
 Hilbish comes in 2 editions: Standard and Midnight edition.
 
 The standard edition of Hilbish uses a pure-Go written Lua implementation and is the default.
@@ -62,24 +68,30 @@ Midnight edition uses a binding to the original C Lua to run Lua code instead.
 Midnight edition is offered as a nice feature in case you want to use a Lua library written in C, or LuaJIT, but should not be used for other reasons.
 
 ### Standard Edition
+
 To build, run:
+
 ```
 task
-```  
+```
 
 Or, if you want a stable branch, run these commands:
+
 ```
 git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
 task build
-```  
+```
 
 ### Midnight Edition
+
 To build midnight edition, run:
+
 ```
 task midnight
 ```
 
 To change the Lua version used, you can use the LUA environment variable. Fedora users require this to compile with the right Lua library:
+
 ```
 LUA=lua54,lluadash task midnight
 ```
@@ -89,19 +101,22 @@ Note that Hilbish is only officially supported on Lua 5.4.
 `lluadash` is used incase the Lua library on your system is named something like `liblua-5.4` (with a dash, which it is on Fedora).
 
 ## Install
+
 After you did all that, run `sudo task install` to install Hilbish globally.
 
 # Contributing
+
 Any kind of contributions are welcome! Hilbish is very easy to contribute to.
 Read [CONTRIBUTING.md](CONTRIBUTING.md) as a guideline to doing so.
 
 **Thanks to everyone below who's contributed!**  
 <a href="https://github.com/sammy-ette/Hilbish/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=sammy-ette/Hilbish" />
+<img src="https://contrib.rocks/image?repo=sammy-ette/Hilbish" />
 </a>
 
-*Made with [contributors-img](https://contrib.rocks).*
+_Made with [contributors-img](https://contrib.rocks)._
 
 # License
+
 Hilbish is licensed under the [MIT license](LICENSE).  
 [Images and assets](assets/) are licensed under CC-BY-SA 4.0
